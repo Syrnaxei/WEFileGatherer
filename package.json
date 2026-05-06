@@ -1,0 +1,58 @@
+{
+  "name": "svfp",
+  "version": "1.0.0",
+  "description": "SVFP - 视频文件流处理系统",
+  "main": "dist/electron/electron/main.js",
+  "scripts": {
+    "build": "tsc",
+    "build:electron": "tsc -p tsconfig.electron.json",
+    "start": "node dist/main.js",
+    "dev": "tsc && node dist/main.js",
+    "electron:dev": "concurrently \"tsc -p tsconfig.electron.json --watch\" \"cd web && npm run dev\" \"wait-on dist/electron/electron/main.js http://localhost:5173 && cross-env NODE_ENV=development electron dist/electron/electron/main.js\"",
+    "electron:build": "tsc -p tsconfig.electron.json && npm --prefix web run build && electron-builder",
+    "web:dev": "cd web && npm run dev",
+    "web:build": "cd web && npm run build"
+  },
+  "dependencies": {
+    "@types/cors": "^2.8.19",
+    "@types/express": "^5.0.6",
+    "better-sqlite3": "^11.9.1",
+    "chokidar": "^3.6.0",
+    "cors": "^2.8.6",
+    "dotenv": "^17.4.2",
+    "express": "^5.2.1",
+    "lowdb": "^7.0.1",
+    "socket.io": "^4.8.3"
+  },
+  "devDependencies": {
+    "@types/better-sqlite3": "^7.6.13",
+    "@types/node": "^20.14.0",
+    "concurrently": "^9.1.2",
+    "cross-env": "^7.0.3",
+    "electron": "^35.7.5",
+    "electron-builder": "^26.0.12",
+    "typescript": "^5.4.0",
+    "wait-on": "^8.0.3"
+  },
+  "engines": {
+    "node": ">>=18.0.0"
+  },
+  "build": {
+    "appId": "com.vfp.app",
+    "productName": "Syrnaxies Video File Processor V1",
+    "directories": {
+      "output": "release"
+    },
+    "files": [
+      "dist/**/*",
+      "web/dist/**/*"
+    ],
+    "extraResources": [
+      "data/**/*"
+    ],
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true
+    }
+  }
+}

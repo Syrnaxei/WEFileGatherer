@@ -1,0 +1,33 @@
+# Dependencies
+node_modules/
+
+# Build output
+dist/
+release/
+
+# Runtime data
+data/
+wfp/
+input/
+output/
+
+# Environment
+.env
+
+# Logs
+*.log
+logs/
+
+# Editor & IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Electron
+*.exe
+*.dmg

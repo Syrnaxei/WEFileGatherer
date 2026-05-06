@@ -1,0 +1,18 @@
+{
+  "compilerOptions": {
+    "target": "ES2022",
+    "module": "commonjs",
+    "lib": ["ES2022"],
+    "outDir": "./dist/electron",
+    "rootDir": "./src",
+    "strict": true,
+    "esModuleInterop": true,
+    "skipLibCheck": true,
+    "forceConsistentCasingInFileNames": true,
+    "resolveJsonModule": true,
+    "moduleResolution": "node",
+    "sourceMap": true
+  },
+  "include": ["src/electron/**/*", "src/api/**/*", "src/core/**/*", "src/db/**/*", "src/factory/**/*", "src/nodes/**/*", "src/utils/**/*", "src/server.ts"],
+  "exclude": ["node_modules", "dist", "web"]
+}
