@@ -6,6 +6,7 @@ import { IFlow } from './core/flow';
 import { IFileContext } from './core/context';
 import { TagGenerationRule } from './core/node';
 import { config } from './config';
+import { APP_NAME, APP_VERSION } from './version';
 import * as path from 'path';
 
 /**
@@ -50,7 +51,7 @@ const mover = new MoverNode('node-mover', {
 // 2. 构建工作流（线性链：watcher → tagger → mover）
 const flow: IFlow = {
   id: 'flow-demo',
-  name: 'SVFP Flow',
+  name: `${APP_NAME} v${APP_VERSION}`,
   nodes: [watcher, tagger, mover],
   edges: [
     { sourceId: 'node-watcher', targetId: 'node-tagger' },
@@ -81,6 +82,7 @@ watcher.init((filePath: string) => {
   });
 });
 
+console.log(`[main] ${APP_NAME} v${APP_VERSION}`);
 console.log('[main] Flow is running. Watching for new files...');
 console.log('[main] Press Ctrl+C to stop.');
 

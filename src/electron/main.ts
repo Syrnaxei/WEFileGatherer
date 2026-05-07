@@ -8,6 +8,7 @@ import tagsRouter from '../api/tags';
 import settingsRouter from '../api/settings';
 import { RecoveryManager } from '../db/recovery';
 import { SQLiteDb, ContextStatus } from '../db/sqlite';
+import { APP_SHORT_NAME, APP_VERSION } from '../version';
 
 let mainWindow: BrowserWindow | null = null;
 let expressServer: ReturnType<typeof createServer> | null = null;
@@ -16,7 +17,7 @@ function createWindow() {
   mainWindow = new BrowserWindow({
     width: 1400,
     height: 900,
-    title: 'SVFP',
+    title: `${APP_SHORT_NAME} v${APP_VERSION}`,
     show: false, // 等 ready-to-show 再显示，避免白屏
     webPreferences: {
       preload: path.join(__dirname, 'preload.js'),

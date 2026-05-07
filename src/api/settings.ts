@@ -1,7 +1,19 @@
 import express from 'express';
 import { SQLiteDb } from '../db/sqlite';
+import { APP_NAME, APP_SHORT_NAME, APP_VERSION, BUILD_DATE, GITHUB_URL } from '../version';
 
 const router = express.Router();
+
+router.get('/version', (_req, res) => {
+  res.json({
+    success: true,
+    appName: APP_NAME,
+    appShortName: APP_SHORT_NAME,
+    version: APP_VERSION,
+    buildDate: BUILD_DATE,
+    githubUrl: GITHUB_URL,
+  });
+});
 
 router.get('/settings/:key', (req, res) => {
   const { key } = req.params;

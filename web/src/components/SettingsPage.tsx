@@ -1,7 +1,30 @@
+import { useState, useEffect } from 'react';
 import { useTheme } from '../contexts/ThemeContext';
+
+const API_BASE = 'http://localhost:3000/api';
+
+interface VersionInfo {
+  appName: string;
+  appShortName: string;
+  version: string;
+  buildDate: string;
+  githubUrl: string;
+}
 
 export default function SettingsPage() {
   const { isDark, setTheme } = useTheme();
+  const [version, setVersion] = useState<VersionInfo | null>(null);
+
+  useEffect(() => {
+    fetch(`${API_BASE}/version`)
+      .then((r) => r.json())
+      .then((data) => {
+        if (data.success) {
+          setVersion(data);
+        }
+      })
+      .catch(() => {});
+  }, []);
 
   return (
     <div style={{
@@ -43,9 +66,10 @@ export default function SettingsPage() {
 
           <SettingCard title="关于" isDark={isDark}>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-              <AboutRow label="应用名称" value="SVFP" isDark={isDark} />
-              <AboutRow label="版本号" value="1.0.0" isDark={isDark} />
-              <AboutRow label="构建日期" value="2026-05-06" isDark={isDark} />
+              <AboutRow label="应用名称" value={version?.appName ?? 'SVFP'} isDark={isDark} />
+              <AboutRow label="版本号" value={version?.version ?? '-'} isDark={isDark} />
+              <AboutRow label="Github" value={version?.githubUrl ?? '-'} isDark={isDark} />
+              <AboutRow label="构建日期" value={version?.buildDate ?? '-'} isDark={isDark} />
             </div>
           </SettingCard>
         </div>
