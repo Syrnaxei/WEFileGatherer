@@ -2,16 +2,18 @@ interface StatsDashboardProps {
   total: number;
   tagged: number;
   untagged: number;
+  processed: number;
   invalid: number;
   isDark: boolean;
 }
 
-export default function StatsDashboard({ total, tagged, untagged, invalid, isDark }: StatsDashboardProps) {
+export default function StatsDashboard({ total, tagged, untagged, processed, invalid, isDark }: StatsDashboardProps) {
   const cards = [
     { label: '待处理', value: untagged, color: '#6366f1' },
     { label: '已标记', value: tagged, color: '#3b82f6' },
-    { label: '总计', value: total, color: '#10b981' },
-    { label: '无效', value: invalid, color: '#ef4444' },
+    { label: '总计', value: total, color: '#f59e0b' },
+    { label: '已处理', value: processed, color: '#10b981' },
+    { label: '失败', value: invalid, color: '#ef4444' },
   ];
 
   return (

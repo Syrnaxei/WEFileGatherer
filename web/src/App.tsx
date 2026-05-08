@@ -26,8 +26,9 @@ export default function App() {
   const [flowId] = useState('flow-batch');
   const [isRunning, setIsRunning] = useState(false);
   const [savedTags, setSavedTags] = useState<SavedTag[]>([]);
+  const [processedCount, setProcessedCount] = useState(0);
 
-  const { logs, connected, subscribe, clearLogs } = useSocket(flowId);
+  const { logs, connected, completedCount, completedIds, failedIds, subscribe, clearLogs } = useSocket(flowId);
 
   const fetchSavedTags = useCallback(async () => {
     try {
@@ -64,6 +65,33 @@ export default function App() {
       })
       .catch(() => {});
   }, []);
+
+  useEffect(() => {
+    if (isRunning && completedCount > 0) {
+      const filesToProcess = files.filter((f) => f.tag.trim() !== '');
+      if (completedCount >= filesToProcess.length) {
+        setIsRunning(false);
+        showToast('所有文件处理完成', 'success');
+      }
+      setProcessedCount(completedCount);
+    }
+  }, [completedCount, isRunning, files]);
+
+  useEffect(() => {
+    if (completedIds.size > 0 || failedIds.size > 0) {
+      setFiles((prev) =>
+        prev.map((f) => {
+          if (completedIds.has(f.id)) {
+            return { ...f, status: 'completed' as const };
+          }
+          if (failedIds.has(f.id)) {
+            return { ...f, status: 'failed' as const };
+          }
+          return f;
+        })
+      );
+    }
+  }, [completedIds, failedIds]);
 
   const setWfpPath = useCallback((value: string) => {
     setWfpPathState(value);
@@ -147,6 +175,7 @@ export default function App() {
       const data = await res.json();
       if (data.success) {
         setIsRunning(true);
+        setProcessedCount(0);
         subscribe(flowId);
         clearLogs();
         showToast(`开始处理 ${filesToProcess.length} 个文件`, 'success');
@@ -224,6 +253,7 @@ export default function App() {
               total={files.length}
               tagged={files.filter((f) => f.tag.trim() !== '').length}
               untagged={files.filter((f) => f.tag.trim() === '').length}
+              processed={processedCount}
               invalid={0}
               isDark={isDark}
             />
@@ -255,6 +285,7 @@ export default function App() {
                   savedTags={savedTags}
                   getTargetPathForTag={getTargetPathForTag}
                   isDark={isDark}
+                  isRunning={isRunning}
                 />
               </div>
 

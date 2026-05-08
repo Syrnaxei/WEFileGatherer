@@ -14,6 +14,7 @@ interface VersionInfo {
 export default function SettingsPage() {
   const { isDark, setTheme } = useTheme();
   const [version, setVersion] = useState<VersionInfo | null>(null);
+  const [autoFillTagName, setAutoFillTagName] = useState(false);
 
   useEffect(() => {
     fetch(`${API_BASE}/version`)
@@ -24,7 +25,25 @@ export default function SettingsPage() {
         }
       })
       .catch(() => {});
+
+    fetch(`${API_BASE}/settings/autoFillTagName`)
+      .then((r) => r.json())
+      .then((data) => {
+        if (data.success && data.value !== null) {
+          setAutoFillTagName(data.value === 'true');
+        }
+      })
+      .catch(() => {});
   }, []);
+
+  const handleAutoFillChange = (value: boolean) => {
+    setAutoFillTagName(value);
+    fetch(`${API_BASE}/settings/autoFillTagName`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ value: String(value) }),
+    }).catch(() => {});
+  };
 
   return (
     <div style={{
@@ -61,6 +80,12 @@ export default function SettingsPage() {
           <SettingCard title="外观" isDark={isDark}>
             <SettingRow label="夜间模式" isDark={isDark}>
               <ToggleSwitch checked={isDark} onChange={(v) => setTheme(v ? 'dark' : 'light')} />
+            </SettingRow>
+          </SettingCard>
+
+          <SettingCard title="Tag 管理" isDark={isDark}>
+            <SettingRow label="Tag 名称自动填充" description="选择目标路径后自动使用文件夹名称填充 Tag 名称" isDark={isDark}>
+              <ToggleSwitch checked={autoFillTagName} onChange={handleAutoFillChange} />
             </SettingRow>
           </SettingCard>
 
@@ -102,7 +127,7 @@ function SettingCard({ title, children, isDark }: { title: string; children: Rea
   );
 }
 
-function SettingRow({ label, children, isDark }: { label: string; children: React.ReactNode; isDark: boolean }) {
+function SettingRow({ label, description, children, isDark }: { label: string; description?: string; children: React.ReactNode; isDark: boolean }) {
   return (
     <div style={{
       display: 'flex',
@@ -110,7 +135,12 @@ function SettingRow({ label, children, isDark }: { label: string; children: Reac
       justifyContent: 'space-between',
       padding: '8px 0',
     }}>
-      <span style={{ fontSize: '14px', color: isDark ? '#d1d5db' : '#374151' }}>{label}</span>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
+        <span style={{ fontSize: '14px', color: isDark ? '#d1d5db' : '#374151' }}>{label}</span>
+        {description && (
+          <span style={{ fontSize: '12px', color: isDark ? '#6b7280' : '#9ca3af' }}>{description}</span>
+        )}
+      </div>
       {children}
     </div>
   );

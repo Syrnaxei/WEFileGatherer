@@ -27,6 +27,7 @@ router.post('/scan', async (req, res) => {
     const entries = await fs.readdir(directory, { withFileTypes: true });
     const videoExts = ['.mp4', '.avi', '.mkv', '.mov', '.wmv', '.flv', '.webm'];
 
+    const { randomUUID } = await import('crypto');
     const files = entries
       .filter((entry) => entry.isFile())
       .filter((entry) => {
@@ -34,6 +35,7 @@ router.post('/scan', async (req, res) => {
         return videoExts.includes(ext);
       })
       .map((entry) => ({
+        id: randomUUID(),
         fileName: entry.name,
         filePath: path.join(directory, entry.name),
         tag: '',
@@ -132,25 +134,25 @@ router.post('/flows/:id/start', async (req, res) => {
   });
 
   for (const file of filesToProcess) {
-    const tagName = file.tag.trim();
-    const targetPath = tagPathMap[tagName];
+      const tagName = file.tag.trim();
+      const targetPath = tagPathMap[tagName];
 
-    const ctx = {
-      traceId: `${Date.now()}-${Math.random().toString(36).slice(2, 11)}`,
-      originalFileName: file.fileName,
-      originalPath: file.filePath,
-      currentPath: file.filePath,
-      tags: [],
-      metadata: {
-        userTag: tagName,
-        targetPath,
-        detectedAt: new Date().toISOString(),
-      },
-    };
-    runner.enqueue(ctx).catch((err) => {
-      console.error(`[Flow] Failed to process file ${file.fileName}:`, err);
-    });
-  }
+      const ctx = {
+        traceId: file.id || `${Date.now()}-${Math.random().toString(36).slice(2, 11)}`,
+        originalFileName: file.fileName,
+        originalPath: file.filePath,
+        currentPath: file.filePath,
+        tags: [],
+        metadata: {
+          userTag: tagName,
+          targetPath,
+          detectedAt: new Date().toISOString(),
+        },
+      };
+      runner.enqueue(ctx).catch((err) => {
+        console.error(`[Flow] Failed to process file ${file.fileName}:`, err);
+      });
+    }
 
   res.json({ success: true, message: `Started processing ${filesToProcess.length} files` });
 });

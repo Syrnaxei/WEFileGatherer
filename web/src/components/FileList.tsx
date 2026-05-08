@@ -2,9 +2,11 @@ import { useState, useRef, useEffect } from 'react';
 import { type SavedTag } from '../App';
 
 export interface FileItem {
+  id: string;
   fileName: string;
   filePath: string;
   tag: string;
+  status?: 'pending' | 'processing' | 'completed' | 'failed';
 }
 
 interface FileListProps {
@@ -14,9 +16,10 @@ interface FileListProps {
   savedTags: SavedTag[];
   getTargetPathForTag: (tagName: string) => string;
   isDark: boolean;
+  isRunning?: boolean;
 }
 
-export default function FileList({ files, onTagChange, onRemove, savedTags, getTargetPathForTag, isDark }: FileListProps) {
+export default function FileList({ files, onTagChange, onRemove, savedTags, getTargetPathForTag, isDark, isRunning }: FileListProps) {
   if (files.length === 0) {
     return (
       <div style={{
@@ -61,6 +64,8 @@ export default function FileList({ files, onTagChange, onRemove, savedTags, getT
 
       {files.map((file, index) => {
         const targetPath = file.tag.trim() ? getTargetPathForTag(file.tag.trim()) : '';
+        const isCompleted = file.status === 'completed';
+        const isFailed = file.status === 'failed';
 
         return (
           <div
@@ -70,13 +75,38 @@ export default function FileList({ files, onTagChange, onRemove, savedTags, getT
               gridTemplateColumns: '1fr 180px 1fr 80px',
               gap: '12px',
               padding: '10px 12px',
-              background: index % 2 === 0 ? (isDark ? '#1f2937' : '#ffffff') : (isDark ? '#18212f' : '#f9fafb'),
+              background: isCompleted ? (isDark ? '#064e3b' : '#d1fae5') :
+                          isFailed ? (isDark ? '#450a0a' : '#fee2e2') :
+                          index % 2 === 0 ? (isDark ? '#1f2937' : '#ffffff') : (isDark ? '#18212f' : '#f9fafb'),
               borderBottom: `1px solid ${isDark ? '#374151' : '#e5e7eb'}`,
               alignItems: 'center',
+              opacity: isCompleted ? 0.8 : 1,
             }}
           >
             <div style={{ fontSize: '13px', color: isDark ? '#e5e7eb' : '#111827' }}>
-              <div style={{ fontWeight: 500 }}>{file.fileName}</div>
+              <div style={{ fontWeight: 500, display: 'flex', alignItems: 'center', gap: '6px' }}>
+                {file.fileName}
+                {isCompleted && (
+                  <span style={{
+                    fontSize: '10px',
+                    padding: '2px 6px',
+                    background: '#10b981',
+                    color: 'white',
+                    borderRadius: '4px',
+                    fontWeight: 600,
+                  }}>已完成</span>
+                )}
+                {isFailed && (
+                  <span style={{
+                    fontSize: '10px',
+                    padding: '2px 6px',
+                    background: '#ef4444',
+                    color: 'white',
+                    borderRadius: '4px',
+                    fontWeight: 600,
+                  }}>失败</span>
+                )}
+              </div>
               <div style={{ fontSize: '11px', color: isDark ? '#6b7280' : '#9ca3af', marginTop: '2px' }}>{file.filePath}</div>
             </div>
 
@@ -86,6 +116,7 @@ export default function FileList({ files, onTagChange, onRemove, savedTags, getT
                 onChange={(tag) => onTagChange(index, tag)}
                 savedTags={savedTags}
                 isDark={isDark}
+                disabled={isCompleted || isFailed}
               />
             </div>
 
@@ -103,13 +134,14 @@ export default function FileList({ files, onTagChange, onRemove, savedTags, getT
             <div style={{ textAlign: 'center' }}>
               <button
                 onClick={() => onRemove(index)}
+                disabled={isRunning}
                 style={{
                   padding: '4px 10px',
                   background: 'transparent',
                   border: '1px solid #ef4444',
-                  color: '#ef4444',
+                  color: isRunning ? '#6b7280' : '#ef4444',
                   borderRadius: '4px',
-                  cursor: 'pointer',
+                  cursor: isRunning ? 'not-allowed' : 'pointer',
                   fontSize: '12px',
                 }}
               >
@@ -123,11 +155,12 @@ export default function FileList({ files, onTagChange, onRemove, savedTags, getT
   );
 }
 
-function TagInput({ value, onChange, savedTags, isDark }: {
+function TagInput({ value, onChange, savedTags, isDark, disabled }: {
   value: string;
   onChange: (tag: string) => void;
   savedTags: SavedTag[];
   isDark: boolean;
+  disabled?: boolean;
 }) {
   const [isOpen, setIsOpen] = useState(false);
   const [filter, setFilter] = useState('');
@@ -154,13 +187,16 @@ function TagInput({ value, onChange, savedTags, isDark }: {
       <input
         type="text"
         value={value}
+        disabled={disabled}
         onChange={(e) => {
           onChange(e.target.value);
           setFilter(e.target.value);
         }}
         onFocus={() => {
-          setIsOpen(true);
-          setFilter(value);
+          if (!disabled) {
+            setIsOpen(true);
+            setFilter(value);
+          }
         }}
         placeholder="选择 tag..."
         style={{
@@ -171,6 +207,8 @@ function TagInput({ value, onChange, savedTags, isDark }: {
           borderRadius: '4px',
           color: isDark ? '#e5e7eb' : '#111827',
           fontSize: '13px',
+          opacity: disabled ? 0.5 : 1,
+          cursor: disabled ? 'not-allowed' : 'text',
         }}
       />
       {showDropdown && (

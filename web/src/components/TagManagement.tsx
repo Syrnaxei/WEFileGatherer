@@ -16,6 +16,13 @@ interface TagManagementProps {
   isDark: boolean;
 }
 
+function getFolderNameFromPath(filePath: string): string {
+  const normalized = filePath.replace(/\\/g, '/');
+  const trimmed = normalized.replace(/\/$/, '');
+  const lastSlash = trimmed.lastIndexOf('/');
+  return lastSlash >= 0 ? trimmed.slice(lastSlash + 1) : trimmed;
+}
+
 export default function TagManagement({ isDark }: TagManagementProps) {
   const [tags, setTags] = useState<TagItem[]>([]);
   const [editingId, setEditingId] = useState<number | null>(null);
@@ -25,6 +32,7 @@ export default function TagManagement({ isDark }: TagManagementProps) {
   const [newName, setNewName] = useState('');
   const [newTargetPath, setNewTargetPath] = useState('');
   const [newDesc, setNewDesc] = useState('');
+  const [autoFillEnabled, setAutoFillEnabled] = useState(false);
 
   const fetchTags = useCallback(async () => {
     try {
@@ -36,6 +44,17 @@ export default function TagManagement({ isDark }: TagManagementProps) {
     } catch {
       showToast('获取 tag 列表失败', 'error');
     }
+  }, []);
+
+  useEffect(() => {
+    fetch(`${API_BASE}/settings/autoFillTagName`)
+      .then((r) => r.json())
+      .then((data) => {
+        if (data.success && data.value !== null) {
+          setAutoFillEnabled(data.value === 'true');
+        }
+      })
+      .catch(() => {});
   }, []);
 
   useEffect(() => {
@@ -205,7 +224,12 @@ export default function TagManagement({ isDark }: TagManagementProps) {
                   <button
                     onClick={async () => {
                       const dir = await window.electronAPI.openDirectory();
-                      if (dir) setNewTargetPath(dir);
+                      if (dir) {
+                        setNewTargetPath(dir);
+                        if (autoFillEnabled && !newName.trim()) {
+                          setNewName(getFolderNameFromPath(dir));
+                        }
+                      }
                     }}
                     style={{
                       padding: '6px 12px',
@@ -305,7 +329,12 @@ export default function TagManagement({ isDark }: TagManagementProps) {
                       <button
                         onClick={async () => {
                           const dir = await window.electronAPI.openDirectory();
-                          if (dir) setEditTargetPath(dir);
+                          if (dir) {
+                            setEditTargetPath(dir);
+                            if (autoFillEnabled && !editName.trim()) {
+                              setEditName(getFolderNameFromPath(dir));
+                            }
+                          }
                         }}
                         style={{
                           padding: '6px 10px',

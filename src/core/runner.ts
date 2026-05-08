@@ -48,7 +48,7 @@ export class FlowRunner extends EventEmitter {
       metadata: ctx.metadata,
     });
 
-    this.emit('log', { event: 'enqueue', ctx: this.snapshot(ctx) });
+    this.emit('log', { event: 'enqueue', fileName: ctx.originalFileName, traceId: ctx.traceId, ctx: this.snapshot(ctx) });
 
     await this.queue.add(() => this.executeSingle(ctx));
   }
@@ -109,6 +109,8 @@ export class FlowRunner extends EventEmitter {
           event: 'node_start',
           nodeId: node.id,
           nodeType: node.type,
+          fileName: ctx.originalFileName,
+          traceId: ctx.traceId,
           ctx: this.snapshot(ctx),
         });
 
@@ -130,6 +132,8 @@ export class FlowRunner extends EventEmitter {
           event: 'node_complete',
           nodeId: node.id,
           nodeType: node.type,
+          fileName: ctx.originalFileName,
+          traceId: ctx.traceId,
           ctx: this.snapshot(ctx),
         });
 
@@ -162,6 +166,8 @@ export class FlowRunner extends EventEmitter {
 
           this.emit('log', {
             event: 'flow_complete',
+            fileName: ctx.originalFileName,
+            traceId: ctx.traceId,
             ctx: this.snapshot(ctx),
           });
           break;
@@ -196,6 +202,8 @@ export class FlowRunner extends EventEmitter {
         event: 'error',
         nodeId: currentNodeId,
         error: err.message,
+        fileName: ctx.originalFileName,
+        traceId: ctx.traceId,
         ctx: this.snapshot(ctx),
       });
     }

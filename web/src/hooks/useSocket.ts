@@ -6,6 +6,8 @@ interface LogEntry {
   nodeId?: string;
   nodeType?: string;
   error?: string;
+  fileName?: string;
+  traceId?: string;
   ctx: {
     traceId: string;
     originalFileName: string;
@@ -20,6 +22,10 @@ export function useSocket(flowId: string | null) {
   const socketRef = useRef<Socket | null>(null);
   const [logs, setLogs] = useState<LogEntry[]>([]);
   const [connected, setConnected] = useState(false);
+  const [completedIds, setCompletedIds] = useState<Set<string>>(new Set());
+  const [failedIds, setFailedIds] = useState<Set<string>>(new Set());
+
+  const completedCount = completedIds.size + failedIds.size;
 
   useEffect(() => {
     const socket = io('http://localhost:3000');
@@ -38,6 +44,23 @@ export function useSocket(flowId: string | null) {
 
     socket.on('log', (payload: Omit<LogEntry, 'timestamp'>) => {
       setLogs((prev) => [...prev, { ...payload, timestamp: Date.now() }]);
+      if (payload.event === 'flow_complete') {
+        if (payload.traceId) {
+          setCompletedIds((prev) => {
+            const next = new Set(prev);
+            next.add(payload.traceId!);
+            return next;
+          });
+        }
+      } else if (payload.event === 'error') {
+        if (payload.traceId) {
+          setFailedIds((prev) => {
+            const next = new Set(prev);
+            next.add(payload.traceId!);
+            return next;
+          });
+        }
+      }
     });
 
     return () => {
@@ -54,7 +77,9 @@ export function useSocket(flowId: string | null) {
 
   const clearLogs = useCallback(() => {
     setLogs([]);
+    setCompletedIds(new Set());
+    setFailedIds(new Set());
   }, []);
 
-  return { socket: socketRef.current, logs, connected, subscribe, clearLogs };
+  return { socket: socketRef.current, logs, connected, completedCount, completedIds, failedIds, subscribe, clearLogs };
 }
