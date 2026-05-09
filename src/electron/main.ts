@@ -1,6 +1,7 @@
 import { app, BrowserWindow, ipcMain, dialog } from 'electron';
 import * as path from 'path';
 import express from 'express';
+import cors from 'cors';
 import { createServer } from 'http';
 import { Server } from 'socket.io';
 import flowsRouter, { setSocketIO } from '../api/flows';
@@ -54,6 +55,7 @@ function createWindow() {
 async function startServer() {
   const expressApp = express();
   expressApp.use(express.json());
+  expressApp.use(cors());
 
   const httpServer = createServer(expressApp);
   const io = new Server(httpServer, {
