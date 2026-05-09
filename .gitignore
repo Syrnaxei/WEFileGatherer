@@ -31,3 +31,6 @@ Thumbs.db
 # Electron
 *.exe
 *.dmg
+
+# Generated icons (source is assets/icon.png)
+build/icons/

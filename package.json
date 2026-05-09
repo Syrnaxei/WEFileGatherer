@@ -10,6 +10,7 @@
     "dev": "tsc && node dist/main.js",
     "electron:dev": "concurrently \"tsc -p tsconfig.electron.json --watch\" \"cd web && npm run dev\" \"wait-on dist/electron/electron/main.js http://localhost:5173 && cross-env NODE_ENV=development electron dist/electron/electron/main.js\"",
     "electron:build": "tsc -p tsconfig.electron.json && npm --prefix web run build && electron-builder",
+    "build:icon": "electron-icon-builder --input=./assets/icon.png --output=./build --flatten",
     "web:dev": "cd web && npm run dev",
     "web:build": "cd web && npm run build"
   },
@@ -31,6 +32,7 @@
     "cross-env": "^7.0.3",
     "electron": "^35.7.5",
     "electron-builder": "^26.0.12",
+    "electron-icon-builder": "^2.0.1",
     "typescript": "^5.4.0",
     "wait-on": "^8.0.3"
   },
@@ -40,6 +42,7 @@
   "build": {
     "appId": "com.vfp.app",
     "productName": "Syrnaxies Video File Processor V1",
+    "icon": "build/icons/icon.png",
     "directories": {
       "output": "release"
     },
@@ -48,8 +51,19 @@
       "web/dist/**/*"
     ],
     "extraResources": [
-      "data/**/*"
+      "data/**/*",
+      "assets/**/*"
     ],
+    "mac": {
+      "icon": "build/icons/icon.icns"
+    },
+    "win": {
+      "icon": "build/icons/icon.ico",
+      "target": "nsis"
+    },
+    "linux": {
+      "icon": "build/icons"
+    },
     "nsis": {
       "oneClick": false,
       "allowToChangeInstallationDirectory": true

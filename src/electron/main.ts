@@ -14,10 +14,15 @@ let mainWindow: BrowserWindow | null = null;
 let expressServer: ReturnType<typeof createServer> | null = null;
 
 function createWindow() {
+  const iconPath = app.isPackaged
+    ? path.join(process.resourcesPath, 'assets', 'icon.png')
+    : path.join(__dirname, '../../../assets/icon.png');
+
   mainWindow = new BrowserWindow({
     width: 1400,
     height: 900,
     title: `${APP_SHORT_NAME} v${APP_VERSION}`,
+    icon: iconPath,
     show: false, // 等 ready-to-show 再显示，避免白屏
     webPreferences: {
       preload: path.join(__dirname, 'preload.js'),

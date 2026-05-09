@@ -212,7 +212,7 @@ function TagInput({ value, onChange, savedTags, isDark, disabled }: {
         }}
       />
       {showDropdown && (
-        <div style={{
+        <div className="tag-dropdown-scroll" style={{
           position: 'absolute',
           top: '100%',
           left: 0,
@@ -222,6 +222,7 @@ function TagInput({ value, onChange, savedTags, isDark, disabled }: {
           borderRadius: '0 0 4px 4px',
           maxHeight: '160px',
           overflowY: 'auto',
+          overflowX: 'auto',
           zIndex: 10,
         }}>
           {filteredTags.length === 0 && (
@@ -252,7 +253,7 @@ function TagInput({ value, onChange, savedTags, isDark, disabled }: {
             >
               <span style={{ fontWeight: 500 }}>{tag.name}</span>
               <span style={{ fontSize: '11px', color: '#60a5fa', marginLeft: '8px' }}>
-                → {tag.target_path}
+                  {tag.target_path}
               </span>
             </div>
           ))}
