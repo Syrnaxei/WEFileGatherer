@@ -118,6 +118,9 @@ export class SQLiteDb {
     if (!columnNames.includes('target_path')) {
       this.db.exec(`ALTER TABLE tbl_tags ADD COLUMN target_path TEXT NOT NULL DEFAULT ''`);
     }
+    if (!columnNames.includes('sort_order')) {
+      this.db.exec(`ALTER TABLE tbl_tags ADD COLUMN sort_order INTEGER NOT NULL DEFAULT 0`);
+    }
 
     this.db.exec(`
       CREATE TABLE IF NOT EXISTS tbl_settings (
@@ -292,8 +295,8 @@ export class SQLiteDb {
     stmt.run(key, value);
   }
 
-  getAllTags(): Array<{ id: number; name: string; target_path: string; description: string; created_at: number; updated_at: number }> {
-    const stmt = this.db.prepare('SELECT * FROM tbl_tags ORDER BY updated_at DESC');
+  getAllTags(): Array<{ id: number; name: string; target_path: string; description: string; sort_order: number; created_at: number; updated_at: number }> {
+    const stmt = this.db.prepare('SELECT * FROM tbl_tags ORDER BY sort_order ASC, id ASC');
     return stmt.all() as any[];
   }
 
@@ -308,10 +311,11 @@ export class SQLiteDb {
   }
 
   createTag(name: string, targetPath: string, description: string = ''): { id: number; name: string; target_path: string; description: string } {
+    const maxOrder = this.db.prepare('SELECT COALESCE(MAX(sort_order), -1) + 1 AS next_order FROM tbl_tags').get() as { next_order: number };
     const stmt = this.db.prepare(
-      `INSERT INTO tbl_tags (name, target_path, description) VALUES (@name, @targetPath, @description)`
+      `INSERT INTO tbl_tags (name, target_path, description, sort_order) VALUES (@name, @targetPath, @description, @sortOrder)`
     );
-    const info = stmt.run({ name, targetPath, description });
+    const info = stmt.run({ name, targetPath, description, sortOrder: maxOrder.next_order });
     return { id: Number(info.lastInsertRowid), name, target_path: targetPath, description };
   }
 
@@ -327,6 +331,16 @@ export class SQLiteDb {
     const stmt = this.db.prepare('DELETE FROM tbl_tags WHERE id = @id');
     const info = stmt.run({ id });
     return info.changes > 0;
+  }
+
+  reorderTags(orderedIds: number[]) {
+    const stmt = this.db.prepare('UPDATE tbl_tags SET sort_order = @sortOrder, updated_at = strftime(\'%s\', \'now\') WHERE id = @id');
+    const transaction = this.db.transaction((ids: number[]) => {
+      for (let i = 0; i < ids.length; i++) {
+        stmt.run({ id: ids[i], sortOrder: i });
+      }
+    });
+    transaction(orderedIds);
   }
 }
 

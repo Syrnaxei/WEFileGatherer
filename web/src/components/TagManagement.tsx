@@ -1,4 +1,4 @@
-import { useEffect, useState, useCallback } from 'react';
+import { useEffect, useState, useCallback, useRef } from 'react';
 import { showToast } from './Toast';
 
 interface TagItem {
@@ -6,6 +6,7 @@ interface TagItem {
   name: string;
   target_path: string;
   description: string;
+  sort_order: number;
   created_at: number;
   updated_at: number;
 }
@@ -33,6 +34,15 @@ export default function TagManagement({ isDark }: TagManagementProps) {
   const [newTargetPath, setNewTargetPath] = useState('');
   const [newDesc, setNewDesc] = useState('');
   const [autoFillEnabled, setAutoFillEnabled] = useState(false);
+
+  const tagsRef = useRef(tags);
+  tagsRef.current = tags;
+
+  const dragRef = useRef({ index: -1, overIndex: -1, startY: 0, offsetY: 0, itemHeight: 0 });
+  const [dragIndex, setDragIndex] = useState<number | null>(null);
+  const [dragOverIndex, setDragOverIndex] = useState<number | null>(null);
+  const [dragY, setDragY] = useState(0);
+  const [transitionDisabled, setTransitionDisabled] = useState(false);
 
   const fetchTags = useCallback(async () => {
     try {
@@ -148,6 +158,133 @@ export default function TagManagement({ isDark }: TagManagementProps) {
     setEditDesc('');
   };
 
+  const handleDragMouseDown = (index: number, e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    const row = (e.currentTarget as HTMLElement).closest('.tag-row') as HTMLElement;
+    if (!row) return;
+    const rect = row.getBoundingClientRect();
+    dragRef.current = { index, overIndex: index, startY: e.clientY, offsetY: 0, itemHeight: rect.height };
+    setDragIndex(index);
+    setDragOverIndex(index);
+    setDragY(0);
+    document.body.style.cursor = 'grabbing';
+    document.body.style.userSelect = 'none';
+  };
+
+  useEffect(() => {
+    if (dragIndex === null) return;
+
+    const handleMouseMove = (e: MouseEvent) => {
+      const d = dragRef.current;
+      d.offsetY = e.clientY - d.startY;
+      setDragY(d.offsetY);
+
+      const h = d.itemHeight || 40;
+      const len = tagsRef.current.length;
+      let target = d.index;
+
+      if (d.offsetY > h / 2) {
+        target = Math.min(len - 1, d.index + Math.floor((d.offsetY + h / 2) / h));
+      } else if (d.offsetY < -h / 2) {
+        target = Math.max(0, d.index + Math.ceil((d.offsetY - h / 2) / h));
+      }
+
+      if (target !== d.overIndex) {
+        d.overIndex = target;
+        setDragOverIndex(target);
+      }
+    };
+
+    const handleMouseUp = async () => {
+      document.body.style.cursor = '';
+      document.body.style.userSelect = '';
+      const d = dragRef.current;
+      const from = d.index;
+      const to = d.overIndex;
+
+      setTransitionDisabled(true);
+      setDragIndex(null);
+      setDragOverIndex(null);
+      setDragY(0);
+
+      if (from !== to) {
+        const currentTags = tagsRef.current;
+        const newTags = [...currentTags];
+        const [moved] = newTags.splice(from, 1);
+        newTags.splice(to, 0, moved);
+        setTags(newTags);
+
+        try {
+          await fetch(`${API_BASE}/tags/reorder`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ orderedIds: newTags.map((t) => t.id) }),
+          });
+        } catch {
+          showToast('排序保存失败', 'error');
+        }
+      }
+
+      requestAnimationFrame(() => {
+        requestAnimationFrame(() => {
+          setTransitionDisabled(false);
+        });
+      });
+    };
+
+    document.addEventListener('mousemove', handleMouseMove);
+    document.addEventListener('mouseup', handleMouseUp);
+
+    return () => {
+      document.removeEventListener('mousemove', handleMouseMove);
+      document.removeEventListener('mouseup', handleMouseUp);
+    };
+  }, [dragIndex]);
+
+  const getItemStyle = (index: number): React.CSSProperties => {
+    if (dragIndex === null) {
+      if (transitionDisabled) {
+        return { transition: 'none' };
+      }
+      return { transition: 'transform 250ms ease-in-out' };
+    }
+
+    const h = dragRef.current.itemHeight || 40;
+    const isDragging = index === dragIndex;
+
+    if (isDragging) {
+      return {
+        transform: `translateY(${dragY}px)`,
+        zIndex: 1000,
+        opacity: 0.92,
+        boxShadow: isDark
+          ? '0 8px 24px rgba(0,0,0,0.5)'
+          : '0 8px 24px rgba(0,0,0,0.15)',
+        transition: 'none',
+        position: 'relative',
+      };
+    }
+
+    if (dragOverIndex! > dragIndex) {
+      if (index > dragIndex && index <= dragOverIndex!) {
+        return {
+          transform: `translateY(-${h}px)`,
+          transition: 'transform 250ms ease-in-out',
+        };
+      }
+    } else if (dragOverIndex! < dragIndex) {
+      if (index >= dragOverIndex! && index < dragIndex) {
+        return {
+          transform: `translateY(${h}px)`,
+          transition: 'transform 250ms ease-in-out',
+        };
+      }
+    }
+
+    return { transition: 'transform 250ms ease-in-out' };
+  };
+
   const labelStyleLocal: React.CSSProperties = {
     display: 'block',
     fontSize: '12px',
@@ -164,6 +301,8 @@ export default function TagManagement({ isDark }: TagManagementProps) {
     color: isDark ? '#e5e7eb' : '#111827',
     fontSize: '13px',
   };
+
+  const dragIconColor = isDark ? '#9ca3af' : '#333333';
 
   return (
     <div style={{
@@ -272,7 +411,7 @@ export default function TagManagement({ isDark }: TagManagementProps) {
         }}>
           <div style={{
             display: 'grid',
-            gridTemplateColumns: '120px 1fr 150px 100px',
+            gridTemplateColumns: '28px 120px 1fr 150px 100px',
             gap: '12px',
             padding: '12px 20px',
             background: isDark ? '#18212f' : '#f9fafb',
@@ -281,6 +420,7 @@ export default function TagManagement({ isDark }: TagManagementProps) {
             color: '#9ca3af',
             borderBottom: `1px solid ${isDark ? '#374151' : '#e5e7eb'}`,
           }}>
+            <div></div>
             <div>名称</div>
             <div>目标路径</div>
             <div>描述</div>
@@ -293,21 +433,28 @@ export default function TagManagement({ isDark }: TagManagementProps) {
             </div>
           )}
 
-          {tags.map((tag) => (
+          {tags.map((tag, index) => (
             <div
               key={tag.id}
+              className="tag-row"
               style={{
                 display: 'grid',
-                gridTemplateColumns: '120px 1fr 150px 100px',
+                gridTemplateColumns: '28px 120px 1fr 150px 100px',
                 gap: '12px',
                 padding: '12px 20px',
                 borderBottom: `1px solid ${isDark ? '#374151' : '#e5e7eb'}`,
                 alignItems: 'center',
-                background: editingId === tag.id ? (isDark ? '#1e3a5f' : '#eff6ff') : 'transparent',
+                background: editingId === tag.id
+                  ? (isDark ? '#1e3a5f' : '#eff6ff')
+                  : dragIndex === index
+                    ? (isDark ? '#1f2937' : '#ffffff')
+                    : 'transparent',
+                ...getItemStyle(index),
               }}
             >
               {editingId === tag.id ? (
                 <>
+                  <div></div>
                   <div>
                     <input
                       type="text"
@@ -367,6 +514,25 @@ export default function TagManagement({ isDark }: TagManagementProps) {
                 </>
               ) : (
                 <>
+                  <div
+                    style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      cursor: 'grab',
+                      padding: '2px',
+                    }}
+                    onMouseDown={(e) => handleDragMouseDown(index, e)}
+                  >
+                    <svg
+                      width="16"
+                      height="16"
+                      viewBox="0 0 1024 1024"
+                      style={{ fill: dragIconColor, pointerEvents: 'none' }}
+                    >
+                      <path d="M64.1 194v89.6h896.1V194H64.1z m0 358.4h896.1v-89.6H64.1v89.6z m0 268.9h896.1v-89.6H64.1v89.6z" />
+                    </svg>
+                  </div>
                   <div style={{ fontSize: '14px', fontWeight: 500, color: isDark ? '#e5e7eb' : '#111827' }}>
                     {tag.name}
                   </div>

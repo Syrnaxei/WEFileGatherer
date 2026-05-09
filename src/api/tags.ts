@@ -42,6 +42,20 @@ router.post('/tags', (req, res) => {
   }
 });
 
+router.put('/tags/reorder', (req, res) => {
+  const { orderedIds } = req.body;
+  if (!Array.isArray(orderedIds) || orderedIds.length === 0) {
+    return res.status(400).json({ error: 'orderedIds must be a non-empty array' });
+  }
+  const db = SQLiteDb.getInstance();
+  try {
+    db.reorderTags(orderedIds);
+    res.json({ success: true });
+  } catch (err: any) {
+    res.status(500).json({ error: `Failed to reorder tags: ${err.message}` });
+  }
+});
+
 router.put('/tags/:id', (req, res) => {
   const id = Number(req.params.id);
   if (isNaN(id)) {
