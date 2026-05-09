@@ -1,4 +1,4 @@
-export type PageKey = 'workspace' | 'tags' | 'settings';
+export type PageKey = 'workspace' | 'scrape' | 'tags' | 'settings';
 
 interface SidebarProps {
   activePage: PageKey;
@@ -8,6 +8,7 @@ interface SidebarProps {
 
 const navItems: { key: PageKey; label: string; icon: string }[] = [
   { key: 'workspace', label: '工作台', icon: '⚡' },
+  { key: 'scrape', label: '搜刮', icon: '🔍' },
   { key: 'tags', label: 'Tag 管理', icon: '🏷' },
   { key: 'settings', label: '设置', icon: '⚙' },
 ];

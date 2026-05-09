@@ -15,6 +15,9 @@ export default function SettingsPage() {
   const { isDark, setTheme } = useTheme();
   const [version, setVersion] = useState<VersionInfo | null>(null);
   const [autoFillTagName, setAutoFillTagName] = useState(false);
+  const [scrapeSourceDir, setScrapeSourceDir] = useState('');
+  const [scrapeExportDir, setScrapeExportDir] = useState('');
+  const [scrapeDepth, setScrapeDepth] = useState(1);
 
   useEffect(() => {
     fetch(`${API_BASE}/version`)
@@ -34,6 +37,33 @@ export default function SettingsPage() {
         }
       })
       .catch(() => {});
+
+    fetch(`${API_BASE}/settings/scrapeSourceDir`)
+      .then((r) => r.json())
+      .then((data) => {
+        if (data.success && data.value) {
+          setScrapeSourceDir(data.value);
+        }
+      })
+      .catch(() => {});
+
+    fetch(`${API_BASE}/settings/scrapeExportDir`)
+      .then((r) => r.json())
+      .then((data) => {
+        if (data.success && data.value) {
+          setScrapeExportDir(data.value);
+        }
+      })
+      .catch(() => {});
+
+    fetch(`${API_BASE}/settings/scrapeDepth`)
+      .then((r) => r.json())
+      .then((data) => {
+        if (data.success && data.value) {
+          setScrapeDepth(parseInt(data.value, 10) || 1);
+        }
+      })
+      .catch(() => {});
   }, []);
 
   const handleAutoFillChange = (value: boolean) => {
@@ -43,6 +73,47 @@ export default function SettingsPage() {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ value: String(value) }),
     }).catch(() => {});
+  };
+
+  const saveScrapeSourceDir = (value: string) => {
+    setScrapeSourceDir(value);
+    fetch(`${API_BASE}/settings/scrapeSourceDir`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ value }),
+    }).catch(() => {});
+  };
+
+  const saveScrapeExportDir = (value: string) => {
+    setScrapeExportDir(value);
+    fetch(`${API_BASE}/settings/scrapeExportDir`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ value }),
+    }).catch(() => {});
+  };
+
+  const saveScrapeDepth = (value: number) => {
+    setScrapeDepth(value);
+    fetch(`${API_BASE}/settings/scrapeDepth`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ value: String(value) }),
+    }).catch(() => {});
+  };
+
+  const handleSelectScrapeSource = async () => {
+    if (window.electronAPI) {
+      const dir = await window.electronAPI.openDirectory();
+      if (dir) saveScrapeSourceDir(dir);
+    }
+  };
+
+  const handleSelectScrapeExport = async () => {
+    if (window.electronAPI) {
+      const dir = await window.electronAPI.openDirectory();
+      if (dir) saveScrapeExportDir(dir);
+    }
   };
 
   return (
@@ -87,6 +158,63 @@ export default function SettingsPage() {
             <SettingRow label="Tag 名称自动填充" description="选择目标路径后自动使用文件夹名称填充 Tag 名称" isDark={isDark}>
               <ToggleSwitch checked={autoFillTagName} onChange={handleAutoFillChange} />
             </SettingRow>
+          </SettingCard>
+
+          <SettingCard title="搜刮设置" isDark={isDark}>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+              <div>
+                <label style={{ fontSize: '13px', color: isDark ? '#d1d5db' : '#374151', display: 'block', marginBottom: '4px' }}>搜刮文件夹</label>
+                <div style={{ display: 'flex', gap: '8px' }}>
+                  <input
+                    type="text"
+                    value={scrapeSourceDir}
+                    onChange={(e) => saveScrapeSourceDir(e.target.value)}
+                    placeholder="选择或输入搜刮源目录..."
+                    style={isDark ? inputStyleDark : inputStyleLight}
+                  />
+                  {window.electronAPI && (
+                    <button onClick={handleSelectScrapeSource} style={smallBtnStyle}>选择...</button>
+                  )}
+                </div>
+              </div>
+              <div>
+                <label style={{ fontSize: '13px', color: isDark ? '#d1d5db' : '#374151', display: 'block', marginBottom: '4px' }}>导出文件夹</label>
+                <div style={{ display: 'flex', gap: '8px' }}>
+                  <input
+                    type="text"
+                    value={scrapeExportDir}
+                    onChange={(e) => saveScrapeExportDir(e.target.value)}
+                    placeholder="选择或输入导出目标目录..."
+                    style={isDark ? inputStyleDark : inputStyleLight}
+                  />
+                  {window.electronAPI && (
+                    <button onClick={handleSelectScrapeExport} style={smallBtnStyle}>选择...</button>
+                  )}
+                </div>
+              </div>
+              <SettingRow label="搜刮深度" description="递归搜索子文件夹的层级深度（0-4）" isDark={isDark}>
+                <input
+                  type="number"
+                  min={0}
+                  max={4}
+                  value={scrapeDepth}
+                  onChange={(e) => {
+                    const v = parseInt(e.target.value, 10);
+                    if (!isNaN(v) && v >= 0 && v <= 4) saveScrapeDepth(v);
+                  }}
+                  style={{
+                    width: '60px',
+                    padding: '4px 8px',
+                    borderRadius: '4px',
+                    border: `1px solid ${isDark ? '#4b5563' : '#d1d5db'}`,
+                    background: isDark ? '#374151' : '#f9fafb',
+                    color: isDark ? '#e5e7eb' : '#111827',
+                    fontSize: '14px',
+                    textAlign: 'center',
+                  }}
+                />
+              </SettingRow>
+            </div>
           </SettingCard>
 
           <SettingCard title="关于" isDark={isDark}>
@@ -189,3 +317,34 @@ function ToggleSwitch({ checked, onChange }: { checked: boolean; onChange: (v: b
     </button>
   );
 }
+
+const inputStyleDark: React.CSSProperties = {
+  flex: 1,
+  background: '#374151',
+  border: '1px solid #4b5563',
+  borderRadius: '4px',
+  padding: '6px 10px',
+  color: '#e5e7eb',
+  fontSize: '13px',
+};
+
+const inputStyleLight: React.CSSProperties = {
+  flex: 1,
+  background: '#f9fafb',
+  border: '1px solid #d1d5db',
+  borderRadius: '4px',
+  padding: '6px 10px',
+  color: '#111827',
+  fontSize: '13px',
+};
+
+const smallBtnStyle: React.CSSProperties = {
+  padding: '6px 14px',
+  borderRadius: '4px',
+  border: 'none',
+  color: 'white',
+  fontSize: '13px',
+  cursor: 'pointer',
+  background: '#4b5563',
+  whiteSpace: 'nowrap',
+};

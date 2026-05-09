@@ -1,4 +1,4 @@
-import { app, BrowserWindow, ipcMain, dialog } from 'electron';
+import { app, BrowserWindow, ipcMain, dialog, Menu} from 'electron';
 import * as path from 'path';
 import express from 'express';
 import cors from 'cors';
@@ -31,6 +31,8 @@ function createWindow() {
       nodeIntegration: false,
     },
   });
+
+  Menu.setApplicationMenu(null);
 
   // 开发环境加载 Vite dev server，生产环境加载构建产物
   if (process.env.NODE_ENV === 'development') {

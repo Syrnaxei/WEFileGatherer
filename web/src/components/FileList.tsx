@@ -253,7 +253,7 @@ function TagInput({ value, onChange, savedTags, isDark, disabled }: {
             >
               <span style={{ fontWeight: 500 }}>{tag.name}</span>
               <span style={{ fontSize: '11px', color: '#60a5fa', marginLeft: '8px' }}>
-                  {tag.target_path}
+                <br /> {tag.target_path}
               </span>
             </div>
           ))}

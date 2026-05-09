@@ -6,6 +6,7 @@ import Toast, { showToast } from './components/Toast';
 import Sidebar, { type PageKey } from './components/Sidebar';
 import TagManagement from './components/TagManagement';
 import SettingsPage from './components/SettingsPage';
+import ScrapePage from './components/ScrapePage';
 import { useSocket } from './hooks/useSocket';
 import { useTheme } from './contexts/ThemeContext';
 
@@ -18,6 +19,13 @@ export interface SavedTag {
   description: string;
 }
 
+export interface ScrapeFileItem {
+  id: string;
+  fileName: string;
+  filePath: string;
+  status?: 'pending' | 'completed' | 'failed';
+}
+
 export default function App() {
   const { isDark } = useTheme();
   const [activePage, setActivePage] = useState<PageKey>('workspace');
@@ -28,7 +36,15 @@ export default function App() {
   const [savedTags, setSavedTags] = useState<SavedTag[]>([]);
   const [processedCount, setProcessedCount] = useState(0);
 
+  const [scrapeFiles, setScrapeFiles] = useState<ScrapeFileItem[]>([]);
+  const [scrapeIsRunning, setScrapeIsRunning] = useState(false);
+  const [scrapeSourceDir, setScrapeSourceDir] = useState('');
+  const [scrapeExportDir, setScrapeExportDir] = useState('');
+  const [scrapeDepth, setScrapeDepth] = useState(1);
+  const [scrapeProcessedCount, setScrapeProcessedCount] = useState(0);
+
   const { logs, connected, completedCount, completedIds, failedIds, subscribe, clearLogs } = useSocket(flowId);
+  const scrapeSocket = useSocket('scrape-flow');
 
   const fetchSavedTags = useCallback(async () => {
     try {
@@ -92,6 +108,41 @@ export default function App() {
       );
     }
   }, [completedIds, failedIds]);
+
+  useEffect(() => {
+    fetch(`${API_BASE}/settings/scrapeSourceDir`)
+      .then((r) => r.json())
+      .then((data) => { if (data.success && data.value) setScrapeSourceDir(data.value); })
+      .catch(() => {});
+    fetch(`${API_BASE}/settings/scrapeExportDir`)
+      .then((r) => r.json())
+      .then((data) => { if (data.success && data.value) setScrapeExportDir(data.value); })
+      .catch(() => {});
+    fetch(`${API_BASE}/settings/scrapeDepth`)
+      .then((r) => r.json())
+      .then((data) => { if (data.success && data.value) setScrapeDepth(parseInt(data.value, 10) || 1); })
+      .catch(() => {});
+  }, []);
+
+  useEffect(() => {
+    if (scrapeIsRunning && scrapeSocket.completedCount > 0 && scrapeSocket.completedCount >= scrapeFiles.length) {
+      setScrapeIsRunning(false);
+      showToast('所有文件处理完成', 'success');
+    }
+    setScrapeProcessedCount(scrapeSocket.completedCount);
+  }, [scrapeSocket.completedCount, scrapeIsRunning, scrapeFiles.length]);
+
+  useEffect(() => {
+    if (scrapeSocket.completedIds.size > 0 || scrapeSocket.failedIds.size > 0) {
+      setScrapeFiles((prev) =>
+        prev.map((f) => {
+          if (scrapeSocket.completedIds.has(f.id)) return { ...f, status: 'completed' as const };
+          if (scrapeSocket.failedIds.has(f.id)) return { ...f, status: 'failed' as const };
+          return f;
+        })
+      );
+    }
+  }, [scrapeSocket.completedIds, scrapeSocket.failedIds]);
 
   const setWfpPath = useCallback((value: string) => {
     setWfpPathState(value);
@@ -196,12 +247,98 @@ export default function App() {
     }
   };
 
+  const handleScrapeLoad = async () => {
+    if (!scrapeSourceDir.trim()) {
+      showToast('请先在设置中配置搜刮文件夹', 'error');
+      return;
+    }
+    try {
+      const res = await fetch(`${API_BASE}/scrape/scan`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ directory: scrapeSourceDir, depth: scrapeDepth }),
+      });
+      const data = await res.json();
+      if (data.success) {
+        setScrapeFiles(data.files.map((f: any) => ({ ...f, status: 'pending' as const })));
+        showToast(`已加载 ${data.files.length} 个视频文件`, 'success');
+      } else {
+        showToast(data.error || '加载失败', 'error');
+      }
+    } catch (err) {
+      showToast('加载失败: ' + (err as Error).message, 'error');
+    }
+  };
+
+  const handleScrapeRemove = useCallback((index: number) => {
+    setScrapeFiles((prev) => prev.filter((_, i) => i !== index));
+  }, []);
+
+  const handleScrapeStart = async () => {
+    if (scrapeFiles.length === 0) {
+      showToast('请先加载文件', 'error');
+      return;
+    }
+    if (!scrapeExportDir.trim()) {
+      showToast('请先在设置中配置导出文件夹', 'error');
+      return;
+    }
+
+    try {
+      const res = await fetch(`${API_BASE}/scrape/start`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ files: scrapeFiles, exportDir: scrapeExportDir }),
+      });
+      const data = await res.json();
+      if (data.success) {
+        setScrapeIsRunning(true);
+        setScrapeProcessedCount(0);
+        scrapeSocket.subscribe('scrape-flow');
+        scrapeSocket.clearLogs();
+        showToast(`开始处理 ${scrapeFiles.length} 个文件`, 'success');
+      } else {
+        showToast(data.error || '启动失败', 'error');
+      }
+    } catch (err) {
+      showToast('启动失败: ' + (err as Error).message, 'error');
+    }
+  };
+
+  const handleScrapeStop = async () => {
+    try {
+      await fetch(`${API_BASE}/scrape/stop`, { method: 'POST' });
+      setScrapeIsRunning(false);
+    } catch (err) {
+      console.error('停止失败:', err);
+    }
+  };
+
   const renderPage = () => {
     switch (activePage) {
       case 'tags':
         return <TagManagement isDark={isDark} />;
       case 'settings':
         return <SettingsPage />;
+      case 'scrape':
+        return (
+          <ScrapePage
+            isDark={isDark}
+            files={scrapeFiles}
+            isRunning={scrapeIsRunning}
+            scrapeSourceDir={scrapeSourceDir}
+            scrapeExportDir={scrapeExportDir}
+            scrapeDepth={scrapeDepth}
+            processedCount={scrapeProcessedCount}
+            failedCount={scrapeSocket.failedIds.size}
+            logs={scrapeSocket.logs}
+            connected={scrapeSocket.connected}
+            onLoad={handleScrapeLoad}
+            onStart={handleScrapeStart}
+            onStop={handleScrapeStop}
+            onRemove={handleScrapeRemove}
+          />
+        );
       case 'workspace':
       default:
         return (
