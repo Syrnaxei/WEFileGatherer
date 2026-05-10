@@ -12,20 +12,17 @@ import { IFileContext } from '../core/context';
  * @param dest 目标文件路径
  */
 export async function safeMoveFile(src: string, dest: string): Promise<void> {
-  // 确保目标目录存在
   await fs.mkdir(path.dirname(dest), { recursive: true });
 
   try {
-    // 尝试原子重命名（同设备最快）
     await fs.rename(src, dest);
-    console.log(`[safeMoveFile] Renamed (atomic): ${src} -> ${dest}`);
+    console.log(`[IO] ${path.basename(src)} renamed (atomic)`);
   } catch (err: any) {
     if (err.code === 'EXDEV') {
-      // 跨磁盘分区，降级为 copy + unlink
-      console.log(`[safeMoveFile] Cross-device detected, using copy+unlink: ${src} -> ${dest}`);
+      console.log(`[IO] ${path.basename(src)} cross-device, using copy+unlink`);
       await fs.copyFile(src, dest);
       await fs.unlink(src);
-      console.log(`[safeMoveFile] Copied and unlinked: ${src} -> ${dest}`);
+      console.log(`[IO] ${path.basename(src)} copied and unlinked`);
     } else {
       throw err;
     }

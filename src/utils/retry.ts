@@ -132,7 +132,7 @@ export async function withRetry<T>(
         onRetry(error, attempt + 1, delay);
       }
 
-      console.log(`[withRetry] Attempt ${attempt + 1} failed (${errorType}), retrying in ${delay}ms...`);
+      console.log(`[Retry] attempt ${attempt + 1} failed (${errorType}), retry in ${delay}ms`);
       await sleep(delay);
     }
   }

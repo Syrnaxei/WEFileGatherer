@@ -7,7 +7,10 @@ interface LogEntry {
   nodeType?: string;
   error?: string;
   fileName?: string;
+  fileSize?: string;
   traceId?: string;
+  progress?: string;
+  message?: string;
   ctx: {
     traceId: string;
     originalFileName: string;

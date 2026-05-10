@@ -4,21 +4,23 @@
 
 **SVFP**（Syrnaxies Video File Processor）是一个基于工作流引擎的视频文件批处理系统。V1 版本的核心功能是"**文件路径移动与元数据打标**"，不涉及任何视频编解码操作。
 
-系统将视频文件视为在管道中流动的数据包，经过各节点处理后，最终移动到目标位置。当前版本采用**批处理表格界面**，用户加载视频文件、分配 Tag，一键启动工作流完成自动分类归档。
+系统将视频文件视为在管道中流动的数据包，经过各节点处理后，最终移动到目标位置。当前版本采用**批处理表格界面**，提供两大功能模块：**工作台**（基于 Tag 的分类归档）和**搜刮**（递归扫描 + 统一导出）。
 
 ### 核心特性
 
-- **批处理工作流**：表格形式管理视频文件，按 Tag 自动归档到目标路径
-- **Tag 管理系统**：支持创建/编辑/删除 Tag，每个 Tag 绑定独立的目标路径
-- **文件监听与防抖**：使用 chokidar 监听目录，确保大文件拷贝完成后再处理
-- **智能打标系统**：支持 UUID、正则提取、固定前缀等多种 Tag 生成规则
+- **工作台（批处理工作流）**：表格形式管理视频文件，按 Tag 自动归档到不同目标路径
+- **搜刮（批量收集导出）**：递归扫描目录树，将所有视频文件统一移动到导出目录
+- **Tag 管理系统**：支持创建/编辑/删除/拖拽排序 Tag，每个 Tag 绑定独立的目标路径
+- **Tag 名称自动填充**：选择目标路径后自动以文件夹名填充 Tag 名称（可配置开关）
+- **智能打标系统**：支持 UUID、正则提取、固定前缀、用户指定等多种 Tag 生成规则
 - **安全文件移动**：支持跨磁盘分区移动，自动降级为 copy+unlink
 - **并发队列控制**：限制同时处理的文件数量，防止 IO 风暴
 - **SQLite 状态持久化**：Checkpoint 机制防止崩溃导致文件丢失
-- **指数退避重试**：对瞬时 IO 错误自动重试
-- **实时日志推送**：WebSocket 实时展示文件流转状态
+- **指数退避重试**：对瞬时 IO 错误自动重试（3 次，指数退避）
+- **实时日志推送**：WebSocket 实时展示文件流转状态，工作台与搜刮日志隔离
 - **桌面端封装**：Electron 封装为独立应用，支持本地文件夹选择对话框
 - **夜间模式**：支持亮色/暗色主题切换，偏好自动持久化
+- **统一版本控制**：通过 `version.ts` 集中管理应用版本号
 
 ---
 
@@ -31,7 +33,7 @@
 | 前端框架 | Vite + React 19 + TypeScript |
 | 实时通信 | Socket.io Client |
 | 后端服务 | Express + Socket.io |
-| 数据库 | better-sqlite3（事务级持久化）|
+| 数据库 | better-sqlite3（WAL 模式，事务级持久化）|
 | 文件监听 | chokidar |
 | 桌面端 | Electron |
 | 构建工具 | TypeScript + electron-builder |
@@ -50,27 +52,31 @@ Phase 1: 核心数据模型定义
 Phase 2: 核心引擎实现
 ├── FlowRunner（并发队列调度器）
 ├── WatcherNode（chokidar + awaitWriteFinish）
-├── TaggerNode（UUID/Regex/FixedPrefix）
+├── TaggerNode（UUID/Regex/FixedPrefix/UserTag）
 ├── MoverNode（safeMoveFile + 模板解析）
 └── PromiseQueue（手写并发控制队列）
 
 Phase 3: Web GUI 批处理界面
-├── 文件列表表格（加载、Tag 分配、移除）
-├── 侧边栏导航（工作区 / Tag 管理 / 设置）
-├── 统计仪表盘（实时状态计数）
-├── 实时日志终端（WebSocket 推送）
+├── 工作台（文件列表表格、Tag 分配、移除）
+├── 搜刮（递归扫描、统一导出）
+├── 侧边栏导航（工作台 / 搜刮 / Tag 管理 / 设置）
+├── 统计仪表盘（工作台 5 卡片 / 搜刮 3 卡片，独立维护）
+├── 实时日志终端（WebSocket 推送，房间隔离）
 ├── REST API（Express）
 └── 前后端数据映射转换器
 
 Phase 4: 生产级加固与桌面端
-├── SQLite Checkpoint 状态机（PENDING/RUNNING/MOVED/ERROR）
+├── SQLite Checkpoint 状态机（PENDING/RUNNING/MOVED/COMPLETED/ERROR）
 ├── withRetry 装饰器（指数退避 + 错误分类）
 ├── RecoveryManager（崩溃恢复）
 ├── Electron 主进程封装
 ├── IPC 本地文件对话框
 ├── 统计仪表盘 + 错误队列管理
 ├── 全局主题系统（亮色/暗色模式）
-└── 设置持久化（SQLite）
+├── 设置持久化（SQLite tbl_settings）
+├── Tag 拖拽排序（sort_order + 平滑动画）
+├── Tag 名称自动填充
+└── 统一版本控制器（version.ts）
 ```
 
 ---
@@ -80,15 +86,17 @@ Phase 4: 生产级加固与桌面端
 ```
 VideoFileProcessing/
 ├── doc/                          # 项目文档
-│   ├── README.md                 # 架构总览（本文档）
-│   └── USAGE.md                  # 使用方法
+│   ├── workspace.md              # 工作台技术文档
+│   ├── scrape.md                 # 搜刮技术文档
+│   ├── nodetoworkflow.md         # 节点→工作流架构演进分析
+│   └── ...
 ├── src/                          # 后端源码
 │   ├── electron/                 # Electron 桌面端
 │   │   ├── main.ts               # 主进程入口（Express + 窗口管理）
 │   │   └── preload.ts            # IPC 安全暴露脚本
 │   ├── api/
-│   │   ├── flows.ts              # 工作流 REST API
-│   │   ├── tags.ts               # Tag 管理 REST API
+│   │   ├── flows.ts              # 工作流 + 搜刮 REST API
+│   │   ├── tags.ts               # Tag 管理 REST API（含排序）
 │   │   └── settings.ts           # 设置持久化 REST API
 │   ├── core/                     # 核心引擎
 │   │   ├── runner.ts             # FlowRunner（并发调度 + Checkpoint）
@@ -101,7 +109,7 @@ VideoFileProcessing/
 │   │   ├── sqlite.ts             # better-sqlite3 封装 + 状态机
 │   │   └── recovery.ts           # RecoveryManager 崩溃恢复
 │   ├── factory/
-│   │   └── node-factory.ts       # NodeFactory（JSON -> 真实类实例）
+│   │   └── node-factory.ts       # NodeFactory（JSON → 真实类实例）
 │   ├── nodes/                    # 节点实现
 │   │   ├── watcher.ts            # WatcherNode（chokidar）
 │   │   ├── tagger.ts             # TaggerNode（打标规则）
@@ -110,26 +118,27 @@ VideoFileProcessing/
 │   │   ├── retry.ts              # withRetry 装饰器 + 错误分类
 │   │   ├── io.ts                 # safeMoveFile + resolveTemplate
 │   │   └── queue.ts              # PromiseQueue 并发队列
-│   ├── types/
-│   │   └── better-sqlite3.d.ts   # 类型声明文件
+│   ├── version.ts                # 统一版本控制器
 │   ├── server.ts                 # Express 服务入口（非 Electron 模式）
-│   ├── main.ts                   # Node.js CLI 入口
-│   ├── config.ts                 # 环境变量配置读取
-│   └── example.ts                # MoverNode 实例化示例
+│   ├── main.ts                   # Node.js CLI 入口（已弃用）
+│   └── config.ts                 # 环境变量配置读取
 ├── web/                          # 前端源码（Vite React）
 │   ├── src/
-│   │   ├── App.tsx               # 主应用组件（路由 + 布局）
+│   │   ├── App.tsx               # 主应用组件（全局状态管理）
 │   │   ├── main.tsx              # React 入口
 │   │   ├── contexts/
-│   │   │   └── ThemeContext.tsx  # 全局主题管理（亮色/暗色）
+│   │   │   └── ThemeContext.tsx   # 全局主题管理（亮色/暗色）
 │   │   ├── components/
-│   │   │   ├── FileList.tsx      # 文件列表表格（核心工作区）
-│   │   │   ├── StatsDashboard.tsx# 顶部统计仪表盘
-│   │   │   ├── LogTerminal.tsx   # 底部日志终端
-│   │   │   ├── Sidebar.tsx       # 左侧导航栏
-│   │   │   ├── TagManagement.tsx # Tag 管理页面（CRUD）
-│   │   │   ├── SettingsPage.tsx  # 设置页面（主题、版本信息）
+│   │   │   ├── FileList.tsx      # 工作台文件列表（含 TagInput）
+│   │   │   ├── ScrapePage.tsx    # 搜刮页面（无状态展示组件）
+│   │   │   ├── StatsDashboard.tsx     # 工作台统计仪表盘（5 卡片）
+│   │   │   ├── ScrapeStatsDashboard.tsx # 搜刮统计仪表盘（3 卡片）
+│   │   │   ├── LogTerminal.tsx   # 实时日志终端
+│   │   │   ├── Sidebar.tsx       # 左侧导航栏（工作台/搜刮/Tag管理/设置）
+│   │   │   ├── TagManagement.tsx # Tag 管理页面（CRUD + 拖拽排序）
+│   │   │   ├── SettingsPage.tsx  # 设置页面（主题/版本/搜刮路径/自动填充）
 │   │   │   ├── Toast.tsx         # 全局通知组件
+│   │   │   ├── ErrorQueue.tsx    # 错误队列管理
 │   │   │   ├── FlowCanvas.tsx    # React Flow 画布（历史遗留）
 │   │   │   ├── NodePanel.tsx     # 节点面板（历史遗留）
 │   │   │   ├── PropertyPanel.tsx # 属性面板（历史遗留）
@@ -151,6 +160,45 @@ VideoFileProcessing/
 
 ---
 
+## 功能模块
+
+### 工作台（Workspace）
+
+基于 Tag 的视频文件分类归档系统。
+
+**流程：** 设置源目录 → 加载文件列表 → 为文件分配 Tag → 启动处理 → 文件按 Tag 移动到对应目标路径
+
+**节点链路：** `TaggerNode(UserTag) → MoverNode`
+
+**统计面板：** 待处理 / 已标记 / 总计 / 已处理 / 失败
+
+详见 [doc/workspace.md](doc/workspace.md)
+
+### 搜刮（Scrape）
+
+批量递归扫描 + 统一导出系统。
+
+**流程：** 设置搜刮目录 + 导出目录 + 深度 → 加载（递归扫描）→ 启动 → 文件统一移动到导出目录
+
+**节点链路：** `MoverNode`（单节点，无 TaggerNode）
+
+**统计面板：** 总计 / 已处理 / 失败
+
+详见 [doc/scrape.md](doc/scrape.md)
+
+### 功能对比
+
+| 特性 | 工作台 | 搜刮 |
+|------|--------|------|
+| 文件来源 | 单一源目录（平铺扫描） | 递归扫描（深度 0-4 可配） |
+| 分类方式 | 基于 Tag 分类到不同目录 | 统一导出到单一目录 |
+| Tag 功能 | 有（选择、自动填充） | 无 |
+| 节点链路 | TaggerNode → MoverNode | 仅 MoverNode |
+| Socket.io 房间 | `flow:flow-batch` | `flow:scrape-flow` |
+| 统计卡片数 | 5 | 3 |
+
+---
+
 ## 核心模块详解
 
 ### 1. 数据模型层
@@ -159,12 +207,12 @@ VideoFileProcessing/
 
 ```typescript
 interface IFileContext {
-  traceId: string;              // 唯一流转 ID
+  traceId: string;              // UUID v4，全链路追踪标识
   originalFileName: string;     // 原始文件名
   originalPath: string;         // 原始文件路径
   currentPath: string;          // 当前文件路径（随移动改变）
   tags: string[];               // 标签集合
-  metadata: Record<string, any>;// 扩展元数据
+  metadata: Record<string, any>;// 扩展元数据（userTag/targetPath/exportDir 等）
 }
 ```
 
@@ -173,7 +221,7 @@ interface IFileContext {
 ```typescript
 interface INode<TConfig = unknown> {
   id: string;                   // 节点唯一 ID
-  type: NodeType;              // 节点类型枚举
+  type: NodeType;              // 节点类型枚举（Watcher/Tagger/Mover）
   config: TConfig;             // 泛型配置
   handle(ctx: IFileContext): Promise<IFileContext>;
 }
@@ -186,7 +234,7 @@ interface IFlow {
   id: string;
   name: string;
   nodes: INode[];
-  edges: IEdge[];               // sourceId -> targetId
+  edges: IEdge[];               // sourceId → targetId
 }
 ```
 
@@ -195,7 +243,7 @@ interface IFlow {
 #### FlowRunner（核心调度器）
 
 职责：
-- 构建邻接表实现线性执行链
+- 构建邻接表实现线性执行链（V1 仅支持线性管道）
 - 手写 `PromiseQueue` 限制并发（默认 5）
 - **Checkpoint 持久化**：每个关键节点执行前后写入 SQLite
 - 错误隔离：单文件失败不影响整体运行
@@ -229,16 +277,17 @@ PENDING（入队写入 SQLite）
 
 #### TaggerNode
 
-支持三种 Tag 生成规则：
+支持四种 Tag 生成规则：
 - **UUID**：`randomUUID()` 生成唯一标识
-- **RegexExtract**：从文件名或路径提取内容
+- **RegexExtract**：从文件名或路径正则提取内容
 - **FixedPrefix**：固定前缀 + 文件名
+- **UserTag**：从 `ctx.metadata.userTag` 读取用户指定的 Tag（工作台使用）
 
 注意：纯内存操作，不涉及磁盘 IO。
 
 #### MoverNode
 
-- **模板解析**：支持 `{filename}`、`{tag[n]}`、`{metadata.xxx}`、`{YYYY}` 等变量
+- **模板解析**：支持 `{filename}`、`{tag[n]}`、`{metadata.xxx}`、`{YYYY}`、`{MM}`、`{DD}` 等变量
 - **安全移动**：
   1. 自动递归创建目标目录
   2. 优先使用 `fs.rename`（原子操作）
@@ -287,6 +336,7 @@ CREATE TABLE tbl_tags (
   name TEXT NOT NULL UNIQUE,
   target_path TEXT NOT NULL DEFAULT '',
   description TEXT DEFAULT '',
+  sort_order INTEGER NOT NULL DEFAULT 0,
   created_at INTEGER,
   updated_at INTEGER
 );
@@ -300,6 +350,17 @@ CREATE TABLE tbl_settings (
   updated_at INTEGER
 );
 ```
+
+**支持的设置项：**
+
+| Key | 说明 | 默认值 |
+|-----|------|--------|
+| `sourceDir` | 工作台源文件目录 | `./wfp` |
+| `theme` | 主题模式（light/dark） | `light` |
+| `scrapeSourceDir` | 搜刮源目录 | 空 |
+| `scrapeExportDir` | 搜刮导出目录 | 空 |
+| `scrapeDepth` | 搜刮递归深度 | `1` |
+| `autoFillTagName` | Tag 名称自动填充开关 | `false` |
 
 #### RecoveryManager（崩溃恢复）
 
@@ -328,8 +389,8 @@ await withRetry(
 
 | 类型 | 错误码 | 说明 |
 |------|--------|------|
-| **瞬时错误** | EBUSY, EAGAIN, ETIMEDOUT, ENOENT | 文件占用、网络断连等，可重试 |
-| **致命错误** | EACCES, EPERM, ENOSPC | 权限拒绝、磁盘满等，不应重试 |
+| **瞬时错误** | EBUSY, EAGAIN, ETIMEDOUT, ECONNRESET, EPIPE, ENETUNREACH, ENOENT | 文件占用、网络断连等，可重试 |
+| **致命错误** | EACCES, EPERM, ENOSPC, EISDIR, ENOTDIR | 权限拒绝、磁盘满等，不应重试 |
 | **未知错误** | 其他 | 根据消息内容判断 |
 
 ### 6. 前后端映射层
@@ -340,17 +401,12 @@ await withRetry(
 
 ```typescript
 NodeFactory.create({
-  id: 'node-1',
-  type: 'watcher',
-  config: { watchPath: './input', filePattern: '*.mp4' }
+  id: 'node-tagger',
+  type: 'tagger',
+  config: { rules: [{ type: 'user_tag', params: {} }] }
 });
-// → 返回 WatcherNode 实例
+// → 返回 TaggerNode 实例
 ```
-
-#### Flow Converter
-
-- **backendToFrontend**：将后端 `IFlow` 转换为 React Flow 的 `Node[]` 和 `Edge[]`
-- **frontendToBackend**：将 React Flow 数据转换为后端 `IFlow`，保留 `__position` 节点位置
 
 ### 7. 桌面端层
 
@@ -399,6 +455,64 @@ NodeFactory.create({
 
 ---
 
+## API 接口总览
+
+### 工作台
+
+| 方法 | 路径 | 说明 |
+|------|------|------|
+| POST | `/api/scan` | 扫描源目录视频文件 |
+| POST | `/api/flows/:id/start` | 启动工作流 |
+| POST | `/api/flows/:id/stop` | 停止工作流 |
+
+### 搜刮
+
+| 方法 | 路径 | 说明 |
+|------|------|------|
+| POST | `/api/scrape/scan` | 递归扫描搜刮目录 |
+| POST | `/api/scrape/start` | 启动搜刮 |
+| POST | `/api/scrape/stop` | 停止搜刮 |
+
+### Tag 管理
+
+| 方法 | 路径 | 说明 |
+|------|------|------|
+| GET | `/api/tags` | 获取所有 Tag（按 sort_order 排序） |
+| GET | `/api/tags/:id` | 获取单个 Tag |
+| POST | `/api/tags` | 创建 Tag |
+| PUT | `/api/tags/:id` | 更新 Tag |
+| PUT | `/api/tags/reorder` | 拖拽排序 Tag |
+| DELETE | `/api/tags/:id` | 删除 Tag |
+
+### 设置
+
+| 方法 | 路径 | 说明 |
+|------|------|------|
+| GET | `/api/settings/:key` | 读取设置 |
+| POST | `/api/settings/:key` | 写入设置 |
+| GET | `/api/version` | 获取版本信息 |
+
+---
+
+## 实时通信（Socket.io）
+
+| 房间 | 用途 |
+|------|------|
+| `flow:flow-batch` | 工作台日志推送 |
+| `flow:scrape-flow` | 搜刮日志推送 |
+
+**日志事件类型：**
+
+| event | 触发时机 |
+|-------|---------|
+| `enqueue` | 文件入队 |
+| `node_start` | 节点开始执行 |
+| `node_complete` | 节点执行完成 |
+| `flow_complete` | 文件处理完成 |
+| `error` | 处理出错 |
+
+---
+
 ## 安全设计
 
 1. **不修改视频二进制**：V1 只做文件路径移动和元数据处理
@@ -407,7 +521,27 @@ NodeFactory.create({
 4. **并发控制**：内存队列限制同时处理文件数（默认 5）
 5. **崩溃恢复**：SQLite Checkpoint 记录每个关键状态
 6. **防重入**：UPSERT 语义确保同一 traceId 不会重复插入
+7. **UUID 文件标识**：每个文件使用 `crypto.randomUUID()` 生成唯一 ID，避免文件名冲突
 
 ---
 
-*文档版本: V1.1 | 最后更新: 2026-05-06*
+## 开发命令
+
+```bash
+# TypeScript 类型检查
+npx tsc --noEmit                        # 后端
+npx tsc -p tsconfig.electron.json --noEmit  # Electron 主进程
+cd web && npx tsc --noEmit              # 前端
+
+# 开发运行
+npm run electron:dev                    # Electron 开发模式（热重载）
+
+# 构建
+cd web && npm run build                 # 前端构建
+npx tsc -p tsconfig.electron.json       # Electron 后端构建
+npm run electron:build                  # 打包 exe
+```
+
+---
+
+*文档版本: V1.1.5 | 最后更新: 2026-05-09*

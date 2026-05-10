@@ -9,7 +9,10 @@ interface LogEntry {
   nodeType?: string;
   error?: string;
   fileName?: string;
+  fileSize?: string;
   traceId?: string;
+  progress?: string;
+  message?: string;
   ctx: {
     traceId: string;
     originalFileName: string;
@@ -31,6 +34,7 @@ interface ScrapePageProps {
   failedCount: number;
   logs: LogEntry[];
   connected: boolean;
+  debugLogEnabled: boolean;
   onLoad: () => void;
   onStart: () => void;
   onStop: () => void;
@@ -48,6 +52,7 @@ export default function ScrapePage({
   failedCount,
   logs,
   connected,
+  debugLogEnabled,
   onLoad,
   onStart,
   onStop,
@@ -251,8 +256,9 @@ export default function ScrapePage({
           flexDirection: 'column',
           borderLeft: `1px solid ${isDark ? '#374151' : '#e5e7eb'}`,
           background: isDark ? '#111827' : '#f9fafb',
+          overflow: 'hidden',
         }}>
-          <LogTerminal logs={logs} connected={connected} isDark={isDark} />
+          <LogTerminal logs={logs} connected={connected} isDark={isDark} debugLogEnabled={debugLogEnabled} />
         </div>
       </div>
     </div>

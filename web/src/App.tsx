@@ -42,6 +42,7 @@ export default function App() {
   const [scrapeExportDir, setScrapeExportDir] = useState('');
   const [scrapeDepth, setScrapeDepth] = useState(1);
   const [scrapeProcessedCount, setScrapeProcessedCount] = useState(0);
+  const [debugLogEnabled, setDebugLogEnabled] = useState(false);
 
   const { logs, connected, completedCount, completedIds, failedIds, subscribe, clearLogs } = useSocket(flowId);
   const scrapeSocket = useSocket('scrape-flow');
@@ -77,6 +78,15 @@ export default function App() {
       .then((data) => {
         if (data.success && data.value) {
           setWfpPathState(data.value);
+        }
+      })
+      .catch(() => {});
+
+    fetch(`${API_BASE}/settings/debugLog`)
+      .then((r) => r.json())
+      .then((data) => {
+        if (data.success && data.value !== null) {
+          setDebugLogEnabled(data.value === 'true');
         }
       })
       .catch(() => {});
@@ -333,6 +343,7 @@ export default function App() {
             failedCount={scrapeSocket.failedIds.size}
             logs={scrapeSocket.logs}
             connected={scrapeSocket.connected}
+            debugLogEnabled={debugLogEnabled}
             onLoad={handleScrapeLoad}
             onStart={handleScrapeStart}
             onStop={handleScrapeStop}
@@ -436,8 +447,8 @@ export default function App() {
                 />
               </div>
 
-              <div style={{ width: '400px', display: 'flex', flexDirection: 'column', borderLeft: `1px solid ${isDark ? '#374151' : '#e5e7eb'}`, background: isDark ? '#111827' : '#f9fafb' }}>
-                <LogTerminal logs={logs} connected={connected} isDark={isDark} />
+              <div style={{ width: '400px', display: 'flex', flexDirection: 'column', borderLeft: `1px solid ${isDark ? '#374151' : '#e5e7eb'}`, background: isDark ? '#111827' : '#f9fafb', overflow: 'hidden' }}>
+                <LogTerminal logs={logs} connected={connected} isDark={isDark} debugLogEnabled={debugLogEnabled} />
               </div>
             </div>
           </>

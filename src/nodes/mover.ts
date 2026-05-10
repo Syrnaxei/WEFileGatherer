@@ -22,12 +22,9 @@ export class MoverNode implements INode<IMoverNodeConfig> {
   async handle(ctx: IFileContext): Promise<IFileContext> {
     const destPath = resolveTemplate(this.config.targetPathTemplate, ctx);
 
-    console.log(`[MoverNode] Preparing to move file for traceId=${ctx.traceId}`);
-    console.log(`[MoverNode]   source: ${ctx.currentPath}`);
-    console.log(`[MoverNode]   destination: ${destPath}`);
+    console.log(`[MoverNode] ${ctx.originalFileName} → move: ${ctx.currentPath} => ${destPath}`);
 
     try {
-      // 使用 withRetry 包装 safeMoveFile，支持 3 次指数退避重试
       await withRetry(
         () => safeMoveFile(ctx.currentPath, destPath),
         {
@@ -38,21 +35,20 @@ export class MoverNode implements INode<IMoverNodeConfig> {
           onRetry: (err, attempt, nextDelay) => {
             const errorType = classifyIOError(err);
             console.log(
-              `[MoverNode] Retry ${attempt}/3 for traceId=${ctx.traceId} ` +
-              `(${errorType}), next attempt in ${nextDelay}ms`
+              `[MoverNode] ${ctx.originalFileName} retry ${attempt}/3 (${errorType}), next in ${nextDelay}ms`
             );
           },
         }
       );
 
       ctx.currentPath = destPath;
-      console.log(`[MoverNode] Move successful for traceId=${ctx.traceId}`);
+      console.log(`[MoverNode] ${ctx.originalFileName} moved successfully`);
     } catch (err: any) {
       const errorType = classifyIOError(err);
       console.error(
-        `[MoverNode] Move failed (${errorType}) for traceId=${ctx.traceId}: ${err.message}`
+        `[MoverNode] ${ctx.originalFileName} error: move failed (${errorType}): ${err.message}`
       );
-      throw err; // 向上抛给 FlowRunner 进行错误隔离
+      throw err;
     }
 
     return ctx;

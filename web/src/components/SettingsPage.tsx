@@ -15,6 +15,7 @@ export default function SettingsPage() {
   const { isDark, setTheme } = useTheme();
   const [version, setVersion] = useState<VersionInfo | null>(null);
   const [autoFillTagName, setAutoFillTagName] = useState(false);
+  const [debugLogEnabled, setDebugLogEnabled] = useState(false);
   const [scrapeSourceDir, setScrapeSourceDir] = useState('');
   const [scrapeExportDir, setScrapeExportDir] = useState('');
   const [scrapeDepth, setScrapeDepth] = useState(1);
@@ -34,6 +35,15 @@ export default function SettingsPage() {
       .then((data) => {
         if (data.success && data.value !== null) {
           setAutoFillTagName(data.value === 'true');
+        }
+      })
+      .catch(() => {});
+
+    fetch(`${API_BASE}/settings/debugLog`)
+      .then((r) => r.json())
+      .then((data) => {
+        if (data.success && data.value !== null) {
+          setDebugLogEnabled(data.value === 'true');
         }
       })
       .catch(() => {});
@@ -69,6 +79,15 @@ export default function SettingsPage() {
   const handleAutoFillChange = (value: boolean) => {
     setAutoFillTagName(value);
     fetch(`${API_BASE}/settings/autoFillTagName`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ value: String(value) }),
+    }).catch(() => {});
+  };
+
+  const handleDebugLogChange = (value: boolean) => {
+    setDebugLogEnabled(value);
+    fetch(`${API_BASE}/settings/debugLog`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ value: String(value) }),
@@ -151,6 +170,12 @@ export default function SettingsPage() {
           <SettingCard title="外观" isDark={isDark}>
             <SettingRow label="夜间模式" isDark={isDark}>
               <ToggleSwitch checked={isDark} onChange={(v) => setTheme(v ? 'dark' : 'light')} />
+            </SettingRow>
+          </SettingCard>
+
+          <SettingCard title="通用设置" isDark={isDark}>
+            <SettingRow label="调试日志输出" description="开启后显示完整的处理过程日志，关闭后仅显示开始和完成状态，重启生效" isDark={isDark}>
+              <ToggleSwitch checked={debugLogEnabled} onChange={handleDebugLogChange} />
             </SettingRow>
           </SettingCard>
 

@@ -1,4 +1,5 @@
 import { EventEmitter } from 'events';
+import * as fs from 'fs/promises';
 import { IFlow } from './flow';
 import { INode } from './node';
 import { IFileContext } from './context';
@@ -13,6 +14,9 @@ export class FlowRunner extends EventEmitter {
   private entryNodeId: string;
   private db: SQLiteDb;
   private isRunning = false;
+  private totalFiles = 0;
+  private completedFiles = 0;
+  private fileSizeCache = new Map<string, string>();
 
   constructor(flow: IFlow, concurrency: number = 5) {
     super();
@@ -36,6 +40,17 @@ export class FlowRunner extends EventEmitter {
     return this.flow.id;
   }
 
+  setTotalFiles(count: number) {
+    this.totalFiles = count;
+    this.completedFiles = 0;
+  }
+
+  private getProgress(): string {
+    if (this.totalFiles <= 0) return '';
+    const pct = Math.round((this.completedFiles / this.totalFiles) * 100);
+    return `${this.completedFiles}/${this.totalFiles} (${pct}%)`;
+  }
+
   async enqueue(ctx: IFileContext): Promise<void> {
     this.db.upsertContext({
       traceId: ctx.traceId,
@@ -48,13 +63,33 @@ export class FlowRunner extends EventEmitter {
       metadata: ctx.metadata,
     });
 
-    this.emit('log', { event: 'enqueue', fileName: ctx.originalFileName, traceId: ctx.traceId, ctx: this.snapshot(ctx) });
+    const fileSize = await this.getFileSizeMB(ctx.currentPath);
+    this.fileSizeCache.set(ctx.traceId, fileSize);
+
+    this.emit('log', {
+      event: 'enqueue',
+      fileName: ctx.originalFileName,
+      fileSize,
+      traceId: ctx.traceId,
+      progress: this.getProgress(),
+      message: `${ctx.originalFileName} ${fileSize}MB start`,
+      ctx: this.snapshot(ctx),
+    });
 
     await this.queue.add(() => this.executeSingle(ctx));
   }
 
   getStats() {
     return this.db.getStats(this.flow.id);
+  }
+
+  private async getFileSizeMB(filePath: string): Promise<string> {
+    try {
+      const stat = await fs.stat(filePath);
+      return (stat.size / (1024 * 1024)).toFixed(2);
+    } catch {
+      return '?';
+    }
   }
 
   private buildAdjacency() {
@@ -85,6 +120,7 @@ export class FlowRunner extends EventEmitter {
   private async executeSingle(initialCtx: IFileContext): Promise<IFileContext> {
     let ctx = initialCtx;
     let currentNodeId: string | undefined = this.entryNodeId;
+    const fileSize = this.fileSizeCache.get(ctx.traceId) ?? '?';
 
     try {
       while (currentNodeId) {
@@ -110,7 +146,10 @@ export class FlowRunner extends EventEmitter {
           nodeId: node.id,
           nodeType: node.type,
           fileName: ctx.originalFileName,
+          fileSize,
           traceId: ctx.traceId,
+          progress: this.getProgress(),
+          message: `${ctx.originalFileName} ${fileSize}MB → ${node.type} [${this.getProgress()}]`,
           ctx: this.snapshot(ctx),
         });
 
@@ -133,7 +172,10 @@ export class FlowRunner extends EventEmitter {
           nodeId: node.id,
           nodeType: node.type,
           fileName: ctx.originalFileName,
+          fileSize,
           traceId: ctx.traceId,
+          progress: this.getProgress(),
+          message: `${ctx.originalFileName} ${fileSize}MB ← ${node.type} [${this.getProgress()}]`,
           ctx: this.snapshot(ctx),
         });
 
@@ -153,6 +195,8 @@ export class FlowRunner extends EventEmitter {
 
         const nextIds: string[] = this.adjacencyMap.get(currentNodeId) ?? [];
         if (nextIds.length === 0) {
+          this.completedFiles++;
+
           this.db.upsertContext({
             traceId: ctx.traceId,
             flowId: this.flow.id,
@@ -167,7 +211,10 @@ export class FlowRunner extends EventEmitter {
           this.emit('log', {
             event: 'flow_complete',
             fileName: ctx.originalFileName,
+            fileSize,
             traceId: ctx.traceId,
+            progress: this.getProgress(),
+            message: `${ctx.originalFileName} done. [${this.getProgress()}]`,
             ctx: this.snapshot(ctx),
           });
           break;
@@ -182,6 +229,8 @@ export class FlowRunner extends EventEmitter {
         currentNodeId = nextIds[0];
       }
     } catch (err: any) {
+      this.completedFiles++;
+
       ctx.metadata._error = err.message;
       ctx.metadata._errorNodeId = currentNodeId;
 
@@ -203,7 +252,10 @@ export class FlowRunner extends EventEmitter {
         nodeId: currentNodeId,
         error: err.message,
         fileName: ctx.originalFileName,
+        fileSize,
         traceId: ctx.traceId,
+        progress: this.getProgress(),
+        message: `${ctx.originalFileName} error: ${err.message}`,
         ctx: this.snapshot(ctx),
       });
     }
