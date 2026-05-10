@@ -2,23 +2,28 @@
 
 ## Three entrypoints
 
-- `src/main.ts` — CLI mode (uses `.env`, watches a directory, tags + moves files)(Deprecated , Methods not cleaned up when nodes move to batch workflow)
-- `src/server.ts` — standalone HTTP server (Express + Socket.io, serves `web/dist/`)
+- `src/main.ts` — CLI mode (uses `.env`, watches a directory, deprecated in favor of the batch workflow but still compiles)
+- `src/server.ts` — standalone HTTP server (Express 5 + Socket.io, serves `web/dist/`)
 - `src/electron/main.ts` — Electron wrapper (embeds the Express server in-process)
 
 The Electron config (`tsconfig.electron.json`) includes `src/server.ts` and shared modules but **not** `src/main.ts`.
+
+## Express 5
+
+This project uses Express 5 (`@types/express` v5). The catch-all route in `src/server.ts` uses `/{*splat}` syntax. Express 4 `*` catch-all will not work.
 
 ## Dual TypeScript build configs
 
 - `tsconfig.json` — plain Node.js backend (`outDir: ./dist`, excludes `src/electron/`)
 - `tsconfig.electron.json` — Electron main process (`outDir: ./dist/electron`, includes `src/electron/`, `src/api/`, `src/core/`, `src/db/`, `src/factory/`, `src/nodes/`, `src/utils/`, `src/server.ts`)
 - The Electron config uses `rootDir: ./src`, so the compiled entry ends up at `dist/electron/electron/main.js` (nested), **not** `dist/electron/main.js`. This has caused both `package.json` `"main"` and the `loadFile` path bugs before. The production `loadFile` uses `path.join(__dirname, '../../../web/dist/index.html')` because of this nesting.
+- Web frontend uses project references: `web/tsconfig.json` → `tsconfig.app.json` + `tsconfig.node.json`. `cd web && npx tsc --noEmit` uses both automatically.
 
 ## Frontend build must be relative-path
 
 `web/vite.config.ts` must keep `base: './'`. Without it, the built HTML uses absolute `/assets/...` paths which resolve to `file:///assets/...` inside Electron and show a blank white screen.
 
-## Workflow mode (current version)
+## Batch workflow mode
 
 This is **not** a drag-and-drop node editor. The current UI is a batch-processing table:
 
@@ -29,6 +34,16 @@ This is **not** a drag-and-drop node editor. The current UI is a batch-processin
 5. The API builds a flow: `TaggerNode` (with `UserTag` rule) reads `ctx.metadata.userTag`, then `MoverNode` resolves `{metadata.targetPath}/{filename}` from the template.
 
 The old React Flow canvas components (`FlowCanvas`, `NodePanel`, `PropertyPanel`) exist in `web/src/components/` but are **not imported** by `App.tsx`.
+
+## Scrape mode
+
+A second batch-processing page (`ScrapePage`) for recursive directory scraping and moving:
+
+- `POST /api/scrape/scan` — recursively scan a directory to a given depth for video files
+- `POST /api/scrape/start` — starts a `scrape-flow` with only a `MoverNode`, resolving `{metadata.exportDir}/{filename}`
+- `POST /api/scrape/stop` — stops the running scrape flow
+- Sets `ctx.metadata.exportDir` on each file context; no `TaggerNode` involved
+- The flow ID is hardcoded as `'scrape-flow'`
 
 ## Path template syntax
 
@@ -56,7 +71,7 @@ cd web && npm run lint              # ESLint
 # Development (Electron with hot reload — runs tsc watch + Vite dev + Electron)
 npm run electron:dev
 
-# Standalone CLI mode
+# Standalone CLI mode (deprecated; uses plain tsconfig, excludes Electron)
 npm run dev                         # tsc && node dist/main.js
 
 # Frontend dev server (standalone, for UI work without Electron)
@@ -68,7 +83,7 @@ npm run electron:build
 
 ## Native module: better-sqlite3
 
-- Electron uses `better-sqlite3`, a native C++ addon. `electron-builder` runs `@electron/rebuild` during packaging.
+- `better-sqlite3` is a native C++ addon. `electron-builder` runs `@electron/rebuild` during packaging.
 - DB path: `data/vfp.db` (standalone) or `app.getPath('userData')/vfp.db` (Electron).
 - WAL mode enabled (`journal_mode = WAL`), foreign keys enabled.
 

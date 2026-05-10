@@ -122,7 +122,7 @@ export default function App() {
       .then((r) => r.json())
       .then((data) => { if (data.success && data.value) setScrapeDepth(parseInt(data.value, 10) || 1); })
       .catch(() => {});
-  }, []);
+  }, [activePage]);
 
   useEffect(() => {
     if (scrapeIsRunning && scrapeSocket.completedCount > 0 && scrapeSocket.completedCount >= scrapeFiles.length) {
@@ -372,14 +372,24 @@ export default function App() {
                 <button
                   onClick={handleStart}
                   disabled={isRunning || files.length === 0}
-                  style={{ ...btnStyle, background: isRunning ? '#059669' : '#10b981' }}
+                  style={{
+                    ...btnStyle,
+                    background: isRunning || files.length === 0 ? '#6b7280' : '#10b981',
+                    cursor: isRunning || files.length === 0 ? 'not-allowed' : 'pointer',
+                    opacity: isRunning || files.length === 0 ? 0.6 : 1,
+                  }}
                 >
                   {isRunning ? '运行中' : '启动'}
                 </button>
                 <button
                   onClick={handleStop}
-                  disabled={!isRunning}
-                  style={{ ...btnStyle, background: '#ef4444' }}
+                  disabled={!isRunning || files.length === 0}
+                  style={{
+                    ...btnStyle,
+                    background: !isRunning || files.length === 0 ? '#6b7280' : '#ef4444',
+                    cursor: !isRunning || files.length === 0 ? 'not-allowed' : 'pointer',
+                    opacity: !isRunning || files.length === 0 ? 0.6 : 1,
+                  }}
                 >
                   停止
                 </button>
