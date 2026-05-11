@@ -1,6 +1,6 @@
 {
   "name": "svfp",
-  "version": "1.1.6",
+  "version": "1.1.7",
   "description": "SVFP - 视频文件流处理系统",
   "main": "dist/electron/electron/main.js",
   "scripts": {

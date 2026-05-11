@@ -173,12 +173,6 @@ export default function SettingsPage() {
             </SettingRow>
           </SettingCard>
 
-          <SettingCard title="通用设置" isDark={isDark}>
-            <SettingRow label="调试日志输出" description="开启后显示完整的处理过程日志，关闭后仅显示开始和完成状态，重启生效" isDark={isDark}>
-              <ToggleSwitch checked={debugLogEnabled} onChange={handleDebugLogChange} />
-            </SettingRow>
-          </SettingCard>
-
           <SettingCard title="Tag 管理" isDark={isDark}>
             <SettingRow label="Tag 名称自动填充" description="选择目标路径后自动使用文件夹名称填充 Tag 名称" isDark={isDark}>
               <ToggleSwitch checked={autoFillTagName} onChange={handleAutoFillChange} />
@@ -240,6 +234,12 @@ export default function SettingsPage() {
                 />
               </SettingRow>
             </div>
+          </SettingCard>
+
+          <SettingCard title="高级设置" isDark={isDark}>
+            <SettingRow label="调试日志输出" description="开启后显示完整的处理过程日志，关闭后仅显示开始和完成状态，重启生效" isDark={isDark}>
+              <ToggleSwitch checked={debugLogEnabled} onChange={handleDebugLogChange} />
+            </SettingRow>
           </SettingCard>
 
           <SettingCard title="关于" isDark={isDark}>
