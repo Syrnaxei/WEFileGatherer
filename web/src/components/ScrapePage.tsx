@@ -3,6 +3,17 @@ import ScrapeStatsDashboard from './ScrapeStatsDashboard';
 import Toast from './Toast';
 import type { ScrapeFileItem } from '../App';
 
+/*
+ * 布局间距比例系统 — 详见 doc/布局间距比例系统.md
+ * 列宽比例: 文件名:路径:状态:操作 = 35:40:15:10
+ * 调整 SCRAPE_COL_WIDTHS / CELL_PADDING 即可改变布局
+ */
+const SCRAPE_COL_WIDTHS = ['35%', '40%', '15%', '10%'];
+const CELL_PADDING = '8px 12px';
+const HEADER_PADDING = '8px 12px';
+const MIN_STATUS_WIDTH = '70px';
+const MIN_ACTION_WIDTH = '60px';
+
 interface LogEntry {
   event: string;
   nodeId?: string;
@@ -190,6 +201,7 @@ export default function ScrapePage({
           }}>
             <table style={{
               width: '100%',
+              tableLayout: 'fixed',
               borderCollapse: 'collapse',
               fontSize: '13px',
             }}>
@@ -198,10 +210,10 @@ export default function ScrapePage({
                   background: isDark ? '#1f2937' : '#f9fafb',
                   borderBottom: `1px solid ${isDark ? '#374151' : '#e5e7eb'}`,
                 }}>
-                  <th style={thStyle(isDark)}>文件名</th>
-                  <th style={thStyle(isDark)}>路径</th>
-                  <th style={{ ...thStyle(isDark), width: '80px', textAlign: 'center' }}>状态</th>
-                  <th style={{ ...thStyle(isDark), width: '60px', textAlign: 'center' }}>操作</th>
+                  <th style={{ ...thStyle(isDark), width: SCRAPE_COL_WIDTHS[0] }}>文件名</th>
+                  <th style={{ ...thStyle(isDark), width: SCRAPE_COL_WIDTHS[1] }}>路径</th>
+                  <th style={{ ...thStyle(isDark), width: SCRAPE_COL_WIDTHS[2], minWidth: MIN_STATUS_WIDTH, textAlign: 'center' }}>状态</th>
+                  <th style={{ ...thStyle(isDark), width: SCRAPE_COL_WIDTHS[3], minWidth: MIN_ACTION_WIDTH, textAlign: 'center' }}>操作</th>
                 </tr>
               </thead>
               <tbody>
@@ -287,7 +299,7 @@ const btnStyle: React.CSSProperties = {
 };
 
 const thStyle = (isDark: boolean): React.CSSProperties => ({
-  padding: '8px 12px',
+  padding: HEADER_PADDING,
   textAlign: 'left',
   fontSize: '12px',
   fontWeight: 600,
@@ -296,9 +308,8 @@ const thStyle = (isDark: boolean): React.CSSProperties => ({
 });
 
 const tdStyle = (isDark: boolean): React.CSSProperties => ({
-  padding: '8px 12px',
+  padding: CELL_PADDING,
   color: isDark ? '#e5e7eb' : '#111827',
-  maxWidth: '300px',
   overflow: 'hidden',
   textOverflow: 'ellipsis',
   whiteSpace: 'nowrap',

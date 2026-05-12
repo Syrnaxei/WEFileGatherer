@@ -32,6 +32,7 @@ export default function SettingsPage({
   const [version, setVersion] = useState<VersionInfo | null>(null);
   const [autoFillTagName, setAutoFillTagName] = useState(false);
   const [debugLogEnabled, setDebugLogEnabled] = useState(false);
+  const [workspaceSourceDir, setWorkspaceSourceDir] = useState('');
   const [scrapeSourceDir, setScrapeSourceDir] = useState('');
   const [scrapeExportDir, setScrapeExportDir] = useState('');
   const [scrapeDepth, setScrapeDepth] = useState(1);
@@ -60,6 +61,15 @@ export default function SettingsPage({
       .then((data) => {
         if (data.success && data.value !== null) {
           setDebugLogEnabled(data.value === 'true');
+        }
+      })
+      .catch(() => {});
+
+    fetch(`${API_BASE}/settings/sourceDir`)
+      .then((r) => r.json())
+      .then((data) => {
+        if (data.success && data.value) {
+          setWorkspaceSourceDir(data.value);
         }
       })
       .catch(() => {});
@@ -108,6 +118,22 @@ export default function SettingsPage({
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ value: String(value) }),
     }).catch(() => {});
+  };
+
+  const saveWorkspaceSourceDir = (value: string) => {
+    setWorkspaceSourceDir(value);
+    fetch(`${API_BASE}/settings/sourceDir`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ value }),
+    }).catch(() => {});
+  };
+
+  const handleSelectWorkspaceSource = async () => {
+    if (window.electronAPI) {
+      const dir = await window.electronAPI.openDirectory();
+      if (dir) saveWorkspaceSourceDir(dir);
+    }
   };
 
   const saveScrapeSourceDir = (value: string) => {
@@ -193,6 +219,24 @@ export default function SettingsPage({
             <SettingRow label="Tag 名称自动填充" description="选择目标路径后自动使用文件夹名称填充 Tag 名称" isDark={isDark}>
               <ToggleSwitch checked={autoFillTagName} onChange={handleAutoFillChange} />
             </SettingRow>
+          </SettingCard>
+
+          <SettingCard title="工作台设置" isDark={isDark}>
+            <div>
+              <label style={{ fontSize: '13px', color: isDark ? '#d1d5db' : '#374151', display: 'block', marginBottom: '4px' }}>源文件目录</label>
+              <div style={{ display: 'flex', gap: '8px' }}>
+                <input
+                  type="text"
+                  value={workspaceSourceDir}
+                  onChange={(e) => saveWorkspaceSourceDir(e.target.value)}
+                  placeholder="选择或输入源文件目录..."
+                  style={isDark ? inputStyleDark : inputStyleLight}
+                />
+                {window.electronAPI && (
+                  <button onClick={handleSelectWorkspaceSource} style={smallBtnStyle}>选择...</button>
+                )}
+              </div>
+            </div>
           </SettingCard>
 
           <SettingCard title="搜刮设置" isDark={isDark}>

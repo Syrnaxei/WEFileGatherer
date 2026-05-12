@@ -153,6 +153,12 @@ export default function App() {
   }, [completedIds, failedIds]);
 
   useEffect(() => {
+    if (activePage === 'workspace') {
+      fetch(`${API_BASE}/settings/sourceDir`)
+        .then((r) => r.json())
+        .then((data) => { if (data.success && data.value) setWfpPathState(data.value); })
+        .catch(() => {});
+    }
     fetch(`${API_BASE}/settings/scrapeSourceDir`)
       .then((r) => r.json())
       .then((data) => { if (data.success && data.value) setScrapeSourceDir(data.value); })
@@ -186,15 +192,6 @@ export default function App() {
       );
     }
   }, [scrapeSocket.completedIds, scrapeSocket.failedIds]);
-
-  const setWfpPath = useCallback((value: string) => {
-    setWfpPathState(value);
-    fetch(`${API_BASE}/settings/sourceDir`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ value }),
-    }).catch(() => {});
-  }, []);
 
   const getTargetPathForTag = (tagName: string): string => {
     const tag = savedTags.find((t) => t.name === tagName);
@@ -230,15 +227,6 @@ export default function App() {
 
   const handleRemove = (index: number) => {
     setFiles((prev) => prev.filter((_, i) => i !== index));
-  };
-
-  const handleSelectFolder = async () => {
-    if (window.electronAPI) {
-      const dir = await window.electronAPI.openDirectory();
-      if (dir) {
-        setWfpPath(dir);
-      }
-    }
   };
 
   const handleStart = async () => {
@@ -431,23 +419,16 @@ export default function App() {
               justifyContent: 'space-between',
               padding: '0 16px',
               borderBottom: `1px solid ${isDark ? '#374151' : '#e5e7eb'}`,
-              gap: '12px',
+              gap: '18px',
             }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flex: 1 }}>
-                <label style={{ fontSize: '13px', color: isDark ? '#9ca3af' : '#6b7280', whiteSpace: 'nowrap' }}>源文件目录:</label>
-                <input
-                  type="text"
-                  value={wfpPath}
-                  onChange={(e) => setWfpPath(e.target.value)}
-                  style={isDark ? headerInputStyleDark : headerInputStyleLight}
-                />
-                {window.electronAPI && (
-                  <button onClick={handleSelectFolder} style={btnStyle}>选择...</button>
-                )}
-                <button onClick={handleLoad} style={{ ...btnStyle, background: '#4f46e5' }}>加载</button>
+                <span style={{ fontSize: '13px', color: isDark ? '#9ca3af' : '#6b7280' }}>
+                  源文件目录: {wfpPath || '未设置'}
+                </span>
               </div>
 
               <div style={{ display: 'flex', gap: '8px' }}>
+                <button onClick={handleLoad} style={{ ...btnStyle, background: '#4f46e5' }}>加载</button>
                 <button
                   onClick={handleStart}
                   disabled={isRunning || files.length === 0}
@@ -506,8 +487,13 @@ export default function App() {
                 </div>
                 <div style={{
                   display: 'grid',
-                  gridTemplateColumns: '1fr 180px 1fr 80px',
-                  gap: '12px',
+                  /*
+                   * 与 FileList.tsx 中的 GRID_COLUMNS / GRID_GAP 保持同步
+                   * 列宽比例: 文件名:Tag:目标路径:操作 = 3:2:3:1
+                   * 调整方法见 FileList.tsx 顶部注释
+                   */
+                  gridTemplateColumns: 'minmax(120px, 3fr) minmax(140px, 2fr) minmax(120px, 3fr) minmax(60px, 1fr)',
+                  gap: '16px',
                   padding: '8px 16px',
                   background: isDark ? '#1f2937' : '#f9fafb',
                   borderBottom: `1px solid ${isDark ? '#374151' : '#e5e7eb'}`,
@@ -564,22 +550,4 @@ const btnStyle: React.CSSProperties = {
   whiteSpace: 'nowrap',
 };
 
-const headerInputStyleDark: React.CSSProperties = {
-  flex: 1,
-  background: '#374151',
-  border: '1px solid #4b5563',
-  borderRadius: '4px',
-  padding: '6px 10px',
-  color: 'white',
-  fontSize: '13px',
-};
 
-const headerInputStyleLight: React.CSSProperties = {
-  flex: 1,
-  background: '#f9fafb',
-  border: '1px solid #d1d5db',
-  borderRadius: '4px',
-  padding: '6px 10px',
-  color: '#111827',
-  fontSize: '13px',
-};
