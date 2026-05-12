@@ -35,6 +35,7 @@ interface ScrapePageProps {
   logs: LogEntry[];
   connected: boolean;
   debugLogEnabled: boolean;
+  scrapeShowFullPath: boolean;
   onLoad: () => void;
   onStart: () => void;
   onStop: () => void;
@@ -53,12 +54,22 @@ export default function ScrapePage({
   logs,
   connected,
   debugLogEnabled,
+  scrapeShowFullPath,
   onLoad,
   onStart,
   onStop,
   onRemove,
 }: ScrapePageProps) {
   const foldersReady = scrapeSourceDir.trim() !== '' && scrapeExportDir.trim() !== '';
+
+  const shortenPath = (filePath: string, baseDir: string): string => {
+    const normalizedPath = filePath.replace(/\\/g, '/');
+    const normalizedBase = baseDir.replace(/\\/g, '/').replace(/\/$/, '');
+    if (normalizedPath.toLowerCase().startsWith(normalizedBase.toLowerCase())) {
+      return '~' + normalizedPath.slice(normalizedBase.length);
+    }
+    return filePath;
+  };
 
   const getStatusStyle = (status?: string): React.CSSProperties => {
     switch (status) {
@@ -219,7 +230,7 @@ export default function ScrapePage({
                     >
                       <td style={tdStyle(isDark)}>{file.fileName}</td>
                       <td style={{ ...tdStyle(isDark), fontSize: '11px', color: isDark ? '#6b7280' : '#9ca3af' }}>
-                        {file.filePath}
+                        {scrapeShowFullPath ? file.filePath : shortenPath(file.filePath, scrapeSourceDir)}
                       </td>
                       <td style={{ ...tdStyle(isDark), textAlign: 'center' }}>
                         <span style={getStatusStyle(file.status)}>{getStatusText(file.status)}</span>

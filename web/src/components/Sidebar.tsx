@@ -123,7 +123,7 @@ export default function Sidebar({ activePage, onNavigate, isDark }: SidebarProps
               }
             }}
           >
-            <IconComponent size={iconSize} />
+            <IconComponent size={item.key === 'settings' ? 21 : iconSize} />
             <span style={{ fontSize: '9px', lineHeight: 1 }}>{item.label}</span>
           </button>
         );

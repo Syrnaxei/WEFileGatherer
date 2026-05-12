@@ -11,7 +11,23 @@ interface VersionInfo {
   githubUrl: string;
 }
 
-export default function SettingsPage() {
+interface SettingsPageProps {
+  showFullPathOptions: boolean;
+  onShowFullPathOptionsChange: (value: boolean) => void;
+  workspaceShowFullPath: boolean;
+  onWorkspaceShowFullPathChange: (value: boolean) => void;
+  scrapeShowFullPath: boolean;
+  onScrapeShowFullPathChange: (value: boolean) => void;
+}
+
+export default function SettingsPage({
+  showFullPathOptions,
+  onShowFullPathOptionsChange,
+  workspaceShowFullPath,
+  onWorkspaceShowFullPathChange,
+  scrapeShowFullPath,
+  onScrapeShowFullPathChange,
+}: SettingsPageProps) {
   const { isDark, setTheme } = useTheme();
   const [version, setVersion] = useState<VersionInfo | null>(null);
   const [autoFillTagName, setAutoFillTagName] = useState(false);
@@ -240,6 +256,19 @@ export default function SettingsPage() {
             <SettingRow label="调试日志输出" description="开启后显示完整的处理过程日志，关闭后仅显示开始和完成状态，重启生效" isDark={isDark}>
               <ToggleSwitch checked={debugLogEnabled} onChange={handleDebugLogChange} />
             </SettingRow>
+            <SettingRow label="显示完整文件路径" description="开启后可分别控制工作台和搜刮界面的路径显示方式" isDark={isDark}>
+              <ToggleSwitch checked={showFullPathOptions} onChange={onShowFullPathOptionsChange} />
+            </SettingRow>
+            {showFullPathOptions && (
+              <div style={{ paddingLeft: '16px', borderLeft: `2px solid ${isDark ? '#374151' : '#e5e7eb'}`, marginTop: '4px' }}>
+                <SettingRow label="工作台界面" description="关闭时文件路径将相对于源文件目录显示" isDark={isDark}>
+                  <ToggleSwitch checked={workspaceShowFullPath} onChange={onWorkspaceShowFullPathChange} />
+                </SettingRow>
+                <SettingRow label="搜刮界面" description="关闭时文件路径将相对于搜刮目录显示" isDark={isDark}>
+                  <ToggleSwitch checked={scrapeShowFullPath} onChange={onScrapeShowFullPathChange} />
+                </SettingRow>
+              </div>
+            )}
           </SettingCard>
 
           <SettingCard title="关于" isDark={isDark}>

@@ -17,9 +17,20 @@ interface FileListProps {
   getTargetPathForTag: (tagName: string) => string;
   isDark: boolean;
   isRunning?: boolean;
+  showFullPath?: boolean;
+  baseDir?: string;
 }
 
-export default function FileList({ files, onTagChange, onRemove, savedTags, getTargetPathForTag, isDark, isRunning }: FileListProps) {
+function shortenPath(filePath: string, baseDir: string): string {
+  const normalizedPath = filePath.replace(/\\/g, '/');
+  const normalizedBase = baseDir.replace(/\\/g, '/').replace(/\/$/, '');
+  if (normalizedPath.toLowerCase().startsWith(normalizedBase.toLowerCase())) {
+    return '~' + normalizedPath.slice(normalizedBase.length);
+  }
+  return filePath;
+}
+
+export default function FileList({ files, onTagChange, onRemove, savedTags, getTargetPathForTag, isDark, isRunning, showFullPath = true, baseDir = '' }: FileListProps) {
   if (files.length === 0) {
     return (
       <div style={{
@@ -39,29 +50,8 @@ export default function FileList({ files, onTagChange, onRemove, savedTags, getT
     <div style={{
       flex: 1,
       overflowY: 'auto',
-      padding: '16px',
       background: isDark ? '#111827' : '#f9fafb',
     }}>
-      <div style={{
-        display: 'grid',
-        gridTemplateColumns: '1fr 180px 1fr 80px',
-        gap: '12px',
-        padding: '8px 12px',
-        background: isDark ? '#1f2937' : '#ffffff',
-        borderRadius: '6px 6px 0 0',
-        fontSize: '12px',
-        fontWeight: 600,
-        color: '#9ca3af',
-        position: 'sticky',
-        top: 0,
-        zIndex: 1,
-      }}>
-        <div>文件名</div>
-        <div>Tag</div>
-        <div>目标路径</div>
-        <div style={{ textAlign: 'center' }}>操作</div>
-      </div>
-
       {files.map((file, index) => {
         const targetPath = file.tag.trim() ? getTargetPathForTag(file.tag.trim()) : '';
         const isCompleted = file.status === 'completed';
@@ -107,7 +97,7 @@ export default function FileList({ files, onTagChange, onRemove, savedTags, getT
                   }}>失败</span>
                 )}
               </div>
-              <div style={{ fontSize: '11px', color: isDark ? '#6b7280' : '#9ca3af', marginTop: '2px' }}>{file.filePath}</div>
+              <div style={{ fontSize: '11px', color: isDark ? '#6b7280' : '#9ca3af', marginTop: '2px' }}>{showFullPath ? file.filePath : shortenPath(file.filePath, baseDir)}</div>
             </div>
 
             <div>

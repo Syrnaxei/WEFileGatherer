@@ -43,6 +43,12 @@ export default function App() {
   const [scrapeDepth, setScrapeDepth] = useState(1);
   const [scrapeProcessedCount, setScrapeProcessedCount] = useState(0);
   const [debugLogEnabled, setDebugLogEnabled] = useState(false);
+  const [showFullPathOptions, setShowFullPathOptions] = useState(true);
+  const [workspaceShowFullPath, setWorkspaceShowFullPath] = useState(true);
+  const [scrapeShowFullPath, setScrapeShowFullPath] = useState(true);
+
+  const effectiveWorkspaceShowFullPath = showFullPathOptions && workspaceShowFullPath;
+  const effectiveScrapeShowFullPath = showFullPathOptions && scrapeShowFullPath;
 
   const { logs, connected, completedCount, completedIds, failedIds, subscribe, clearLogs } = useSocket(flowId);
   const scrapeSocket = useSocket('scrape-flow');
@@ -87,6 +93,33 @@ export default function App() {
       .then((data) => {
         if (data.success && data.value !== null) {
           setDebugLogEnabled(data.value === 'true');
+        }
+      })
+      .catch(() => {});
+
+    fetch(`${API_BASE}/settings/showFullPathOptions`)
+      .then((r) => r.json())
+      .then((data) => {
+        if (data.success && data.value !== null) {
+          setShowFullPathOptions(data.value !== 'false');
+        }
+      })
+      .catch(() => {});
+
+    fetch(`${API_BASE}/settings/workspaceShowFullPath`)
+      .then((r) => r.json())
+      .then((data) => {
+        if (data.success && data.value !== null) {
+          setWorkspaceShowFullPath(data.value !== 'false');
+        }
+      })
+      .catch(() => {});
+
+    fetch(`${API_BASE}/settings/scrapeShowFullPath`)
+      .then((r) => r.json())
+      .then((data) => {
+        if (data.success && data.value !== null) {
+          setScrapeShowFullPath(data.value !== 'false');
         }
       })
       .catch(() => {});
@@ -324,12 +357,46 @@ export default function App() {
     }
   };
 
+  const handleShowFullPathOptionsChange = (value: boolean) => {
+    setShowFullPathOptions(value);
+    fetch(`${API_BASE}/settings/showFullPathOptions`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ value: String(value) }),
+    }).catch(() => {});
+  };
+
+  const handleWorkspaceShowFullPathChange = (value: boolean) => {
+    setWorkspaceShowFullPath(value);
+    fetch(`${API_BASE}/settings/workspaceShowFullPath`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ value: String(value) }),
+    }).catch(() => {});
+  };
+
+  const handleScrapeShowFullPathChange = (value: boolean) => {
+    setScrapeShowFullPath(value);
+    fetch(`${API_BASE}/settings/scrapeShowFullPath`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ value: String(value) }),
+    }).catch(() => {});
+  };
+
   const renderPage = () => {
     switch (activePage) {
       case 'tags':
         return <TagManagement isDark={isDark} />;
       case 'settings':
-        return <SettingsPage />;
+        return <SettingsPage
+          showFullPathOptions={showFullPathOptions}
+          onShowFullPathOptionsChange={handleShowFullPathOptionsChange}
+          workspaceShowFullPath={workspaceShowFullPath}
+          onWorkspaceShowFullPathChange={handleWorkspaceShowFullPathChange}
+          scrapeShowFullPath={scrapeShowFullPath}
+          onScrapeShowFullPathChange={handleScrapeShowFullPathChange}
+        />;
       case 'scrape':
         return (
           <ScrapePage
@@ -344,6 +411,7 @@ export default function App() {
             logs={scrapeSocket.logs}
             connected={scrapeSocket.connected}
             debugLogEnabled={debugLogEnabled}
+            scrapeShowFullPath={effectiveScrapeShowFullPath}
             onLoad={handleScrapeLoad}
             onStart={handleScrapeStart}
             onStop={handleScrapeStop}
@@ -436,6 +504,22 @@ export default function App() {
                     </span>
                   )}
                 </div>
+                <div style={{
+                  display: 'grid',
+                  gridTemplateColumns: '1fr 180px 1fr 80px',
+                  gap: '12px',
+                  padding: '8px 16px',
+                  background: isDark ? '#1f2937' : '#f9fafb',
+                  borderBottom: `1px solid ${isDark ? '#374151' : '#e5e7eb'}`,
+                  fontSize: '12px',
+                  fontWeight: 600,
+                  color: isDark ? '#9ca3af' : '#6b7280',
+                }}>
+                  <div>文件名</div>
+                  <div>Tag</div>
+                  <div>目标路径</div>
+                  <div style={{ textAlign: 'center' }}>操作</div>
+                </div>
                 <FileList
                   files={files}
                   onTagChange={handleTagChange}
@@ -444,6 +528,8 @@ export default function App() {
                   getTargetPathForTag={getTargetPathForTag}
                   isDark={isDark}
                   isRunning={isRunning}
+                  showFullPath={effectiveWorkspaceShowFullPath}
+                  baseDir={wfpPath}
                 />
               </div>
 
