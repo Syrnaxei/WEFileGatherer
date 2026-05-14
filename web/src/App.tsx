@@ -208,7 +208,11 @@ export default function App() {
       const data = await res.json();
       if (data.success) {
         setFiles(data.files);
-        showToast(`已加载 ${data.files.length} 个视频文件`, 'success');
+        if(data.files.length !== 0) {
+          showToast(`已加载 ${data.files.length} 个视频文件`, 'success');
+        } else {
+          showToast('未找到匹配文件');
+        }
       } else {
         showToast(data.error || '加载失败', 'error');
       }
@@ -292,7 +296,11 @@ export default function App() {
       const data = await res.json();
       if (data.success) {
         setScrapeFiles(data.files.map((f: any) => ({ ...f, status: 'pending' as const })));
-        showToast(`已加载 ${data.files.length} 个视频文件`, 'success');
+        if(data.files.length !== 0) {
+          showToast(`已加载 ${data.files.length} 个视频文件`, 'success');
+        } else {
+          showToast('未找到匹配文件');
+        }
       } else {
         showToast(data.error || '加载失败', 'error');
       }
@@ -410,6 +418,30 @@ export default function App() {
       default:
         return (
           <>
+            <div style={{
+              padding: '20px 24px',
+              background: 'var(--bg-surface-1)',
+              borderBottom: '1px solid var(--border-default)',
+            }}>
+              <h2 style={{
+                margin: 0,
+                fontSize: '18px',
+                fontWeight: 700,
+                color: 'var(--text-primary)',
+                letterSpacing: '-0.02em',
+              }}>
+                工作台
+              </h2>
+              <p style={{
+                margin: '4px 0 0',
+                fontSize: '12px',
+                color: 'var(--text-muted)',
+                letterSpacing: '-0.01em',
+              }}>
+                批量处理视频文件，为文件设置 Tag 并移动到目标目录
+              </p>
+            </div>
+
             <header style={{
               height: '52px',
               minHeight: '52px',
@@ -540,7 +572,13 @@ export default function App() {
       <Toast isDark={isDark} />
       <Sidebar activePage={activePage} onNavigate={setActivePage} isDark={isDark} />
       <div style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
-        {renderPage()}
+        <div
+          key={activePage}
+          className="animate-fade-in-up"
+          style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}
+        >
+          {renderPage()}
+        </div>
       </div>
     </div>
   );

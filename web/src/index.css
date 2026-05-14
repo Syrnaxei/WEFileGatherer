@@ -1,6 +1,6 @@
 /* ═══════════════════════════════════════════════════════════════
-   SVFP Design System — Precision Terminal
-   A refined dark-first industrial aesthetic for video file processing
+   SVFP Design System — Material Design 3
+   Official MD3 tonal palette color scheme (Dark + Light)
    ═══════════════════════════════════════════════════════════════ */
 
 /* ── CSS Custom Properties ─────────────────────────────────── */
@@ -25,12 +25,6 @@
   --radius-lg: 12px;
   --radius-xl: 16px;
 
-  /* Shadows */
-  --shadow-sm: 0 1px 2px rgba(0,0,0,0.3);
-  --shadow-md: 0 4px 12px rgba(0,0,0,0.4);
-  --shadow-lg: 0 8px 24px rgba(0,0,0,0.5);
-  --shadow-glow: 0 0 20px rgba(105,104,247,0.15);
-
   /* Transitions */
   --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
   --ease-in-out: cubic-bezier(0.65, 0, 0.35, 1);
@@ -39,89 +33,265 @@
   --duration-slow: 400ms;
 }
 
-/* ── Dark Theme (default) ──────────────────────────────────── */
+/* ═══════════════════════════════════════════════════════════════
+   MD3 Dark Theme (default)
+   Source color: #6750A4 (MD3 baseline purple primary)
+   ═══════════════════════════════════════════════════════════════ */
 
 :root,
 [data-theme="dark"] {
-  --bg-base: #09090b;
-  --bg-surface-1: #131316;
-  --bg-surface-2: #1b1b24;
-  --bg-surface-3: #232332;
-  --bg-elevated: #1a1a26;
+  /* ── MD3 Core Tokens ──────────────────────────────────── */
 
-  --border-default: #2a2a3a;
-  --border-subtle: #1e1e30;
-  --border-accent: rgba(105,104,247,0.25);
+  /* Primary */
+  --md-sys-color-primary: #D0BCFF;
+  --md-sys-color-on-primary: #381E72;
+  --md-sys-color-primary-container: #4F378B;
+  --md-sys-color-on-primary-container: #EADDFF;
 
-  --text-primary: #f1f1f4;
-  --text-secondary: #9898b0;
-  --text-muted: #5c5c72;
+  /* Secondary */
+  --md-sys-color-secondary: #CCC2DC;
+  --md-sys-color-on-secondary: #332D41;
+  --md-sys-color-secondary-container: #4A4458;
+  --md-sys-color-on-secondary-container: #E8DEF8;
 
-  --accent: #6968f7;
-  --accent-hover: #8281f9;
-  --accent-muted: rgba(105,104,247,0.12);
-  --accent-strong: rgba(105,104,247,0.2);
+  /* Tertiary */
+  --md-sys-color-tertiary: #EFB8C8;
+  --md-sys-color-on-tertiary: #492532;
+  --md-sys-color-tertiary-container: #633B48;
+  --md-sys-color-on-tertiary-container: #FFD8E4;
 
-  --success: #0ec97a;
-  --success-hover: #10e088;
-  --success-muted: rgba(14,201,122,0.12);
-  --success-strong: rgba(14,201,122,0.2);
+  /* Error */
+  --md-sys-color-error: #F2B8B5;
+  --md-sys-color-on-error: #601410;
+  --md-sys-color-error-container: #8C1D18;
+  --md-sys-color-on-error-container: #F9DEDC;
 
-  --warning: #f5a623;
-  --warning-muted: rgba(245,166,35,0.12);
+  /* Background */
+  --md-sys-color-background: #1C1B1F;
+  --md-sys-color-on-background: #E6E1E5;
 
-  --error: #f43f5e;
-  --error-hover: #f65973;
-  --error-muted: rgba(244,63,94,0.12);
-  --error-strong: rgba(244,63,94,0.2);
+  /* Surface */
+  --md-sys-color-surface: #1C1B1F;
+  --md-sys-color-on-surface: #E6E1E5;
+  --md-sys-color-surface-variant: #49454F;
+  --md-sys-color-on-surface-variant: #CAC4D0;
 
-  --info: #3b82f6;
-  --info-muted: rgba(59,130,246,0.12);
+  /* Surface Containers (elevation hierarchy) */
+  --md-sys-color-surface-container-lowest: #0F0D13;
+  --md-sys-color-surface-container-low: #2B2930;
+  --md-sys-color-surface-container: #2F2D33;
+  --md-sys-color-surface-container-high: #3A373D;
+  --md-sys-color-surface-container-highest: #454248;
 
-  --scrollbar-thumb: rgba(255,255,255,0.08);
-  --scrollbar-thumb-hover: rgba(255,255,255,0.14);
+  /* Outline */
+  --md-sys-color-outline: #938F99;
+  --md-sys-color-outline-variant: #49454F;
+
+  /* Inverse */
+  --md-sys-color-inverse-surface: #E6E1E5;
+  --md-sys-color-inverse-on-surface: #1C1B1F;
+  --md-sys-color-inverse-primary: #6750A4;
+
+  /* Utility */
+  --md-sys-color-shadow: #000000;
+  --md-sys-color-scrim: #000000;
+  --md-sys-color-surface-tint: #D0BCFF;
+
+  /* ── Extended Colors (MD3 tonal palette) ──────────────── */
+
+  /* Success (Green) */
+  --md-sys-color-success: #7BDB8E;
+  --md-sys-color-on-success: #003910;
+  --md-sys-color-success-container: #1B5E20;
+  --md-sys-color-on-success-container: #A5F0B0;
+
+  /* Warning (Amber) */
+  --md-sys-color-warning: #FFD970;
+  --md-sys-color-on-warning: #3A2E00;
+  --md-sys-color-warning-container: #5A4500;
+  --md-sys-color-on-warning-container: #FFE088;
+
+  /* Info (Blue) */
+  --md-sys-color-info: #A8C7FF;
+  --md-sys-color-on-info: #00315F;
+  --md-sys-color-info-container: #1B4A8A;
+  --md-sys-color-on-info-container: #D3E4FF;
+
+  /* ── Backward-compatible aliases ──────────────────────── */
+
+  --bg-base: var(--md-sys-color-background);
+  --bg-surface-1: var(--md-sys-color-surface);
+  --bg-surface-2: var(--md-sys-color-surface-container-low);
+  --bg-surface-3: var(--md-sys-color-surface-container-high);
+  --bg-elevated: var(--md-sys-color-surface-container-low);
+
+  --border-default: var(--md-sys-color-outline-variant);
+  --border-subtle: #3A373D;
+  --border-accent: rgba(208, 188, 255, 0.25);
+
+  --text-primary: var(--md-sys-color-on-surface);
+  --text-secondary: var(--md-sys-color-on-surface-variant);
+  --text-muted: var(--md-sys-color-outline);
+
+  --accent: var(--md-sys-color-primary);
+  --accent-hover: #DDD0FF;
+  --accent-muted: rgba(208, 188, 255, 0.12);
+  --accent-strong: rgba(208, 188, 255, 0.20);
+
+  --success: var(--md-sys-color-success);
+  --success-hover: #8FE89E;
+  --success-muted: rgba(123, 219, 142, 0.12);
+  --success-strong: rgba(123, 219, 142, 0.20);
+
+  --warning: var(--md-sys-color-warning);
+  --warning-muted: rgba(255, 217, 112, 0.12);
+
+  --error: var(--md-sys-color-error);
+  --error-hover: #F7C9C7;
+  --error-muted: rgba(242, 184, 181, 0.12);
+  --error-strong: rgba(242, 184, 181, 0.20);
+
+  --info: var(--md-sys-color-info);
+  --info-muted: rgba(168, 199, 255, 0.12);
+
+  --scrollbar-thumb: rgba(255, 255, 255, 0.10);
+  --scrollbar-thumb-hover: rgba(255, 255, 255, 0.18);
+
+  /* Shadows (dark) */
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.3);
+  --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.4);
+  --shadow-lg: 0 8px 24px rgba(0, 0, 0, 0.5);
+  --shadow-glow: 0 0 20px rgba(208, 188, 255, 0.15);
 }
 
-/* ── Light Theme ───────────────────────────────────────────── */
+/* ═══════════════════════════════════════════════════════════════
+   MD3 Light Theme
+   Source color: #6750A4 (MD3 baseline purple primary)
+   ═══════════════════════════════════════════════════════════════ */
 
 [data-theme="light"] {
-  --bg-base: #fafaf9;
-  --bg-surface-1: #ffffff;
-  --bg-surface-2: #f5f5f4;
-  --bg-surface-3: #ededec;
-  --bg-elevated: #ffffff;
+  /* ── MD3 Core Tokens ──────────────────────────────────── */
 
-  --border-default: #e7e7e6;
-  --border-subtle: #f0f0ef;
-  --border-accent: rgba(105,104,247,0.2);
+  /* Primary */
+  --md-sys-color-primary: #6750A4;
+  --md-sys-color-on-primary: #FFFFFF;
+  --md-sys-color-primary-container: #EADDFF;
+  --md-sys-color-on-primary-container: #21005D;
 
-  --text-primary: #18181b;
-  --text-secondary: #52525b;
-  --text-muted: #a1a1a9;
+  /* Secondary */
+  --md-sys-color-secondary: #625B71;
+  --md-sys-color-on-secondary: #FFFFFF;
+  --md-sys-color-secondary-container: #E8DEF8;
+  --md-sys-color-on-secondary-container: #1D192B;
 
-  --accent: #5b5af7;
-  --accent-hover: #4a49e6;
-  --accent-muted: rgba(91,90,247,0.08);
-  --accent-strong: rgba(91,90,247,0.15);
+  /* Tertiary */
+  --md-sys-color-tertiary: #7D5260;
+  --md-sys-color-on-tertiary: #FFFFFF;
+  --md-sys-color-tertiary-container: #FFD8E4;
+  --md-sys-color-on-tertiary-container: #31111D;
 
-  --success: #0d9e64;
-  --success-hover: #0b8a57;
-  --success-muted: rgba(13,158,100,0.08);
-  --success-strong: rgba(13,158,100,0.15);
+  /* Error */
+  --md-sys-color-error: #B3261E;
+  --md-sys-color-on-error: #FFFFFF;
+  --md-sys-color-error-container: #F9DEDC;
+  --md-sys-color-on-error-container: #410E0B;
 
-  --warning: #e0950e;
-  --warning-muted: rgba(224,149,14,0.08);
+  /* Background */
+  --md-sys-color-background: #FFFBFE;
+  --md-sys-color-on-background: #1C1B1F;
 
-  --error: #e43d54;
-  --error-hover: #d9334a;
-  --error-muted: rgba(228,61,84,0.08);
-  --error-strong: rgba(228,61,84,0.15);
+  /* Surface */
+  --md-sys-color-surface: #FFFBFE;
+  --md-sys-color-on-surface: #1C1B1F;
+  --md-sys-color-surface-variant: #E7E0EC;
+  --md-sys-color-on-surface-variant: #49454F;
 
-  --info: #2563eb;
-  --info-muted: rgba(37,99,235,0.08);
+  /* Surface Containers (elevation hierarchy) */
+  --md-sys-color-surface-container-lowest: #FFFFFF;
+  --md-sys-color-surface-container-low: #F7F2FA;
+  --md-sys-color-surface-container: #F3EDF7;
+  --md-sys-color-surface-container-high: #ECE6F0;
+  --md-sys-color-surface-container-highest: #E6E0E9;
 
-  --scrollbar-thumb: rgba(0,0,0,0.1);
-  --scrollbar-thumb-hover: rgba(0,0,0,0.18);
+  /* Outline */
+  --md-sys-color-outline: #79747E;
+  --md-sys-color-outline-variant: #CAC4D0;
+
+  /* Inverse */
+  --md-sys-color-inverse-surface: #313033;
+  --md-sys-color-inverse-on-surface: #F4EFF4;
+  --md-sys-color-inverse-primary: #D0BCFF;
+
+  /* Utility */
+  --md-sys-color-shadow: #000000;
+  --md-sys-color-scrim: #000000;
+  --md-sys-color-surface-tint: #6750A4;
+
+  /* ── Extended Colors (MD3 tonal palette) ──────────────── */
+
+  /* Success (Green) */
+  --md-sys-color-success: #1B6D2F;
+  --md-sys-color-on-success: #FFFFFF;
+  --md-sys-color-success-container: #A5F0B0;
+  --md-sys-color-on-success-container: #002106;
+
+  /* Warning (Amber) */
+  --md-sys-color-warning: #7A5900;
+  --md-sys-color-on-warning: #FFFFFF;
+  --md-sys-color-warning-container: #FFE088;
+  --md-sys-color-on-warning-container: #261A00;
+
+  /* Info (Blue) */
+  --md-sys-color-info: #1B4A8A;
+  --md-sys-color-on-info: #FFFFFF;
+  --md-sys-color-info-container: #D3E4FF;
+  --md-sys-color-on-info-container: #001C3A;
+
+  /* ── Backward-compatible aliases ──────────────────────── */
+
+  --bg-base: var(--md-sys-color-background);
+  --bg-surface-1: var(--md-sys-color-surface);
+  --bg-surface-2: var(--md-sys-color-surface-container-low);
+  --bg-surface-3: var(--md-sys-color-surface-container-high);
+  --bg-elevated: var(--md-sys-color-surface-container-low);
+
+  --border-default: var(--md-sys-color-outline-variant);
+  --border-subtle: #E0DAE5;
+  --border-accent: rgba(103, 80, 164, 0.20);
+
+  --text-primary: var(--md-sys-color-on-surface);
+  --text-secondary: var(--md-sys-color-on-surface-variant);
+  --text-muted: var(--md-sys-color-outline);
+
+  --accent: var(--md-sys-color-primary);
+  --accent-hover: #5A48B5;
+  --accent-muted: rgba(103, 80, 164, 0.08);
+  --accent-strong: rgba(103, 80, 164, 0.15);
+
+  --success: var(--md-sys-color-success);
+  --success-hover: #155A26;
+  --success-muted: rgba(27, 109, 47, 0.08);
+  --success-strong: rgba(27, 109, 47, 0.15);
+
+  --warning: var(--md-sys-color-warning);
+  --warning-muted: rgba(122, 89, 0, 0.08);
+
+  --error: var(--md-sys-color-error);
+  --error-hover: #9A1F19;
+  --error-muted: rgba(179, 38, 30, 0.08);
+  --error-strong: rgba(179, 38, 30, 0.15);
+
+  --info: var(--md-sys-color-info);
+  --info-muted: rgba(27, 74, 138, 0.08);
+
+  --scrollbar-thumb: rgba(0, 0, 0, 0.10);
+  --scrollbar-thumb-hover: rgba(0, 0, 0, 0.18);
+
+  /* Shadows (light) */
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.05);
+  --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.08);
+  --shadow-lg: 0 8px 24px rgba(0, 0, 0, 0.12);
+  --shadow-glow: 0 0 20px rgba(103, 80, 164, 0.12);
 }
 
 /* ── Reset & Base ──────────────────────────────────────────── */
@@ -317,13 +487,13 @@ input, textarea, button, select {
 .btn:active { transform: scale(0.97); }
 .btn:disabled { opacity: 0.45; cursor: not-allowed; pointer-events: none; }
 
-.btn-primary { background: var(--accent); color: #fff; }
+.btn-primary { background: var(--accent); color: var(--md-sys-color-on-primary); }
 .btn-primary:hover:not(:disabled) { background: var(--accent-hover); }
 
-.btn-success { background: var(--success); color: #fff; }
+.btn-success { background: var(--success); color: var(--md-sys-color-on-success); }
 .btn-success:hover:not(:disabled) { background: var(--success-hover); }
 
-.btn-danger { background: var(--error); color: #fff; }
+.btn-danger { background: var(--error); color: var(--md-sys-color-on-error); }
 .btn-danger:hover:not(:disabled) { background: var(--error-hover); }
 
 .btn-ghost {

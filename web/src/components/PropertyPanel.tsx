@@ -133,7 +133,7 @@ export default function PropertyPanel({ selectedNode, onChange }: PropertyPanelP
                 <button
                   onClick={() => handleSelectDirectory('targetPathTemplate')}
                   className="btn"
-                  style={{ padding: '6px 12px', fontSize: '12px', background: 'var(--warning)', color: '#fff' }}
+                  style={{ padding: '6px 12px', fontSize: '12px', background: 'var(--warning)', color: 'var(--md-sys-color-on-warning)' }}
                 >
                   选择...
                 </button>

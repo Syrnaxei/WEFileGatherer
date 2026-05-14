@@ -55,6 +55,7 @@ const navItems: { key: PageKey; label: string }[] = [
 
 export default function Sidebar({ activePage, onNavigate, isDark: _isDark }: SidebarProps) {
   const iconSize = 20;
+  const activeIndex = navItems.findIndex((item) => item.key === activePage);
 
   return (
     <nav style={{
@@ -68,7 +69,18 @@ export default function Sidebar({ activePage, onNavigate, isDark: _isDark }: Sid
       paddingTop: '16px',
       gap: '2px',
       flexShrink: 0,
+      position: 'relative',
     }}>
+      <div style={{
+        position: 'absolute',
+        left: '0',
+        top: `${16 + activeIndex * 44 + 11}px`,
+        width: '3px',
+        height: '20px',
+        background: 'var(--accent)',
+        borderRadius: '0 3px 3px 0',
+        transition: 'top var(--duration-normal) var(--ease-out)',
+      }} />
       {navItems.map((item) => {
         const isActive = activePage === item.key;
         const IconComponent = iconMap[item.key];
@@ -94,8 +106,7 @@ export default function Sidebar({ activePage, onNavigate, isDark: _isDark }: Sid
               fontSize: '10px',
               fontWeight: isActive ? 600 : 400,
               fontFamily: 'var(--font-ui)',
-              transition: 'all 150ms cubic-bezier(0.16, 1, 0.3, 1)',
-              position: 'relative',
+              transition: 'background var(--duration-fast) var(--ease-out), color var(--duration-fast) var(--ease-out)',
             }}
             onMouseEnter={(e) => {
               if (!isActive) {
@@ -112,18 +123,6 @@ export default function Sidebar({ activePage, onNavigate, isDark: _isDark }: Sid
               }
             }}
           >
-            {isActive && (
-              <div style={{
-                position: 'absolute',
-                left: '-10px',
-                top: '50%',
-                transform: 'translateY(-50%)',
-                width: '3px',
-                height: '20px',
-                background: 'var(--accent)',
-                borderRadius: '0 3px 3px 0',
-              }} />
-            )}
             <IconComponent size={item.key === 'settings' ? 19 : iconSize} />
             <span style={{ lineHeight: 1, letterSpacing: '-0.01em' }}>{item.label}</span>
           </button>

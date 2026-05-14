@@ -90,6 +90,30 @@ export default function ScrapePage({
     }}>
       <Toast isDark={isDark} />
 
+      <div style={{
+        padding: '20px 24px',
+        background: 'var(--bg-surface-1)',
+        borderBottom: '1px solid var(--border-default)',
+      }}>
+        <h2 style={{
+          margin: 0,
+          fontSize: '18px',
+          fontWeight: 700,
+          color: 'var(--text-primary)',
+          letterSpacing: '-0.02em',
+        }}>
+          搜刮
+        </h2>
+        <p style={{
+          margin: '4px 0 0',
+          fontSize: '12px',
+          color: 'var(--text-muted)',
+          letterSpacing: '-0.01em',
+        }}>
+          递归扫描目录中的视频文件并导出到指定位置
+        </p>
+      </div>
+
       <header style={{
         height: '52px',
         minHeight: '52px',
