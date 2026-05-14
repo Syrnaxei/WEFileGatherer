@@ -24,7 +24,7 @@ function getFolderNameFromPath(filePath: string): string {
   return lastSlash >= 0 ? trimmed.slice(lastSlash + 1) : trimmed;
 }
 
-export default function TagManagement({ isDark }: TagManagementProps) {
+export default function TagManagement({ isDark: _isDark }: TagManagementProps) {
   const [tags, setTags] = useState<TagItem[]>([]);
   const [editingId, setEditingId] = useState<number | null>(null);
   const [editName, setEditName] = useState('');
@@ -247,7 +247,7 @@ export default function TagManagement({ isDark }: TagManagementProps) {
       if (transitionDisabled) {
         return { transition: 'none' };
       }
-      return { transition: 'transform 250ms ease-in-out' };
+      return { transition: 'transform 250ms cubic-bezier(0.65, 0, 0.35, 1)' };
     }
 
     const h = dragRef.current.itemHeight || 40;
@@ -258,9 +258,7 @@ export default function TagManagement({ isDark }: TagManagementProps) {
         transform: `translateY(${dragY}px)`,
         zIndex: 1000,
         opacity: 0.92,
-        boxShadow: isDark
-          ? '0 8px 24px rgba(0,0,0,0.5)'
-          : '0 8px 24px rgba(0,0,0,0.15)',
+        boxShadow: 'var(--shadow-lg)',
         transition: 'none',
         position: 'relative',
       };
@@ -270,155 +268,133 @@ export default function TagManagement({ isDark }: TagManagementProps) {
       if (index > dragIndex && index <= dragOverIndex!) {
         return {
           transform: `translateY(-${h}px)`,
-          transition: 'transform 250ms ease-in-out',
+          transition: 'transform 250ms cubic-bezier(0.65, 0, 0.35, 1)',
         };
       }
     } else if (dragOverIndex! < dragIndex) {
       if (index >= dragOverIndex! && index < dragIndex) {
         return {
           transform: `translateY(${h}px)`,
-          transition: 'transform 250ms ease-in-out',
+          transition: 'transform 250ms cubic-bezier(0.65, 0, 0.35, 1)',
         };
       }
     }
 
-    return { transition: 'transform 250ms ease-in-out' };
+    return { transition: 'transform 250ms cubic-bezier(0.65, 0, 0.35, 1)' };
   };
 
-  const labelStyleLocal: React.CSSProperties = {
-    display: 'block',
-    fontSize: '12px',
-    color: isDark ? '#9ca3af' : '#6b7280',
-    marginBottom: '4px',
-  };
-
-  const inputStyleLocal: React.CSSProperties = {
-    width: '100%',
-    padding: '6px 10px',
-    background: isDark ? '#374151' : '#f9fafb',
-    border: `1px solid ${isDark ? '#4b5563' : '#d1d5db'}`,
-    borderRadius: '4px',
-    color: isDark ? '#e5e7eb' : '#111827',
-    fontSize: '13px',
-  };
-
-  const dragIconColor = isDark ? '#9ca3af' : '#333333';
+  const sectionBg = 'var(--bg-surface-1)';
 
   return (
     <div style={{
       flex: 1,
       display: 'flex',
       flexDirection: 'column',
-      background: isDark ? '#111827' : '#f3f4f6',
+      background: 'var(--bg-base)',
       overflow: 'hidden',
     }}>
       <div style={{
-        padding: '16px 24px',
-        background: isDark ? '#1f2937' : '#ffffff',
-        borderBottom: `1px solid ${isDark ? '#374151' : '#e5e7eb'}`,
+        padding: '20px 24px',
+        background: sectionBg,
+        borderBottom: '1px solid var(--border-default)',
       }}>
-        <h2 style={{ margin: 0, fontSize: '18px', fontWeight: 600, color: isDark ? '#e5e7eb' : '#111827' }}>
+        <h2 style={{
+          margin: 0,
+          fontSize: '18px',
+          fontWeight: 700,
+          color: 'var(--text-primary)',
+          letterSpacing: '-0.02em',
+        }}>
           Tag 管理
         </h2>
-        <p style={{ margin: '4px 0 0', fontSize: '12px', color: isDark ? '#6b7280' : '#9ca3af' }}>
+        <p style={{
+          margin: '4px 0 0',
+          fontSize: '12px',
+          color: 'var(--text-muted)',
+          letterSpacing: '-0.01em',
+        }}>
           管理输出文件夹别名及其目标路径，文件将根据 tag 移动到对应的目标目录
         </p>
       </div>
 
       <div style={{ flex: 1, overflowY: 'auto', padding: '24px' }}>
-        <div style={{
-          background: isDark ? '#1f2937' : '#ffffff',
-          borderRadius: '8px',
-          padding: '20px',
-          marginBottom: '24px',
-          border: `1px solid ${isDark ? '#374151' : '#e5e7eb'}`,
-        }}>
-          <h3 style={{ margin: '0 0 16px', fontSize: '14px', fontWeight: 600, color: isDark ? '#e5e7eb' : '#111827' }}>
-            新建 Tag
-          </h3>
-          <div style={{ display: 'flex', gap: '12px', alignItems: 'flex-end', flexWrap: 'wrap' }}>
-            <div style={{ minWidth: '120px', flex: '0.8' }}>
-              <label style={labelStyleLocal}>名称 *</label>
-              <input
-                type="text"
-                value={newName}
-                onChange={(e) => setNewName(e.target.value)}
-                placeholder="例如: movie"
-                style={inputStyleLocal}
-                onKeyDown={(e) => { if (e.key === 'Enter') handleCreate(); }}
-              />
-            </div>
-            <div style={{ minWidth: '200px', flex: '1.5' }}>
-              <label style={labelStyleLocal}>目标路径 *</label>
-              <div style={{ display: 'flex', gap: '6px' }}>
+        <div className="card" style={{ marginBottom: '24px' }}>
+          <div className="card-header">新建 Tag</div>
+          <div className="card-body">
+            <div style={{ display: 'flex', gap: '12px', alignItems: 'flex-end', flexWrap: 'wrap' }}>
+              <div style={{ minWidth: '120px', flex: '0.8' }}>
+                <label style={labelStyle}>名称 *</label>
                 <input
                   type="text"
-                  value={newTargetPath}
-                  onChange={(e) => setNewTargetPath(e.target.value)}
-                  placeholder="例如: D:/Videos/Movies"
-                  style={{ ...inputStyleLocal, flex: 1 }}
+                  value={newName}
+                  onChange={(e) => setNewName(e.target.value)}
+                  placeholder="例如: movie"
+                  className="input"
                   onKeyDown={(e) => { if (e.key === 'Enter') handleCreate(); }}
                 />
-                {window.electronAPI && (
-                  <button
-                    onClick={async () => {
-                      const dir = await window.electronAPI.openDirectory();
-                      if (dir) {
-                        setNewTargetPath(dir);
-                        if (autoFillEnabled && !newName.trim()) {
-                          setNewName(getFolderNameFromPath(dir));
-                        }
-                      }
-                    }}
-                    style={{
-                      padding: '6px 12px',
-                      background: isDark ? '#4b5563' : '#e5e7eb',
-                      border: 'none',
-                      borderRadius: '4px',
-                      color: isDark ? '#e5e7eb' : '#374151',
-                      fontSize: '12px',
-                      cursor: 'pointer',
-                      whiteSpace: 'nowrap',
-                    }}
-                  >
-                    选择...
-                  </button>
-                )}
               </div>
+              <div style={{ minWidth: '200px', flex: '1.5' }}>
+                <label style={labelStyle}>目标路径 *</label>
+                <div style={{ display: 'flex', gap: '6px' }}>
+                  <input
+                    type="text"
+                    value={newTargetPath}
+                    onChange={(e) => setNewTargetPath(e.target.value)}
+                    placeholder="例如: D:/Videos/Movies"
+                    className="input input-mono"
+                    style={{ flex: 1 }}
+                    onKeyDown={(e) => { if (e.key === 'Enter') handleCreate(); }}
+                  />
+                  {window.electronAPI && (
+                    <button
+                      onClick={async () => {
+                        const dir = await window.electronAPI.openDirectory();
+                        if (dir) {
+                          setNewTargetPath(dir);
+                          if (autoFillEnabled && !newName.trim()) {
+                            setNewName(getFolderNameFromPath(dir));
+                          }
+                        }
+                      }}
+                      className="btn btn-outline"
+                      style={{ padding: '6px 12px', fontSize: '12px' }}
+                    >
+                      选择...
+                    </button>
+                  )}
+                </div>
+              </div>
+              <div style={{ minWidth: '150px', flex: '1' }}>
+                <label style={labelStyle}>描述</label>
+                <input
+                  type="text"
+                  value={newDesc}
+                  onChange={(e) => setNewDesc(e.target.value)}
+                  placeholder="可选"
+                  className="input"
+                  onKeyDown={(e) => { if (e.key === 'Enter') handleCreate(); }}
+                />
+              </div>
+              <button onClick={handleCreate} className="btn btn-primary">
+                创建
+              </button>
             </div>
-            <div style={{ minWidth: '150px', flex: '1' }}>
-              <label style={labelStyleLocal}>描述</label>
-              <input
-                type="text"
-                value={newDesc}
-                onChange={(e) => setNewDesc(e.target.value)}
-                placeholder="可选"
-                style={inputStyleLocal}
-                onKeyDown={(e) => { if (e.key === 'Enter') handleCreate(); }}
-              />
-            </div>
-            <button onClick={handleCreate} style={createBtnStyle}>
-              创建
-            </button>
           </div>
         </div>
 
-        <div style={{
-          background: isDark ? '#1f2937' : '#ffffff',
-          borderRadius: '8px',
-          border: `1px solid ${isDark ? '#374151' : '#e5e7eb'}`,
-          overflow: 'hidden',
-        }}>
+        <div className="card">
           <div style={{
             display: 'grid',
             gridTemplateColumns: '28px 120px 1fr 150px 100px',
             gap: '12px',
             padding: '12px 20px',
-            background: isDark ? '#18212f' : '#f9fafb',
-            fontSize: '12px',
+            background: 'var(--bg-surface-2)',
+            fontSize: '11px',
             fontWeight: 600,
-            color: '#9ca3af',
-            borderBottom: `1px solid ${isDark ? '#374151' : '#e5e7eb'}`,
+            color: 'var(--text-muted)',
+            textTransform: 'uppercase',
+            letterSpacing: '0.04em',
+            borderBottom: '1px solid var(--border-default)',
           }}>
             <div></div>
             <div>名称</div>
@@ -428,7 +404,12 @@ export default function TagManagement({ isDark }: TagManagementProps) {
           </div>
 
           {tags.length === 0 && (
-            <div style={{ padding: '40px', textAlign: 'center', color: isDark ? '#6b7280' : '#9ca3af', fontSize: '13px' }}>
+            <div style={{
+              padding: '48px 20px',
+              textAlign: 'center',
+              color: 'var(--text-muted)',
+              fontSize: '13px',
+            }}>
               暂无 tag，请在上方创建
             </div>
           )}
@@ -442,12 +423,12 @@ export default function TagManagement({ isDark }: TagManagementProps) {
                 gridTemplateColumns: '28px 120px 1fr 150px 100px',
                 gap: '12px',
                 padding: '12px 20px',
-                borderBottom: `1px solid ${isDark ? '#374151' : '#e5e7eb'}`,
+                borderBottom: '1px solid var(--border-subtle)',
                 alignItems: 'center',
                 background: editingId === tag.id
-                  ? (isDark ? '#1e3a5f' : '#eff6ff')
+                  ? 'var(--accent-muted)'
                   : dragIndex === index
-                    ? (isDark ? '#1f2937' : '#ffffff')
+                    ? 'var(--bg-surface-1)'
                     : 'transparent',
                 ...getItemStyle(index),
               }}
@@ -460,7 +441,7 @@ export default function TagManagement({ isDark }: TagManagementProps) {
                       type="text"
                       value={editName}
                       onChange={(e) => setEditName(e.target.value)}
-                      style={inputStyleLocal}
+                      className="input"
                       onKeyDown={(e) => { if (e.key === 'Enter') handleUpdate(tag.id); if (e.key === 'Escape') cancelEdit(); }}
                     />
                   </div>
@@ -469,7 +450,8 @@ export default function TagManagement({ isDark }: TagManagementProps) {
                       type="text"
                       value={editTargetPath}
                       onChange={(e) => setEditTargetPath(e.target.value)}
-                      style={{ ...inputStyleLocal, flex: 1 }}
+                      className="input input-mono"
+                      style={{ flex: 1 }}
                       onKeyDown={(e) => { if (e.key === 'Enter') handleUpdate(tag.id); if (e.key === 'Escape') cancelEdit(); }}
                     />
                     {window.electronAPI && (
@@ -483,16 +465,8 @@ export default function TagManagement({ isDark }: TagManagementProps) {
                             }
                           }
                         }}
-                        style={{
-                          padding: '6px 10px',
-                          background: isDark ? '#4b5563' : '#e5e7eb',
-                          border: 'none',
-                          borderRadius: '4px',
-                          color: isDark ? '#e5e7eb' : '#374151',
-                          fontSize: '11px',
-                          cursor: 'pointer',
-                          whiteSpace: 'nowrap',
-                        }}
+                        className="btn btn-outline"
+                        style={{ padding: '6px 10px', fontSize: '11px' }}
                       >
                         选择...
                       </button>
@@ -503,13 +477,13 @@ export default function TagManagement({ isDark }: TagManagementProps) {
                       type="text"
                       value={editDesc}
                       onChange={(e) => setEditDesc(e.target.value)}
-                      style={inputStyleLocal}
+                      className="input"
                       onKeyDown={(e) => { if (e.key === 'Enter') handleUpdate(tag.id); if (e.key === 'Escape') cancelEdit(); }}
                     />
                   </div>
-                  <div style={{ display: 'flex', gap: '4px', justifyContent: 'center' }}>
-                    <button onClick={() => handleUpdate(tag.id)} style={saveBtnStyle}>保存</button>
-                    <button onClick={cancelEdit} style={cancelBtnStyle(isDark)}>取消</button>
+                  <div style={{ display: 'flex', gap: '6px', justifyContent: 'center' }}>
+                    <button onClick={() => handleUpdate(tag.id)} className="btn btn-success" style={{ padding: '4px 12px', fontSize: '12px' }}>保存</button>
+                    <button onClick={cancelEdit} className="btn btn-ghost" style={{ padding: '4px 12px', fontSize: '12px' }}>取消</button>
                   </div>
                 </>
               ) : (
@@ -521,6 +495,7 @@ export default function TagManagement({ isDark }: TagManagementProps) {
                       justifyContent: 'center',
                       cursor: 'grab',
                       padding: '2px',
+                      color: 'var(--text-muted)',
                     }}
                     onMouseDown={(e) => handleDragMouseDown(index, e)}
                   >
@@ -528,23 +503,23 @@ export default function TagManagement({ isDark }: TagManagementProps) {
                       width="16"
                       height="16"
                       viewBox="0 0 1024 1024"
-                      style={{ fill: dragIconColor, pointerEvents: 'none' }}
+                      style={{ fill: 'currentColor', pointerEvents: 'none' }}
                     >
                       <path d="M64.1 194v89.6h896.1V194H64.1z m0 358.4h896.1v-89.6H64.1v89.6z m0 268.9h896.1v-89.6H64.1v89.6z" />
                     </svg>
                   </div>
-                  <div style={{ fontSize: '14px', fontWeight: 500, color: isDark ? '#e5e7eb' : '#111827' }}>
+                  <div style={{ fontSize: '14px', fontWeight: 500, color: 'var(--text-primary)', letterSpacing: '-0.01em' }}>
                     {tag.name}
                   </div>
-                  <div style={{ fontSize: '13px', color: '#60a5fa', fontFamily: 'monospace' }}>
+                  <div style={{ fontSize: '12px', color: 'var(--accent)', fontFamily: 'var(--font-mono)' }}>
                     {tag.target_path}
                   </div>
-                  <div style={{ fontSize: '13px', color: isDark ? '#9ca3af' : '#6b7280' }}>
+                  <div style={{ fontSize: '13px', color: 'var(--text-secondary)' }}>
                     {tag.description || '-'}
                   </div>
-                  <div style={{ display: 'flex', gap: '4px', justifyContent: 'center' }}>
-                    <button onClick={() => startEdit(tag)} style={editBtnStyle}>编辑</button>
-                    <button onClick={() => handleDelete(tag.id, tag.name)} style={deleteBtnStyle}>删除</button>
+                  <div style={{ display: 'flex', gap: '6px', justifyContent: 'center' }}>
+                    <button onClick={() => startEdit(tag)} className="btn btn-outline" style={{ padding: '4px 10px', fontSize: '12px' }}>编辑</button>
+                    <button onClick={() => handleDelete(tag.id, tag.name)} className="btn btn-ghost" style={{ padding: '4px 10px', fontSize: '12px', color: 'var(--error)' }}>删除</button>
                   </div>
                 </>
               )}
@@ -556,53 +531,11 @@ export default function TagManagement({ isDark }: TagManagementProps) {
   );
 }
 
-const createBtnStyle: React.CSSProperties = {
-  padding: '6px 20px',
-  background: '#4f46e5',
-  border: 'none',
-  borderRadius: '4px',
-  color: 'white',
-  fontSize: '13px',
-  cursor: 'pointer',
-  whiteSpace: 'nowrap',
-};
-
-const editBtnStyle: React.CSSProperties = {
-  padding: '4px 10px',
-  background: 'transparent',
-  border: '1px solid #3b82f6',
-  color: '#3b82f6',
-  borderRadius: '4px',
-  cursor: 'pointer',
+const labelStyle: React.CSSProperties = {
+  display: 'block',
   fontSize: '12px',
+  color: 'var(--text-secondary)',
+  marginBottom: '5px',
+  fontWeight: 500,
+  letterSpacing: '-0.01em',
 };
-
-const deleteBtnStyle: React.CSSProperties = {
-  padding: '4px 10px',
-  background: 'transparent',
-  border: '1px solid #ef4444',
-  color: '#ef4444',
-  borderRadius: '4px',
-  cursor: 'pointer',
-  fontSize: '12px',
-};
-
-const saveBtnStyle: React.CSSProperties = {
-  padding: '4px 10px',
-  background: '#10b981',
-  border: 'none',
-  borderRadius: '4px',
-  color: 'white',
-  cursor: 'pointer',
-  fontSize: '12px',
-};
-
-const cancelBtnStyle = (isDark: boolean): React.CSSProperties => ({
-  padding: '4px 10px',
-  background: isDark ? '#374151' : '#f3f4f6',
-  border: 'none',
-  borderRadius: '4px',
-  color: isDark ? '#9ca3af' : '#6b7280',
-  cursor: 'pointer',
-  fontSize: '12px',
-});

@@ -1,5 +1,43 @@
 # AGENTS.md — Video File Processing V1
 
+## Frontend design system (Precision Terminal)
+
+The web frontend uses a CSS-variable-driven design system. **All colors, spacing, radii, and shadows must be referenced via `var(--xxx)` — never hardcoded.** The full spec is at `doc/前端设计系统规范.md`.
+
+Key rules for any UI change:
+
+- **Colors**: use `var(--bg-surface-1)`, `var(--text-primary)`, `var(--accent)`, `var(--error)`, etc. No `#xxxxxx` or `isDark ? '#xxx' : '#yyy'`.
+- **Buttons**: use `className="btn btn-primary"` / `btn-success` / `btn-danger` / `btn-ghost` / `btn-outline` instead of hand-written button styles.
+- **Inputs**: use `className="input"` (or `input input-mono` for paths/code).
+- **Typography**: UI text → `var(--font-ui)` (DM Sans), code/paths/logs → `var(--font-mono)` (JetBrains Mono). Both are imported locally via `@fontsource` in `main.tsx` — no CDN.
+- **Dark/light**: themes switch via `data-theme` attribute on `<html>`. Components should NOT pass `isDark` for color decisions; CSS variables handle it automatically. Use `isDark` only for behavioral differences.
+- **Spacing**: 4px grid. Page horizontal padding = 20px, card gaps = 16px, button gaps = 8px.
+- **Header height**: 52px.
+- **Sidebar width**: 60px.
+- **Log panel width**: 420px.
+- **Animations**: `transition: 150ms ease` for hover/color changes. Use `animate-fade-in-up` class for page enters.
+
+### Reusable CSS classes (from `index.css`)
+`.btn` / `.btn-primary` / `.btn-success` / `.btn-danger` / `.btn-ghost` / `.btn-outline` — buttons  
+`.input` / `.input-mono` — text inputs  
+`.card` / `.card-header` / `.card-body` — card containers  
+`.badge` / `.badge-success` / `.badge-error` — status badges  
+`.status-dot` / `.status-dot-active` / `.status-dot-inactive` — connection indicator  
+`.tag-chip` — small label chips
+
+### Component patterns (reference implementations)
+| Pattern | Reference file |
+|---------|---------------|
+| Stat cards | `StatsDashboard.tsx` |
+| Grid file rows | `FileList.tsx` |
+| Terminal/log view | `LogTerminal.tsx` |
+| Toast notifications | `Toast.tsx` |
+| Sidebar navigation | `Sidebar.tsx` |
+| Card-based forms | `SettingsPage.tsx` |
+| Drag-to-reorder list | `TagManagement.tsx` |
+
+---
+
 ## Three entrypoints
 
 - `src/main.ts` — CLI mode (uses `.env`, watches a directory, deprecated in favor of the batch workflow but still compiles)

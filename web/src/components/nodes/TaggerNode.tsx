@@ -14,18 +14,19 @@ const TaggerNodeCard = memo(({ data }: TaggerNodeProps) => {
   const rules = data.config?.rules ?? [];
   return (
     <div style={{
-      padding: '10px',
-      borderRadius: '8px',
-      border: '2px solid #059669',
-      background: '#ecfdf5',
+      padding: '10px 12px',
+      borderRadius: 'var(--radius-md)',
+      border: '1.5px solid var(--success)',
+      background: 'var(--bg-surface-1)',
       minWidth: '180px',
+      boxShadow: 'var(--shadow-sm)',
     }}>
-      <Handle type="target" position={Position.Left} style={{ background: '#059669' }} />
-      <Handle type="source" position={Position.Right} style={{ background: '#059669' }} />
-      <div style={{ fontWeight: 'bold', marginBottom: '4px', color: '#059669' }}>
+      <Handle type="target" position={Position.Left} style={{ background: 'var(--success)', width: 8, height: 8 }} />
+      <Handle type="source" position={Position.Right} style={{ background: 'var(--success)', width: 8, height: 8 }} />
+      <div style={{ fontWeight: 600, marginBottom: '4px', color: 'var(--success)', fontSize: '13px', letterSpacing: '-0.01em' }}>
         🏷️ {data.label}
       </div>
-      <div style={{ fontSize: '12px', color: '#666' }}>
+      <div style={{ fontSize: '11px', color: 'var(--text-muted)', fontFamily: 'var(--font-mono)', lineHeight: 1.5 }}>
         {rules.length === 0 ? (
           <div>无规则</div>
         ) : (

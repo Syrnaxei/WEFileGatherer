@@ -21,7 +21,7 @@ interface ToastProps {
   isDark: boolean;
 }
 
-export default function Toast({ isDark }: ToastProps) {
+export default function Toast({ isDark: _isDark }: ToastProps) {
   const [toasts, setToasts] = useState<ToastItem[]>([]);
 
   const addToast = useCallback((message: string, type: ToastType) => {
@@ -41,9 +41,9 @@ export default function Toast({ isDark }: ToastProps) {
 
   const getColor = (type: ToastType) => {
     switch (type) {
-      case 'success': return '#10b981';
-      case 'error': return '#ef4444';
-      case 'info': return '#3b82f6';
+      case 'success': return 'var(--success)';
+      case 'error': return 'var(--error)';
+      case 'info': return 'var(--accent)';
     }
   };
 
@@ -51,7 +51,7 @@ export default function Toast({ isDark }: ToastProps) {
     switch (type) {
       case 'success': return '✓';
       case 'error': return '✗';
-      case 'info': return 'ℹ';
+      case 'info': return 'i';
     }
   };
 
@@ -60,8 +60,8 @@ export default function Toast({ isDark }: ToastProps) {
   return (
     <div style={{
       position: 'fixed',
-      bottom: '16px',
-      right: '16px',
+      bottom: '20px',
+      right: '20px',
       zIndex: 9999,
       display: 'flex',
       flexDirection: 'column',
@@ -72,29 +72,39 @@ export default function Toast({ isDark }: ToastProps) {
         <div
           key={toast.id}
           style={{
-            padding: '10px 16px',
-            background: isDark ? '#1f2937' : '#ffffff',
-            border: `1px solid ${getColor(toast.type)}`,
-            borderLeft: `4px solid ${getColor(toast.type)}`,
-            borderRadius: '6px',
-            color: isDark ? '#e5e7eb' : '#111827',
+            padding: '12px 16px',
+            background: 'var(--bg-surface-1)',
+            border: '1px solid var(--border-default)',
+            borderRadius: 'var(--radius-md)',
+            color: 'var(--text-primary)',
             fontSize: '13px',
-            boxShadow: isDark ? '0 4px 12px rgba(0,0,0,0.4)' : '0 4px 12px rgba(0,0,0,0.1)',
+            fontWeight: 500,
+            boxShadow: 'var(--shadow-lg)',
             display: 'flex',
             alignItems: 'center',
-            gap: '8px',
-            animation: 'toast-in 0.2s ease-out',
+            gap: '10px',
+            animation: 'slide-in-right 0.25s cubic-bezier(0.16, 1, 0.3, 1)',
             pointerEvents: 'auto',
+            letterSpacing: '-0.01em',
+            maxWidth: '380px',
           }}
         >
           <span style={{
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            width: '22px',
+            height: '22px',
+            borderRadius: '50%',
+            background: `${getColor(toast.type)}20`,
             color: getColor(toast.type),
-            fontWeight: 'bold',
-            fontSize: '14px',
+            fontWeight: 700,
+            fontSize: '12px',
+            flexShrink: 0,
           }}>
             {getIcon(toast.type)}
           </span>
-          <span>{toast.message}</span>
+          <span style={{ flex: 1 }}>{toast.message}</span>
         </div>
       ))}
     </div>

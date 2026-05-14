@@ -1,4 +1,3 @@
-// no hooks needed
 import type { Node } from 'reactflow';
 
 interface PropertyPanelProps {
@@ -13,14 +12,14 @@ export default function PropertyPanel({ selectedNode, onChange }: PropertyPanelP
     return (
       <aside style={{
         width: '280px',
-        background: '#f9fafb',
-        borderLeft: '1px solid #e5e7eb',
+        background: 'var(--bg-surface-1)',
+        borderLeft: '1px solid var(--border-default)',
         padding: '16px',
       }}>
-        <h3 style={{ margin: '0 0 8px 0', fontSize: '14px', color: '#374151' }}>
+        <h3 style={{ margin: '0 0 8px 0', fontSize: '13px', fontWeight: 600, color: 'var(--text-primary)', letterSpacing: '-0.01em' }}>
           属性面板
         </h3>
-        <p style={{ fontSize: '13px', color: '#6b7280' }}>
+        <p style={{ fontSize: '12px', color: 'var(--text-muted)' }}>
           选中节点以编辑配置
         </p>
       </aside>
@@ -46,63 +45,52 @@ export default function PropertyPanel({ selectedNode, onChange }: PropertyPanelP
     }
   };
 
-  const inputStyle: React.CSSProperties = {
-    width: '100%',
-    padding: '6px 8px',
-    marginTop: '4px',
-    border: '1px solid #d1d5db',
-    borderRadius: '4px',
-    fontSize: '13px',
+  const labelStyle: React.CSSProperties = {
+    fontSize: '12px',
+    fontWeight: 600,
+    color: 'var(--text-secondary)',
+    letterSpacing: '-0.01em',
   };
 
   return (
     <aside style={{
       width: '280px',
-      background: '#f9fafb',
-      borderLeft: '1px solid #e5e7eb',
+      background: 'var(--bg-surface-1)',
+      borderLeft: '1px solid var(--border-default)',
       padding: '16px',
       overflowY: 'auto',
     }}>
-      <h3 style={{ margin: '0 0 16px 0', fontSize: '14px', color: '#374151' }}>
+      <h3 style={{ margin: '0 0 16px 0', fontSize: '13px', fontWeight: 600, color: 'var(--text-primary)', letterSpacing: '-0.01em' }}>
         属性: {selectedNode.id}
       </h3>
 
       {type === 'watcher' && (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
           <div>
-            <label style={{ fontSize: '12px', fontWeight: 600, color: '#374151' }}>监听路径</label>
-            <div style={{ display: 'flex', gap: '4px', marginTop: '4px' }}>
+            <label style={labelStyle}>监听路径</label>
+            <div style={{ display: 'flex', gap: '6px', marginTop: '4px' }}>
               <input
                 type="text"
                 value={config.watchPath || ''}
                 onChange={(e) => updateConfig('watchPath', e.target.value)}
-                style={{ ...inputStyle, flex: 1, marginTop: 0 }}
+                className="input input-mono"
+                style={{ flex: 1 }}
               />
               {isElectron && (
-                <button
-                  onClick={() => handleSelectDirectory('watchPath')}
-                  style={{
-                    padding: '6px 12px',
-                    background: '#4f46e5',
-                    color: 'white',
-                    border: 'none',
-                    borderRadius: '4px',
-                    cursor: 'pointer',
-                    fontSize: '12px',
-                  }}
-                >
+                <button onClick={() => handleSelectDirectory('watchPath')} className="btn btn-primary" style={{ padding: '6px 12px', fontSize: '12px' }}>
                   选择...
                 </button>
               )}
             </div>
           </div>
           <div>
-            <label style={{ fontSize: '12px', fontWeight: 600, color: '#374151' }}>文件匹配模式</label>
+            <label style={labelStyle}>文件匹配模式</label>
             <input
               type="text"
               value={config.filePattern || '*.mp4'}
               onChange={(e) => updateConfig('filePattern', e.target.value)}
-              style={inputStyle}
+              className="input input-mono"
+              style={{ marginTop: '4px' }}
             />
           </div>
         </div>
@@ -111,7 +99,7 @@ export default function PropertyPanel({ selectedNode, onChange }: PropertyPanelP
       {type === 'tagger' && (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
           <div>
-            <label style={{ fontSize: '12px', fontWeight: 600, color: '#374151' }}>规则列表 (JSON)</label>
+            <label style={labelStyle}>规则列表 (JSON)</label>
             <textarea
               value={JSON.stringify(config.rules ?? [], null, 2)}
               onChange={(e) => {
@@ -122,16 +110,8 @@ export default function PropertyPanel({ selectedNode, onChange }: PropertyPanelP
                   // ignore invalid JSON during typing
                 }
               }}
-              style={{
-                width: '100%',
-                height: '200px',
-                padding: '6px 8px',
-                marginTop: '4px',
-                border: '1px solid #d1d5db',
-                borderRadius: '4px',
-                fontSize: '12px',
-                fontFamily: 'monospace',
-              }}
+              className="input input-mono"
+              style={{ height: '200px', marginTop: '4px', resize: 'vertical' }}
             />
           </div>
         </div>
@@ -140,39 +120,32 @@ export default function PropertyPanel({ selectedNode, onChange }: PropertyPanelP
       {type === 'mover' && (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
           <div>
-            <label style={{ fontSize: '12px', fontWeight: 600, color: '#374151' }}>目标路径模板</label>
-            <div style={{ display: 'flex', gap: '4px', marginTop: '4px' }}>
+            <label style={labelStyle}>目标路径模板</label>
+            <div style={{ display: 'flex', gap: '6px', marginTop: '4px' }}>
               <input
                 type="text"
                 value={config.targetPathTemplate || ''}
                 onChange={(e) => updateConfig('targetPathTemplate', e.target.value)}
-                style={{ ...inputStyle, flex: 1, marginTop: 0 }}
+                className="input input-mono"
+                style={{ flex: 1 }}
               />
               {isElectron && (
                 <button
                   onClick={() => handleSelectDirectory('targetPathTemplate')}
-                  style={{
-                    padding: '6px 12px',
-                    background: '#d97706',
-                    color: 'white',
-                    border: 'none',
-                    borderRadius: '4px',
-                    cursor: 'pointer',
-                    fontSize: '12px',
-                  }}
+                  className="btn"
+                  style={{ padding: '6px 12px', fontSize: '12px', background: 'var(--warning)', color: '#fff' }}
                 >
                   选择...
                 </button>
               )}
             </div>
           </div>
-          <div>
-            <label style={{ fontSize: '12px', fontWeight: 600, color: '#374151' }}>覆盖已有文件</label>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <label style={{ ...labelStyle, margin: 0 }}>覆盖已有文件</label>
             <input
               type="checkbox"
               checked={!!config.overwrite}
               onChange={(e) => updateConfig('overwrite', e.target.checked)}
-              style={{ marginLeft: '8px' }}
             />
           </div>
         </div>

@@ -5,14 +5,12 @@ import type { ScrapeFileItem } from '../App';
 
 /*
  * 布局间距比例系统 — 详见 doc/布局间距比例系统.md
- * 列宽比例: 文件名:路径:状态:操作 = 35:40:15:10
- * 调整 SCRAPE_COL_WIDTHS / CELL_PADDING 即可改变布局
+ * 列宽比例: 文件名:路径:操作 = 3:3:1
+ * 调整 GRID_GAP / GRID_COLUMNS / ROW_PADDING 即可改变布局
  */
-const SCRAPE_COL_WIDTHS = ['35%', '40%', '15%', '10%'];
-const CELL_PADDING = '8px 12px';
-const HEADER_PADDING = '8px 12px';
-const MIN_STATUS_WIDTH = '70px';
-const MIN_ACTION_WIDTH = '60px';
+const GRID_GAP = '16px';
+const ROW_PADDING = '10px 12px';
+const GRID_COLUMNS = 'minmax(120px, 3fr) minmax(120px, 3fr) minmax(60px, 1fr)';
 
 interface LogEntry {
   event: string;
@@ -82,92 +80,56 @@ export default function ScrapePage({
     return filePath;
   };
 
-  const getStatusStyle = (status?: string): React.CSSProperties => {
-    switch (status) {
-      case 'completed':
-        return { color: '#10b981', fontWeight: 600 };
-      case 'failed':
-        return { color: '#ef4444', fontWeight: 600 };
-      default:
-        return { color: isDark ? '#9ca3af' : '#6b7280' };
-    }
-  };
-
-  const getStatusText = (status?: string): string => {
-    switch (status) {
-      case 'completed': return '已完成';
-      case 'failed': return '失败';
-      default: return '待处理';
-    }
-  };
-
   return (
     <div style={{
       flex: 1,
       display: 'flex',
       flexDirection: 'column',
-      background: isDark ? '#111827' : '#f3f4f6',
+      background: 'var(--bg-base)',
       overflow: 'hidden',
     }}>
       <Toast isDark={isDark} />
 
       <header style={{
-        height: '56px',
-        background: isDark ? '#1f2937' : '#ffffff',
-        color: isDark ? 'white' : '#111827',
+        height: '52px',
+        minHeight: '52px',
+        background: 'var(--bg-surface-1)',
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'space-between',
-        padding: '0 16px',
-        borderBottom: `1px solid ${isDark ? '#374151' : '#e5e7eb'}`,
+        padding: '0 20px',
+        borderBottom: '1px solid var(--border-default)',
         gap: '12px',
       }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flex: 1 }}>
-          <span style={{ fontSize: '13px', color: isDark ? '#9ca3af' : '#6b7280' }}>
-            搜刮目录: {scrapeSourceDir || '未设置'}
+        <div style={{ display: 'flex', alignItems: 'center', gap: '16px', flex: 1, minWidth: 0, overflow: 'hidden' }}>
+          <span style={{ fontSize: '12px', fontFamily: 'var(--font-mono)', color: 'var(--text-muted)', whiteSpace: 'nowrap' }}>
+            搜刮: {scrapeSourceDir || '未设置'}
           </span>
-          <span style={{ fontSize: '13px', color: isDark ? '#9ca3af' : '#6b7280' }}>
-            导出目录: {scrapeExportDir || '未设置'}
+          <span style={{ fontSize: '12px', fontFamily: 'var(--font-mono)', color: 'var(--text-muted)', whiteSpace: 'nowrap' }}>
+            导出: {scrapeExportDir || '未设置'}
           </span>
-          <span style={{ fontSize: '13px', color: isDark ? '#9ca3af' : '#6b7280' }}>
-            深度: {scrapeDepth}
-          </span>
+          <span className="tag-chip">深度 {scrapeDepth}</span>
         </div>
 
-        <div style={{ display: 'flex', gap: '8px' }}>
+        <div style={{ display: 'flex', gap: '8px', flexShrink: 0 }}>
           <button
             onClick={onLoad}
             disabled={!foldersReady || isRunning}
-            style={{
-              ...btnStyle,
-              background: !foldersReady || isRunning ? '#6b7280' : '#4f46e5',
-              cursor: !foldersReady || isRunning ? 'not-allowed' : 'pointer',
-              opacity: !foldersReady || isRunning ? 0.6 : 1,
-            }}
+            className="btn btn-primary"
           >
             加载
           </button>
           <button
             onClick={onStart}
             disabled={!foldersReady || isRunning || files.length === 0}
-            style={{
-              ...btnStyle,
-              background: !foldersReady || isRunning || files.length === 0 ? '#6b7280' : '#10b981',
-              cursor: !foldersReady || isRunning || files.length === 0 ? 'not-allowed' : 'pointer',
-              opacity: !foldersReady || isRunning || files.length === 0 ? 0.6 : 1,
-            }}
+            className="btn btn-success"
           >
             {isRunning ? '运行中' : '启动'}
           </button>
           <button
             onClick={onStop}
             disabled={!isRunning}
-            style={{
-              ...btnStyle,
-              background: !isRunning ? '#6b7280' : '#ef4444',
-              cursor: !isRunning ? 'not-allowed' : 'pointer',
-              opacity: !isRunning ? 0.6 : 1,
-            }}
+            className="btn btn-danger"
           >
             停止
           </button>
@@ -182,103 +144,142 @@ export default function ScrapePage({
       />
 
       <div style={{ display: 'flex', flex: 1, overflow: 'hidden' }}>
-        <div style={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
+        <div style={{ flex: 1, display: 'flex', flexDirection: 'column', minWidth: 0 }}>
           <div style={{
-            padding: '8px 16px',
-            background: isDark ? '#1f2937' : '#ffffff',
-            borderBottom: `1px solid ${isDark ? '#374151' : '#e5e7eb'}`,
-            fontSize: '13px',
+            padding: '10px 20px',
+            background: 'var(--bg-surface-1)',
+            borderBottom: '1px solid var(--border-default)',
+            fontSize: '12px',
             fontWeight: 600,
-            color: isDark ? '#e5e7eb' : '#111827',
+            color: 'var(--text-primary)',
+            letterSpacing: '-0.01em',
           }}>
             搜刮文件列表 ({files.length})
           </div>
           <div style={{
+            display: 'grid',
+            gridTemplateColumns: GRID_COLUMNS,
+            gap: GRID_GAP,
+            padding: '8px 20px',
+            background: 'var(--bg-surface-2)',
+            borderBottom: '1px solid var(--border-default)',
+            fontSize: '11px',
+            fontWeight: 600,
+            color: 'var(--text-muted)',
+            textTransform: 'uppercase',
+            letterSpacing: '0.04em',
+          }}>
+            <div>文件名</div>
+            <div>路径</div>
+            <div style={{ textAlign: 'center' }}>操作</div>
+          </div>
+          <div style={{
             flex: 1,
             overflowY: 'auto',
-            overflowX: 'hidden',
-            background: isDark ? '#111827' : '#ffffff',
+            background: 'var(--bg-base)',
           }}>
-            <table style={{
-              width: '100%',
-              tableLayout: 'fixed',
-              borderCollapse: 'collapse',
-              fontSize: '13px',
-            }}>
-              <thead>
-                <tr style={{
-                  background: isDark ? '#1f2937' : '#f9fafb',
-                  borderBottom: `1px solid ${isDark ? '#374151' : '#e5e7eb'}`,
-                }}>
-                  <th style={{ ...thStyle(isDark), width: SCRAPE_COL_WIDTHS[0] }}>文件名</th>
-                  <th style={{ ...thStyle(isDark), width: SCRAPE_COL_WIDTHS[1] }}>路径</th>
-                  <th style={{ ...thStyle(isDark), width: SCRAPE_COL_WIDTHS[2], minWidth: MIN_STATUS_WIDTH, textAlign: 'center' }}>状态</th>
-                  <th style={{ ...thStyle(isDark), width: SCRAPE_COL_WIDTHS[3], minWidth: MIN_ACTION_WIDTH, textAlign: 'center' }}>操作</th>
-                </tr>
-              </thead>
-              <tbody>
-                {files.length === 0 ? (
-                  <tr>
-                    <td colSpan={4} style={{
-                      padding: '40px 16px',
-                      textAlign: 'center',
-                      color: isDark ? '#6b7280' : '#9ca3af',
+            {files.length === 0 ? (
+              <div style={{
+                padding: '60px 20px',
+                textAlign: 'center',
+                color: 'var(--text-muted)',
+                fontSize: '13px',
+              }}>
+                <div style={{ fontSize: '32px', marginBottom: '12px', opacity: 0.3 }}>+</div>
+                暂无文件，请点击"加载"按钮扫描目录
+              </div>
+            ) : (
+              files.map((file, index) => {
+                const isCompleted = file.status === 'completed';
+                const isFailed = file.status === 'failed';
+
+                return (
+                  <div
+                    key={file.id}
+                    style={{
+                      display: 'grid',
+                      gridTemplateColumns: GRID_COLUMNS,
+                      gap: GRID_GAP,
+                      padding: ROW_PADDING,
+                      background: isCompleted ? 'var(--success-muted)' :
+                                  isFailed ? 'var(--error-muted)' :
+                                  index % 2 === 0 ? 'var(--bg-surface-1)' : 'var(--bg-base)',
+                      borderBottom: '1px solid var(--border-subtle)',
+                      alignItems: 'center',
+                      opacity: isCompleted ? 0.75 : 1,
+                      transition: 'background 150ms ease',
+                    }}
+                  >
+                    <div style={{ fontSize: '13px', color: 'var(--text-primary)', minWidth: 0 }}>
+                      <div style={{ fontWeight: 500, display: 'flex', alignItems: 'center', gap: '6px', letterSpacing: '-0.01em' }}>
+                        {file.fileName}
+                        {isCompleted && <span className="badge badge-success">已完成</span>}
+                        {isFailed && <span className="badge badge-error">失败</span>}
+                      </div>
+                    </div>
+
+                    <div style={{
+                      fontSize: '11px',
+                      fontFamily: 'var(--font-mono)',
+                      color: 'var(--text-muted)',
+                      overflow: 'hidden',
+                      textOverflow: 'ellipsis',
+                      whiteSpace: 'nowrap',
                     }}>
-                      暂无文件，请点击"加载"按钮扫描目录
-                    </td>
-                  </tr>
-                ) : (
-                  files.map((file, index) => (
-                    <tr
-                      key={file.id}
-                      style={{
-                        borderBottom: `1px solid ${isDark ? '#1f2937' : '#f3f4f6'}`,
-                        background: file.status === 'completed'
-                          ? (isDark ? '#064e3b20' : '#ecfdf5')
-                          : file.status === 'failed'
-                            ? (isDark ? '#7f1d1d20' : '#fef2f2')
-                            : 'transparent',
-                      }}
-                    >
-                      <td style={tdStyle(isDark)}>{file.fileName}</td>
-                      <td style={{ ...tdStyle(isDark), fontSize: '11px', color: isDark ? '#6b7280' : '#9ca3af' }}>
-                        {scrapeShowFullPath ? file.filePath : shortenPath(file.filePath, scrapeSourceDir)}
-                      </td>
-                      <td style={{ ...tdStyle(isDark), textAlign: 'center' }}>
-                        <span style={getStatusStyle(file.status)}>{getStatusText(file.status)}</span>
-                      </td>
-                      <td style={{ ...tdStyle(isDark), textAlign: 'center' }}>
-                        <button
-                          onClick={() => onRemove(index)}
-                          disabled={isRunning}
-                          style={{
-                            padding: '2px 8px',
-                            borderRadius: '3px',
-                            border: 'none',
-                            background: isRunning ? '#6b7280' : '#ef4444',
-                            color: 'white',
-                            fontSize: '12px',
-                            cursor: isRunning ? 'not-allowed' : 'pointer',
-                            opacity: isRunning ? 0.5 : 1,
-                          }}
-                        >
-                          删除
-                        </button>
-                      </td>
-                    </tr>
-                  ))
-                )}
-              </tbody>
-            </table>
+                      {scrapeShowFullPath ? file.filePath : shortenPath(file.filePath, scrapeSourceDir)}
+                    </div>
+
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                      <button
+                        onClick={() => onRemove(index)}
+                        disabled={isRunning}
+                        title="删除"
+                        style={{
+                          width: '30px',
+                          height: '30px',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          borderRadius: 'var(--radius-sm)',
+                          border: 'none',
+                          background: 'transparent',
+                          cursor: isRunning ? 'not-allowed' : 'pointer',
+                          color: 'var(--text-muted)',
+                          padding: 0,
+                          transition: 'all 150ms ease',
+                        }}
+                        onMouseEnter={(e) => {
+                          if (!isRunning) {
+                            e.currentTarget.style.background = 'var(--error-muted)';
+                            e.currentTarget.style.color = 'var(--error)';
+                          }
+                        }}
+                        onMouseLeave={(e) => {
+                          if (!isRunning) {
+                            e.currentTarget.style.background = 'transparent';
+                            e.currentTarget.style.color = 'var(--text-muted)';
+                          }
+                        }}
+                      >
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024" width="18" height="18" fill="currentColor">
+                          <path d="M576.416 736V383.871c0-17.814 14.521-32.256 32.434-32.256 17.912 0 32.433 14.442 32.433 32.256V736c0 17.815-14.52 32.256-32.433 32.256S576.416 753.814 576.416 736z m-193.7 0V383.871c0-17.814 14.522-32.256 32.434-32.256 17.913 0 32.434 14.442 32.434 32.256V736c0 17.815-14.521 32.256-32.434 32.256-17.912 0-32.433-14.441-32.433-32.256z m548.666-512.063H770.116v-64.064c0-52.774-42.885-95.625-95.949-95.872H350.734c-25.645-0.12-50.28 9.929-68.456 27.921-18.176 17.993-28.394 42.446-28.394 67.95v64.065H92.618C76.295 225.86 64 239.622 64 255.969c0 16.346 12.295 30.108 28.618 32.032h838.764C947.705 286.077 960 272.315 960 255.969c0-16.347-12.295-30.11-28.618-32.032zM318.3 159.873c0.482-17.539 14.794-31.574 32.434-31.808h323.433a31.17 31.17 0 0 1 22.597 9.206 30.82 30.82 0 0 1 8.936 22.602v64.064H318.3v-64.064z m418.932 800.126H286.768c-25.645 0.12-50.28-9.929-68.456-27.921-18.176-17.993-28.394-42.446-28.394-67.95V383.871a31.271 31.271 0 0 1 9.232-22.626 31.623 31.623 0 0 1 22.751-9.182 32.076 32.076 0 0 1 22.907 9.157 31.721 31.721 0 0 1 9.526 22.651v480.255c0.482 17.539 14.794 31.574 32.434 31.808h450.464c17.64-0.234 31.952-14.27 32.434-31.808v-478.91c1.933-16.234 15.771-28.462 32.208-28.462 16.436 0 30.274 12.228 32.208 28.461v478.911c0 25.505-10.218 49.958-28.394 67.95-18.176 17.993-42.811 28.041-68.456 27.922z" />
+                        </svg>
+                      </button>
+                    </div>
+                  </div>
+                );
+              })
+            )}
           </div>
         </div>
 
         <div style={{
-          width: '400px',
+          width: '420px',
+          minWidth: '320px',
           display: 'flex',
           flexDirection: 'column',
-          borderLeft: `1px solid ${isDark ? '#374151' : '#e5e7eb'}`,
-          background: isDark ? '#111827' : '#f9fafb',
+          borderLeft: '1px solid var(--border-default)',
+          background: 'var(--bg-base)',
           overflow: 'hidden',
         }}>
           <LogTerminal logs={logs} connected={connected} isDark={isDark} debugLogEnabled={debugLogEnabled} />
@@ -287,30 +288,3 @@ export default function ScrapePage({
     </div>
   );
 }
-
-const btnStyle: React.CSSProperties = {
-  padding: '6px 14px',
-  borderRadius: '4px',
-  border: 'none',
-  color: 'white',
-  fontSize: '13px',
-  cursor: 'pointer',
-  whiteSpace: 'nowrap',
-};
-
-const thStyle = (isDark: boolean): React.CSSProperties => ({
-  padding: HEADER_PADDING,
-  textAlign: 'left',
-  fontSize: '12px',
-  fontWeight: 600,
-  color: isDark ? '#9ca3af' : '#6b7280',
-  whiteSpace: 'nowrap',
-});
-
-const tdStyle = (isDark: boolean): React.CSSProperties => ({
-  padding: CELL_PADDING,
-  color: isDark ? '#e5e7eb' : '#111827',
-  overflow: 'hidden',
-  textOverflow: 'ellipsis',
-  whiteSpace: 'nowrap',
-});

@@ -1,5 +1,3 @@
-import type { CSSProperties } from 'react';
-
 export type PageKey = 'workspace' | 'scrape' | 'tags' | 'settings';
 
 interface SidebarProps {
@@ -51,83 +49,86 @@ const iconMap: Record<PageKey, React.FC<{ size?: number }>> = {
 const navItems: { key: PageKey; label: string }[] = [
   { key: 'workspace', label: '工作台' },
   { key: 'scrape', label: '搜刮' },
-  { key: 'tags', label: 'Tag 管理' },
+  { key: 'tags', label: 'Tag' },
   { key: 'settings', label: '设置' },
 ];
 
-export default function Sidebar({ activePage, onNavigate, isDark }: SidebarProps) {
-  const iconSize = 22;
+export default function Sidebar({ activePage, onNavigate, isDark: _isDark }: SidebarProps) {
+  const iconSize = 20;
 
   return (
-    <div style={{
-      width: '64px',
-      background: isDark ? '#0f172a' : '#ffffff',
-      borderRight: `1px solid ${isDark ? '#1e293b' : '#e5e7eb'}`,
+    <nav style={{
+      width: '60px',
+      minWidth: '60px',
+      background: 'var(--bg-surface-1)',
+      borderRight: '1px solid var(--border-default)',
       display: 'flex',
       flexDirection: 'column',
       alignItems: 'center',
       paddingTop: '16px',
-      gap: '4px',
+      gap: '2px',
       flexShrink: 0,
     }}>
       {navItems.map((item) => {
         const isActive = activePage === item.key;
         const IconComponent = iconMap[item.key];
 
-        const activeBg = '#1e40af';
-        const activeColor = '#e5e7eb';
-        const inactiveColorDark = '#6b7280';
-        const inactiveColorLight = '#4b5563';
-        const hoverBgDark = '#1e293b';
-        const hoverBgLight = '#f3f4f6';
-        const hoverColorDark = '#9ca3af';
-        const hoverColorLight = '#374151';
-
-        const btnStyle: CSSProperties = {
-          width: '48px',
-          height: '48px',
-          display: 'flex',
-          flexDirection: 'column',
-          alignItems: 'center',
-          justifyContent: 'center',
-          gap: '2px',
-          border: 'none',
-          borderRadius: '8px',
-          cursor: 'pointer',
-          background: isActive ? activeBg : 'transparent',
-          color: isActive
-            ? activeColor
-            : (isDark ? inactiveColorDark : inactiveColorLight),
-          fontSize: '18px',
-          transition: 'background 0.15s, color 0.15s',
-        };
-
         return (
           <button
             key={item.key}
             onClick={() => onNavigate(item.key)}
             title={item.label}
-            style={btnStyle}
+            style={{
+              width: '42px',
+              height: '42px',
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'center',
+              justifyContent: 'center',
+              gap: '4px',
+              border: 'none',
+              borderRadius: 'var(--radius-md)',
+              cursor: 'pointer',
+              background: isActive ? 'var(--accent-muted)' : 'transparent',
+              color: isActive ? 'var(--accent)' : 'var(--text-muted)',
+              fontSize: '10px',
+              fontWeight: isActive ? 600 : 400,
+              fontFamily: 'var(--font-ui)',
+              transition: 'all 150ms cubic-bezier(0.16, 1, 0.3, 1)',
+              position: 'relative',
+            }}
             onMouseEnter={(e) => {
               if (!isActive) {
-                const el = e.currentTarget as HTMLButtonElement;
-                el.style.background = isDark ? hoverBgDark : hoverBgLight;
-                el.style.color = isDark ? hoverColorDark : hoverColorLight;
+                const el = e.currentTarget;
+                el.style.background = 'var(--bg-surface-3)';
+                el.style.color = 'var(--text-secondary)';
               }
             }}
             onMouseLeave={(e) => {
               if (!isActive) {
-                const el = e.currentTarget as HTMLButtonElement;
+                const el = e.currentTarget;
                 el.style.background = 'transparent';
-                el.style.color = isDark ? inactiveColorDark : inactiveColorLight;
+                el.style.color = 'var(--text-muted)';
               }
             }}
           >
-            <IconComponent size={item.key === 'settings' ? 21 : iconSize} />
-            <span style={{ fontSize: '9px', lineHeight: 1 }}>{item.label}</span>
+            {isActive && (
+              <div style={{
+                position: 'absolute',
+                left: '-10px',
+                top: '50%',
+                transform: 'translateY(-50%)',
+                width: '3px',
+                height: '20px',
+                background: 'var(--accent)',
+                borderRadius: '0 3px 3px 0',
+              }} />
+            )}
+            <IconComponent size={item.key === 'settings' ? 19 : iconSize} />
+            <span style={{ lineHeight: 1, letterSpacing: '-0.01em' }}>{item.label}</span>
           </button>
         );
       })}
-    </div>
+    </nav>
   );
 }

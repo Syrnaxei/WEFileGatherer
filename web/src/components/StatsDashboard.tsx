@@ -7,39 +7,54 @@ interface StatsDashboardProps {
   isDark: boolean;
 }
 
-export default function StatsDashboard({ total, tagged, untagged, processed, invalid, isDark }: StatsDashboardProps) {
+export default function StatsDashboard({ total, tagged, untagged, processed, invalid }: StatsDashboardProps) {
   const cards = [
-    { label: '待处理', value: untagged, color: '#6366f1' },
-    { label: '已标记', value: tagged, color: '#3b82f6' },
-    { label: '总计', value: total, color: '#f59e0b' },
-    { label: '已处理', value: processed, color: '#10b981' },
-    { label: '失败', value: invalid, color: '#ef4444' },
+    { label: '待处理', value: untagged, color: 'var(--accent)' },
+    { label: '已标记', value: tagged, color: 'var(--info)' },
+    { label: '总计', value: total, color: 'var(--warning)' },
+    { label: '已处理', value: processed, color: 'var(--success)' },
+    { label: '失败', value: invalid, color: 'var(--error)' },
   ];
 
   return (
     <div style={{
       display: 'flex',
-      gap: '16px',
-      padding: '12px 16px',
-      background: isDark ? '#1f2937' : '#ffffff',
-      borderBottom: `1px solid ${isDark ? '#374151' : '#e5e7eb'}`,
+      gap: '12px',
+      padding: '14px 20px',
+      background: 'var(--bg-surface-1)',
+      borderBottom: '1px solid var(--border-default)',
     }}>
       {cards.map((card) => (
         <div
           key={card.label}
           style={{
             flex: 1,
-            padding: '12px 16px',
-            borderRadius: '8px',
-            background: card.color + '15',
-            border: `1px solid ${card.color}40`,
+            padding: '14px 16px',
+            borderRadius: 'var(--radius-md)',
+            background: 'var(--bg-surface-2)',
+            border: '1px solid var(--border-subtle)',
             textAlign: 'center',
+            transition: 'border-color 150ms ease',
           }}
         >
-          <div style={{ fontSize: '24px', fontWeight: 'bold', color: card.color }}>
+          <div style={{
+            fontSize: '26px',
+            fontWeight: 700,
+            color: card.color,
+            fontFamily: 'var(--font-mono)',
+            letterSpacing: '-0.02em',
+            lineHeight: 1,
+          }}>
             {card.value}
           </div>
-          <div style={{ fontSize: '12px', color: '#9ca3af', marginTop: '4px' }}>
+          <div style={{
+            fontSize: '11px',
+            color: 'var(--text-muted)',
+            marginTop: '5px',
+            fontWeight: 500,
+            textTransform: 'uppercase',
+            letterSpacing: '0.03em',
+          }}>
             {card.label}
           </div>
         </div>

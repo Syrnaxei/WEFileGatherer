@@ -27,7 +27,7 @@ interface LogTerminalProps {
   debugLogEnabled: boolean;
 }
 
-export default function LogTerminal({ logs, connected, isDark, debugLogEnabled }: LogTerminalProps) {
+export default function LogTerminal({ logs, connected, isDark: _isDark, debugLogEnabled }: LogTerminalProps) {
   const scrollRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -45,12 +45,12 @@ export default function LogTerminal({ logs, connected, isDark, debugLogEnabled }
 
   const getEventColor = (event: string) => {
     switch (event) {
-      case 'enqueue': return '#6366f1';
-      case 'node_start': return '#3b82f6';
-      case 'node_complete': return '#10b981';
-      case 'flow_complete': return '#059669';
-      case 'error': return '#ef4444';
-      default: return '#6b7280';
+      case 'enqueue': return 'var(--accent)';
+      case 'node_start': return 'var(--info)';
+      case 'node_complete': return 'var(--success)';
+      case 'flow_complete': return 'var(--success)';
+      case 'error': return 'var(--error)';
+      default: return 'var(--text-muted)';
     }
   };
 
@@ -88,56 +88,72 @@ export default function LogTerminal({ logs, connected, isDark, debugLogEnabled }
 
   return (
     <div style={{
-      height: '50vh',
-      background: isDark ? '#1f2937' : '#ffffff',
-      color: isDark ? '#e5e7eb' : '#111827',
+      height: '100%',
+      background: 'var(--bg-base)',
       display: 'flex',
       flexDirection: 'column',
     }}>
       <div style={{
-        padding: '8px 16px',
-        borderBottom: `1px solid ${isDark ? '#374151' : '#e5e7eb'}`,
+        padding: '10px 16px',
+        borderBottom: '1px solid var(--border-default)',
         display: 'flex',
         justifyContent: 'space-between',
         alignItems: 'center',
         fontSize: '12px',
+        fontWeight: 500,
+        color: 'var(--text-secondary)',
+        background: 'var(--bg-surface-1)',
       }}>
-        <span>实时日志终端</span>
-        <span style={{ color: connected ? '#10b981' : '#ef4444' }}>
-          ● {connected ? '已连接' : '未连接'}
+        <span style={{ letterSpacing: '-0.01em' }}>日志终端</span>
+        <span style={{
+          display: 'flex',
+          alignItems: 'center',
+          gap: '6px',
+          color: connected ? 'var(--success)' : 'var(--error)',
+          fontSize: '11px',
+        }}>
+          <span className={`status-dot ${connected ? 'status-dot-active' : 'status-dot-inactive'}`} />
+          {connected ? '已连接' : '未连接'}
         </span>
       </div>
       <div
         ref={scrollRef}
-        className="log-terminal-scroll"
         style={{
           flex: 1,
           overflowY: 'auto',
           overflowX: 'auto',
-          padding: '8px 16px',
+          padding: '12px 16px',
           fontSize: '12px',
-          fontFamily: 'monospace',
+          fontFamily: 'var(--font-mono)',
+          lineHeight: '1.7',
+          background: 'var(--bg-base)',
         }}
       >
         {filteredLogs.length === 0 && (
-          <div style={{ color: isDark ? '#6b7280' : '#9ca3af' }}>等待文件进入工作流...</div>
+          <div style={{ color: 'var(--text-muted)', fontFamily: 'var(--font-ui)' }}>
+            等待文件进入工作流...
+          </div>
         )}
         {filteredLogs.map((log, i) => (
-          <div key={i} style={{ marginBottom: '4px', lineHeight: '1.5' }}>
-            <span style={{ color: isDark ? '#9ca3af' : '#6b7280' }}>
+          <div key={i} style={{ marginBottom: '3px', lineHeight: '1.6' }}>
+            <span style={{ color: 'var(--text-muted)', fontSize: '11px' }}>
               {new Date(log.timestamp).toLocaleTimeString()}
             </span>
             {' '}
-            <span style={{ color: getEventColor(log.event), fontWeight: 'bold' }}>
+            <span style={{
+              color: getEventColor(log.event),
+              fontWeight: 600,
+              fontSize: '11px',
+            }}>
               [{getEventLabel(log.event)}]
             </span>
             {' '}
             <span style={{
               color: log.event === 'error'
-                ? '#ef4444'
+                ? 'var(--error)'
                 : log.event === 'flow_complete'
-                  ? '#059669'
-                  : isDark ? '#e5e7eb' : '#111827',
+                  ? 'var(--success)'
+                  : 'var(--text-primary)',
             }}>
               {formatLogLine(log)}
             </span>

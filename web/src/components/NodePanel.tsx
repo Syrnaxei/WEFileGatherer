@@ -1,9 +1,9 @@
 import React from 'react';
 
 const nodeTypes = [
-  { type: 'watcher', label: 'Watcher', color: '#4f46e5', icon: '📁' },
-  { type: 'tagger', label: 'Tagger', color: '#059669', icon: '🏷️' },
-  { type: 'mover', label: 'Mover', color: '#d97706', icon: '📤' },
+  { type: 'watcher', label: 'Watcher', color: 'var(--accent)', icon: '📁' },
+  { type: 'tagger', label: 'Tagger', color: 'var(--success)', icon: '🏷️' },
+  { type: 'mover', label: 'Mover', color: 'var(--warning)', icon: '📤' },
 ];
 
 export default function NodePanel() {
@@ -15,17 +15,17 @@ export default function NodePanel() {
   return (
     <aside style={{
       width: '200px',
-      background: '#f9fafb',
-      borderRight: '1px solid #e5e7eb',
+      background: 'var(--bg-surface-1)',
+      borderRight: '1px solid var(--border-default)',
       padding: '16px',
       display: 'flex',
       flexDirection: 'column',
       gap: '12px',
     }}>
-      <h3 style={{ margin: '0 0 8px 0', fontSize: '14px', color: '#374151' }}>
+      <h3 style={{ margin: '0 0 4px 0', fontSize: '13px', fontWeight: 600, color: 'var(--text-primary)', letterSpacing: '-0.01em' }}>
         节点面板
       </h3>
-      <p style={{ margin: '0 0 12px 0', fontSize: '12px', color: '#6b7280' }}>
+      <p style={{ margin: '0 0 8px 0', fontSize: '12px', color: 'var(--text-muted)' }}>
         拖拽节点到画布
       </p>
       {nodeTypes.map((nt) => (
@@ -35,15 +35,16 @@ export default function NodePanel() {
           onDragStart={(e) => onDragStart(e, nt.type)}
           style={{
             padding: '12px',
-            borderRadius: '6px',
-            border: `2px solid ${nt.color}`,
-            background: 'white',
+            borderRadius: 'var(--radius-md)',
+            border: `1.5px solid ${nt.color}`,
+            background: 'var(--bg-surface-2)',
             cursor: 'grab',
-            fontSize: '14px',
+            fontSize: '13px',
             fontWeight: 500,
             display: 'flex',
             alignItems: 'center',
             gap: '8px',
+            letterSpacing: '-0.01em',
           }}
         >
           <span>{nt.icon}</span>

@@ -53,31 +53,35 @@ export default function ErrorQueue({ flowId }: ErrorQueueProps) {
       <div
         onClick={() => setActive(!active)}
         style={{
-          padding: '8px 16px',
-          background: '#1f2937',
-          color: '#e5e7eb',
+          padding: '10px 16px',
+          background: 'var(--bg-surface-1)',
+          color: 'var(--text-primary)',
           cursor: 'pointer',
           display: 'flex',
           justifyContent: 'space-between',
           alignItems: 'center',
-          borderBottom: '1px solid #374151',
+          borderBottom: '1px solid var(--border-default)',
+          fontWeight: 600,
+          fontSize: '13px',
+          letterSpacing: '-0.01em',
+          transition: 'background 150ms ease',
         }}
       >
-        <span style={{ fontWeight: 'bold' }}>
+        <span>
           失败文件队列 {errors.length > 0 && `(${errors.length})`}
         </span>
-        <span>{active ? '▼' : '▶'}</span>
+        <span style={{ color: 'var(--text-muted)', fontSize: '10px' }}>{active ? '▲' : '▼'}</span>
       </div>
 
       {active && (
         <div style={{
           flex: 1,
           overflowY: 'auto',
-          background: '#111827',
+          background: 'var(--bg-base)',
           padding: '8px',
         }}>
           {errors.length === 0 ? (
-            <div style={{ color: '#6b7280', textAlign: 'center', padding: '20px' }}>
+            <div style={{ color: 'var(--text-muted)', textAlign: 'center', padding: '24px', fontSize: '13px' }}>
               暂无失败文件
             </div>
           ) : (
@@ -85,46 +89,34 @@ export default function ErrorQueue({ flowId }: ErrorQueueProps) {
               <div
                 key={err.trace_id}
                 style={{
-                  padding: '8px 12px',
-                  marginBottom: '4px',
-                  background: '#1f2937',
-                  borderRadius: '4px',
-                  borderLeft: '3px solid #ef4444',
+                  padding: '10px 14px',
+                  marginBottom: '6px',
+                  background: 'var(--bg-surface-1)',
+                  borderRadius: 'var(--radius-sm)',
+                  borderLeft: '3px solid var(--error)',
                 }}
               >
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                  <div>
-                    <div style={{ color: '#e5e7eb', fontSize: '13px' }}>{err.original_file_name}</div>
-                    <div style={{ color: '#ef4444', fontSize: '11px', marginTop: '2px' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '8px' }}>
+                  <div style={{ minWidth: 0 }}>
+                    <div style={{ color: 'var(--text-primary)', fontSize: '13px', fontWeight: 500 }}>
+                      {err.original_file_name}
+                    </div>
+                    <div style={{ color: 'var(--error)', fontSize: '11px', marginTop: '3px', lineHeight: 1.4 }}>
                       {err.error_message}
                     </div>
                   </div>
-                  <div style={{ display: 'flex', gap: '4px' }}>
+                  <div style={{ display: 'flex', gap: '6px', flexShrink: 0 }}>
                     <button
                       onClick={() => handleRetry(err.trace_id)}
-                      style={{
-                        padding: '4px 8px',
-                        fontSize: '11px',
-                        background: '#059669',
-                        color: 'white',
-                        border: 'none',
-                        borderRadius: '3px',
-                        cursor: 'pointer',
-                      }}
+                      className="btn btn-success"
+                      style={{ padding: '4px 10px', fontSize: '11px' }}
                     >
                       重试
                     </button>
                     <button
                       onClick={() => handleDiscard(err.trace_id)}
-                      style={{
-                        padding: '4px 8px',
-                        fontSize: '11px',
-                        background: '#374151',
-                        color: '#9ca3af',
-                        border: 'none',
-                        borderRadius: '3px',
-                        cursor: 'pointer',
-                      }}
+                      className="btn btn-ghost"
+                      style={{ padding: '4px 10px', fontSize: '11px' }}
                     >
                       丢弃
                     </button>

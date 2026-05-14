@@ -411,45 +411,42 @@ export default function App() {
         return (
           <>
             <header style={{
-              height: '56px',
-              background: isDark ? '#1f2937' : '#ffffff',
-              color: isDark ? 'white' : '#111827',
+              height: '52px',
+              minHeight: '52px',
+              background: 'var(--bg-surface-1)',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'space-between',
-              padding: '0 16px',
-              borderBottom: `1px solid ${isDark ? '#374151' : '#e5e7eb'}`,
-              gap: '18px',
+              padding: '0 20px',
+              borderBottom: '1px solid var(--border-default)',
+              gap: '16px',
             }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flex: 1 }}>
-                <span style={{ fontSize: '13px', color: isDark ? '#9ca3af' : '#6b7280' }}>
-                  源文件目录: {wfpPath || '未设置'}
+              <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flex: 1, minWidth: 0 }}>
+                <span style={{
+                  fontSize: '12px',
+                  fontFamily: 'var(--font-mono)',
+                  color: 'var(--text-muted)',
+                  overflow: 'hidden',
+                  textOverflow: 'ellipsis',
+                  whiteSpace: 'nowrap',
+                }}>
+                  源目录: {wfpPath || '未设置'}
                 </span>
               </div>
 
-              <div style={{ display: 'flex', gap: '8px' }}>
-                <button onClick={handleLoad} style={{ ...btnStyle, background: '#4f46e5' }}>加载</button>
+              <div style={{ display: 'flex', gap: '8px', flexShrink: 0 }}>
+                <button onClick={handleLoad} className="btn btn-primary">加载</button>
                 <button
                   onClick={handleStart}
                   disabled={isRunning || files.length === 0}
-                  style={{
-                    ...btnStyle,
-                    background: isRunning || files.length === 0 ? '#6b7280' : '#10b981',
-                    cursor: isRunning || files.length === 0 ? 'not-allowed' : 'pointer',
-                    opacity: isRunning || files.length === 0 ? 0.6 : 1,
-                  }}
+                  className="btn btn-success"
                 >
                   {isRunning ? '运行中' : '启动'}
                 </button>
                 <button
                   onClick={handleStop}
-                  disabled={!isRunning || files.length === 0}
-                  style={{
-                    ...btnStyle,
-                    background: !isRunning || files.length === 0 ? '#6b7280' : '#ef4444',
-                    cursor: !isRunning || files.length === 0 ? 'not-allowed' : 'pointer',
-                    opacity: !isRunning || files.length === 0 ? 0.6 : 1,
-                  }}
+                  disabled={!isRunning}
+                  className="btn btn-danger"
                 >
                   停止
                 </button>
@@ -466,40 +463,37 @@ export default function App() {
             />
 
             <div style={{ display: 'flex', flex: 1, overflow: 'hidden' }}>
-              <div style={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
+              <div style={{ flex: 1, display: 'flex', flexDirection: 'column', minWidth: 0 }}>
                 <div style={{
-                  padding: '8px 16px',
-                  background: isDark ? '#1f2937' : '#ffffff',
-                  borderBottom: `1px solid ${isDark ? '#374151' : '#e5e7eb'}`,
-                  fontSize: '13px',
+                  padding: '10px 20px',
+                  background: 'var(--bg-surface-1)',
+                  borderBottom: '1px solid var(--border-default)',
+                  fontSize: '12px',
                   fontWeight: 600,
-                  color: isDark ? '#e5e7eb' : '#111827',
+                  color: 'var(--text-primary)',
                   display: 'flex',
                   justifyContent: 'space-between',
                   alignItems: 'center',
                 }}>
                   <span>待处理文件 ({files.length})</span>
                   {files.some((f) => f.tag.trim() !== '') && (
-                    <span style={{ fontSize: '11px', fontWeight: 400, color: isDark ? '#6b7280' : '#9ca3af' }}>
+                    <span style={{ fontSize: '11px', fontWeight: 400, color: 'var(--text-muted)' }}>
                       目标路径由 tag 配置决定
                     </span>
                   )}
                 </div>
                 <div style={{
                   display: 'grid',
-                  /*
-                   * 与 FileList.tsx 中的 GRID_COLUMNS / GRID_GAP 保持同步
-                   * 列宽比例: 文件名:Tag:目标路径:操作 = 3:2:3:1
-                   * 调整方法见 FileList.tsx 顶部注释
-                   */
                   gridTemplateColumns: 'minmax(120px, 3fr) minmax(140px, 2fr) minmax(120px, 3fr) minmax(60px, 1fr)',
                   gap: '16px',
-                  padding: '8px 16px',
-                  background: isDark ? '#1f2937' : '#f9fafb',
-                  borderBottom: `1px solid ${isDark ? '#374151' : '#e5e7eb'}`,
-                  fontSize: '12px',
+                  padding: '8px 20px',
+                  background: 'var(--bg-surface-2)',
+                  borderBottom: '1px solid var(--border-default)',
+                  fontSize: '11px',
                   fontWeight: 600,
-                  color: isDark ? '#9ca3af' : '#6b7280',
+                  color: 'var(--text-muted)',
+                  textTransform: 'uppercase',
+                  letterSpacing: '0.04em',
                 }}>
                   <div>文件名</div>
                   <div>Tag</div>
@@ -519,7 +513,15 @@ export default function App() {
                 />
               </div>
 
-              <div style={{ width: '400px', display: 'flex', flexDirection: 'column', borderLeft: `1px solid ${isDark ? '#374151' : '#e5e7eb'}`, background: isDark ? '#111827' : '#f9fafb', overflow: 'hidden' }}>
+              <div style={{
+                width: '420px',
+                minWidth: '320px',
+                display: 'flex',
+                flexDirection: 'column',
+                borderLeft: '1px solid var(--border-default)',
+                background: 'var(--bg-base)',
+                overflow: 'hidden',
+              }}>
                 <LogTerminal logs={logs} connected={connected} isDark={isDark} debugLogEnabled={debugLogEnabled} />
               </div>
             </div>
@@ -529,7 +531,12 @@ export default function App() {
   };
 
   return (
-    <div style={{ display: 'flex', height: '100vh', background: isDark ? '#0f172a' : '#f9fafb' }}>
+    <div style={{
+      display: 'flex',
+      height: '100vh',
+      background: 'var(--bg-base)',
+      color: 'var(--text-primary)',
+    }}>
       <Toast isDark={isDark} />
       <Sidebar activePage={activePage} onNavigate={setActivePage} isDark={isDark} />
       <div style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
@@ -538,16 +545,3 @@ export default function App() {
     </div>
   );
 }
-
-const btnStyle: React.CSSProperties = {
-  padding: '6px 14px',
-  borderRadius: '4px',
-  border: 'none',
-  color: 'white',
-  fontSize: '13px',
-  cursor: 'pointer',
-  background: '#4b5563',
-  whiteSpace: 'nowrap',
-};
-
-
