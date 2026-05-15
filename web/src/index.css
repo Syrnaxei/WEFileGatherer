@@ -449,6 +449,22 @@ input, textarea, button, select {
   50% { opacity: 0.5; }
 }
 
+@keyframes fade-out {
+  from { opacity: 1; }
+  to { opacity: 0; }
+}
+
+@keyframes fade-out-up {
+  from {
+    opacity: 1;
+    transform: translateY(0);
+  }
+  to {
+    opacity: 0;
+    transform: translateY(-6px);
+  }
+}
+
 /* ── Utility Classes ───────────────────────────────────────── */
 
 .animate-fade-in {
@@ -457,6 +473,14 @@ input, textarea, button, select {
 
 .animate-fade-in-up {
   animation: fade-in-up var(--duration-normal) var(--ease-out);
+}
+
+.animate-fade-out {
+  animation: fade-out 150ms var(--ease-out) forwards;
+}
+
+.animate-fade-out-up {
+  animation: fade-out-up 150ms var(--ease-out) forwards;
 }
 
 .animate-slide-in-right {

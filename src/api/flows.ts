@@ -17,6 +17,18 @@ export function setSocketIO(io: SocketIOServer) {
   _io = io;
 }
 
+function resolveConcurrency(): number {
+  const db = SQLiteDb.getInstance();
+  const mode = db.getSetting('processingMode') || 'parallel';
+  if (mode === 'fifo') {
+    return 1;
+  }
+  const raw = parseInt(db.getSetting('concurrency') || '5', 10);
+  if (isNaN(raw) || raw < 1) return 1;
+  if (raw > 5) return 5;
+  return raw;
+}
+
 router.post('/scan', async (req, res) => {
   const { directory } = req.body;
   if (!directory) {
@@ -122,7 +134,7 @@ router.post('/flows/:id/start', async (req, res) => {
 
   db.ensureFlow(flowId, flow.name);
 
-  const runner = new FlowRunner(flow, 5);
+  const runner = new FlowRunner(flow, resolveConcurrency());
   activeRunners.set(flowId, runner);
 
   const io = _io;
@@ -259,7 +271,7 @@ router.post('/scrape/start', async (req, res) => {
   const db = SQLiteDb.getInstance();
   db.ensureFlow(flowId, flow.name);
 
-  const runner = new FlowRunner(flow, 5);
+  const runner = new FlowRunner(flow, resolveConcurrency());
   activeRunners.set(flowId, runner);
 
   const io = _io;

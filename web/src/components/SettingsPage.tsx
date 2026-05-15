@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useTheme } from '../contexts/ThemeContext';
 
 const API_BASE = 'http://localhost:3000/api';
@@ -36,6 +36,8 @@ export default function SettingsPage({
   const [scrapeSourceDir, setScrapeSourceDir] = useState('');
   const [scrapeExportDir, setScrapeExportDir] = useState('');
   const [scrapeDepth, setScrapeDepth] = useState(1);
+  const [processingMode, setProcessingMode] = useState('parallel');
+  const [concurrency, setConcurrency] = useState(5);
 
   useEffect(() => {
     fetch(`${API_BASE}/version`)
@@ -100,6 +102,27 @@ export default function SettingsPage({
         }
       })
       .catch(() => {});
+
+    fetch(`${API_BASE}/settings/processingMode`)
+      .then((r) => r.json())
+      .then((data) => {
+        if (data.success && data.value) {
+          setProcessingMode(data.value);
+        }
+      })
+      .catch(() => {});
+
+    fetch(`${API_BASE}/settings/concurrency`)
+      .then((r) => r.json())
+      .then((data) => {
+        if (data.success && data.value) {
+          const v = parseInt(data.value, 10);
+          if (!isNaN(v) && v >= 1 && v <= 5) {
+            setConcurrency(v);
+          }
+        }
+      })
+      .catch(() => {});
   }, []);
 
   const handleAutoFillChange = (value: boolean) => {
@@ -157,6 +180,24 @@ export default function SettingsPage({
   const saveScrapeDepth = (value: number) => {
     setScrapeDepth(value);
     fetch(`${API_BASE}/settings/scrapeDepth`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ value: String(value) }),
+    }).catch(() => {});
+  };
+
+  const saveProcessingMode = (value: string) => {
+    setProcessingMode(value);
+    fetch(`${API_BASE}/settings/processingMode`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ value }),
+    }).catch(() => {});
+  };
+
+  const saveConcurrency = (value: number) => {
+    setConcurrency(value);
+    fetch(`${API_BASE}/settings/concurrency`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ value: String(value) }),
@@ -300,6 +341,32 @@ export default function SettingsPage({
           </SettingCard>
 
           <SettingCard title="高级设置">
+            <SettingRow label="文件处理模式" description="并行模式可同时处理多个文件，FIFO 模式按顺序逐个处理">
+              <ProcessModeSelect value={processingMode} onChange={saveProcessingMode} />
+            </SettingRow>
+            {processingMode === 'parallel' && (
+              <div style={{
+                paddingLeft: '16px',
+                borderLeft: '2px solid var(--border-default)',
+                marginTop: '6px',
+                animation: 'fade-in 200ms ease',
+              }}>
+                <SettingRow label="并发数 (Concurrency)" description="同时处理的文件数量上限（1-5）">
+                  <input
+                    type="number"
+                    min={1}
+                    max={5}
+                    value={concurrency}
+                    onChange={(e) => {
+                      const v = parseInt(e.target.value, 10);
+                      if (!isNaN(v) && v >= 1 && v <= 5) saveConcurrency(v);
+                    }}
+                    className="input"
+                    style={{ width: '64px', textAlign: 'center', fontFamily: 'var(--font-mono)' }}
+                  />
+                </SettingRow>
+              </div>
+            )}
             <SettingRow label="调试日志输出" description="开启后显示完整的处理过程日志，关闭后仅显示开始和完成状态">
               <ToggleSwitch checked={debugLogEnabled} onChange={handleDebugLogChange} />
             </SettingRow>
@@ -407,6 +474,170 @@ function ToggleSwitch({ checked, onChange }: { checked: boolean; onChange: (v: b
         boxShadow: '0 1px 3px rgba(0,0,0,0.2)',
       }} />
     </button>
+  );
+}
+
+const processingModeOptions = [
+  { value: 'parallel', label: '并行模式' },
+  { value: 'fifo', label: 'FIFO 模式' },
+];
+
+function ProcessModeSelect({ value, onChange }: { value: string; onChange: (v: string) => void }) {
+  const [open, setOpen] = useState(false);
+  const [closing, setClosing] = useState(false);
+  const containerRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!open) return;
+    const handler = (e: MouseEvent) => {
+      if (containerRef.current && !containerRef.current.contains(e.target as Node)) {
+        triggerClose();
+      }
+    };
+    document.addEventListener('mousedown', handler);
+    return () => document.removeEventListener('mousedown', handler);
+  }, [open]);
+
+  const triggerClose = () => {
+    setClosing(true);
+    setTimeout(() => {
+      setOpen(false);
+      setClosing(false);
+    }, 140);
+  };
+
+  const handleTrigger = () => {
+    if (open) {
+      triggerClose();
+    } else {
+      setOpen(true);
+    }
+  };
+
+  const handleSelect = (v: string) => {
+    onChange(v);
+    triggerClose();
+  };
+
+  const selectedLabel = processingModeOptions.find((o) => o.value === value)?.label ?? value;
+
+  return (
+    <div ref={containerRef} style={{ position: 'relative' }}>
+      <button
+        type="button"
+        onClick={handleTrigger}
+        style={{
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          gap: '8px',
+          minWidth: '140px',
+          padding: '6px 8px 6px 12px',
+          fontSize: '13px',
+          fontFamily: 'var(--font-ui)',
+          fontWeight: 500,
+          color: 'var(--text-primary)',
+          background: 'var(--bg-surface-2)',
+          border: '1px solid var(--border-default)',
+          borderRadius: 'var(--radius-sm)',
+          cursor: 'pointer',
+          outline: 'none',
+        }}
+      >
+        <span>{selectedLabel}</span>
+        <svg
+          width="12"
+          height="12"
+          viewBox="0 0 12 12"
+          style={{
+            transition: 'transform 200ms cubic-bezier(0.16, 1, 0.3, 1)',
+            transform: open ? 'rotate(180deg)' : 'rotate(0deg)',
+            flexShrink: 0,
+          }}
+        >
+          <path
+            d="M3 4.5L6 7.5L9 4.5"
+            stroke="var(--text-muted)"
+            strokeWidth="1.5"
+            fill="none"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          />
+        </svg>
+      </button>
+
+      {open && (
+        <div
+          className={closing ? 'animate-fade-out-up' : 'animate-fade-in-up'}
+          style={{
+            position: 'absolute',
+            top: 0,
+            left: 0,
+            right: 0,
+            zIndex: 100,
+            background: 'var(--bg-surface-2)',
+            border: '1px solid var(--border-default)',
+            borderRadius: 'var(--radius-sm)',
+            overflow: 'hidden',
+            boxShadow: 'var(--shadow-md)',
+          }}
+        >
+          {processingModeOptions.map((opt) => {
+            const isSelected = opt.value === value;
+            return (
+              <div
+                key={opt.value}
+                onClick={() => handleSelect(opt.value)}
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'space-between',
+                  padding: '6px 8px 6px 12px',
+                  cursor: 'pointer',
+                  fontSize: '13px',
+                  fontFamily: 'var(--font-ui)',
+                  fontWeight: isSelected ? 600 : 400,
+                  color: isSelected ? 'var(--text-primary)' : 'var(--text-secondary)',
+                  background: 'transparent',
+                  transition: 'background 120ms ease, color 120ms ease',
+                  position: 'relative',
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.background = 'var(--bg-surface-3)';
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.background = 'transparent';
+                }}
+              >
+                <div
+                  style={{
+                    position: 'absolute',
+                    left: 0,
+                    top: '4px',
+                    bottom: '4px',
+                    width: '3px',
+                    borderRadius: '0 2px 2px 0',
+                    background: isSelected ? 'var(--accent)' : 'transparent',
+                    transition: 'background 200ms ease',
+                  }}
+                />
+                <span style={{ paddingLeft: '2px' }}>{opt.label}</span>
+                {isSelected && (
+                  <svg
+                    width="12"
+                    height="12"
+                    viewBox="0 0 12 12"
+                    style={{ flexShrink: 0, transition: 'transform 200ms cubic-bezier(0.16, 1, 0.3, 1)', transform: open ? 'rotate(180deg)' : 'rotate(0deg)' }}
+                  >
+                    <path d="M3 4.5L6 7.5L9 4.5" stroke="var(--text-muted)" strokeWidth="1.5" fill="none" strokeLinecap="round" strokeLinejoin="round" />
+                  </svg>
+                )}
+              </div>
+            );
+          })}
+        </div>
+      )}
+    </div>
   );
 }
 
