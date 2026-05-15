@@ -10,6 +10,11 @@ interface ToastItem {
 
 let addToastFn: ((message: string, type: ToastType) => void) | null = null;
 let nextId = 0;
+let toastDurationMs = 5000;
+
+export function setToastDuration(seconds: number) {
+  toastDurationMs = seconds * 1000;
+}
 
 export function showToast(message: string, type: ToastType = 'info') {
   if (addToastFn) {
@@ -25,11 +30,12 @@ export default function Toast({ isDark: _isDark }: ToastProps) {
   const [toasts, setToasts] = useState<ToastItem[]>([]);
 
   const addToast = useCallback((message: string, type: ToastType) => {
+    if (toastDurationMs <= 0) return;
     const id = nextId++;
     setToasts((prev) => [...prev, { id, message, type }]);
     setTimeout(() => {
       setToasts((prev) => prev.filter((t) => t.id !== id));
-    }, 3000);
+    }, toastDurationMs);
   }, []);
 
   useEffect(() => {

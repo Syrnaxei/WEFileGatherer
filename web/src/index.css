@@ -546,6 +546,7 @@ input, textarea, button, select {
   transition: border-color var(--duration-fast) var(--ease-out), box-shadow var(--duration-fast) var(--ease-out);
 }
 .input:focus { border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-muted); }
+.input:focus-visible { outline: none; }
 .input:disabled { opacity: 0.45; cursor: not-allowed; }
 .input::placeholder { color: var(--text-muted); }
 

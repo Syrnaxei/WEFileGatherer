@@ -1,5 +1,7 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect } from 'react';
 import { useTheme } from '../contexts/ThemeContext';
+import SelectDropdown from './SelectDropdown';
+import { setToastDuration } from './Toast';
 
 const API_BASE = 'http://localhost:3000/api';
 
@@ -28,7 +30,7 @@ export default function SettingsPage({
   scrapeShowFullPath,
   onScrapeShowFullPathChange,
 }: SettingsPageProps) {
-  const { isDark, setTheme } = useTheme();
+  const { mode, setMode } = useTheme();
   const [version, setVersion] = useState<VersionInfo | null>(null);
   const [autoFillTagName, setAutoFillTagName] = useState(false);
   const [debugLogEnabled, setDebugLogEnabled] = useState(false);
@@ -38,6 +40,7 @@ export default function SettingsPage({
   const [scrapeDepth, setScrapeDepth] = useState(1);
   const [processingMode, setProcessingMode] = useState('parallel');
   const [concurrency, setConcurrency] = useState(5);
+  const [toastDuration, setToastDurationState] = useState(5);
 
   useEffect(() => {
     fetch(`${API_BASE}/version`)
@@ -123,6 +126,19 @@ export default function SettingsPage({
         }
       })
       .catch(() => {});
+
+    fetch(`${API_BASE}/settings/toastDuration`)
+      .then((r) => r.json())
+      .then((data) => {
+        if (data.success && data.value !== null && data.value !== undefined) {
+          const v = parseInt(data.value, 10);
+          if (!isNaN(v) && v >= 0 && v <= 30) {
+            setToastDurationState(v);
+            setToastDuration(v);
+          }
+        }
+      })
+      .catch(() => {});
   }, []);
 
   const handleAutoFillChange = (value: boolean) => {
@@ -204,6 +220,16 @@ export default function SettingsPage({
     }).catch(() => {});
   };
 
+  const saveToastDuration = (value: number) => {
+    setToastDurationState(value);
+    setToastDuration(value);
+    fetch(`${API_BASE}/settings/toastDuration`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ value: String(value) }),
+    }).catch(() => {});
+  };
+
   const handleSelectScrapeSource = async () => {
     if (window.electronAPI) {
       const dir = await window.electronAPI.openDirectory();
@@ -262,8 +288,33 @@ export default function SettingsPage({
           gap: '16px',
         }}>
           <SettingCard title="外观">
-            <SettingRow label="夜间模式">
-              <ToggleSwitch checked={isDark} onChange={(v) => setTheme(v ? 'dark' : 'light')} />
+            <SettingRow label="选择外观模式" description="浅色、深色或跟随系统设置">
+              <SelectDropdown
+                options={[
+                  { value: 'light', label: '浅色' },
+                  { value: 'dark', label: '深色' },
+                  { value: 'system', label: '跟随系统' },
+                ]}
+                value={mode}
+                onChange={(v) => setMode(v as 'light' | 'dark' | 'system')}
+              />
+            </SettingRow>
+          </SettingCard>
+
+          <SettingCard title='通用设置'>
+            <SettingRow label='通知持续时间' description='设置右下角通知持续显示时间（0-30s）'>
+              <input
+                type="number"
+                min={0}
+                max={30}
+                value={toastDuration}
+                onChange={(e) => {
+                  const v = parseInt(e.target.value, 10);
+                  if (!isNaN(v) && v >= 0 && v <= 30) saveToastDuration(v);
+                }}
+                className="input"
+                style={{ width: '64px', textAlign: 'center', fontFamily: 'var(--font-mono)' }}
+              />
             </SettingRow>
           </SettingCard>
 
@@ -341,8 +392,18 @@ export default function SettingsPage({
           </SettingCard>
 
           <SettingCard title="高级设置">
+            <SettingRow label="调试日志输出" description="开启后显示完整的处理过程日志，关闭后仅显示开始和完成状态">
+              <ToggleSwitch checked={debugLogEnabled} onChange={handleDebugLogChange} />
+            </SettingRow>
             <SettingRow label="文件处理模式" description="并行模式可同时处理多个文件，FIFO 模式按顺序逐个处理">
-              <ProcessModeSelect value={processingMode} onChange={saveProcessingMode} />
+              <SelectDropdown
+                options={[
+                  { value: 'parallel', label: '并行模式' },
+                  { value: 'fifo', label: 'FIFO 模式' },
+                ]}
+                value={processingMode}
+                onChange={saveProcessingMode}
+              />
             </SettingRow>
             {processingMode === 'parallel' && (
               <div style={{
@@ -367,9 +428,6 @@ export default function SettingsPage({
                 </SettingRow>
               </div>
             )}
-            <SettingRow label="调试日志输出" description="开启后显示完整的处理过程日志，关闭后仅显示开始和完成状态">
-              <ToggleSwitch checked={debugLogEnabled} onChange={handleDebugLogChange} />
-            </SettingRow>
             <SettingRow label="显示完整文件路径" description="开启后可分别控制工作台和搜刮界面的路径显示方式">
               <ToggleSwitch checked={showFullPathOptions} onChange={onShowFullPathOptionsChange} />
             </SettingRow>
@@ -474,170 +532,6 @@ function ToggleSwitch({ checked, onChange }: { checked: boolean; onChange: (v: b
         boxShadow: '0 1px 3px rgba(0,0,0,0.2)',
       }} />
     </button>
-  );
-}
-
-const processingModeOptions = [
-  { value: 'parallel', label: '并行模式' },
-  { value: 'fifo', label: 'FIFO 模式' },
-];
-
-function ProcessModeSelect({ value, onChange }: { value: string; onChange: (v: string) => void }) {
-  const [open, setOpen] = useState(false);
-  const [closing, setClosing] = useState(false);
-  const containerRef = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    if (!open) return;
-    const handler = (e: MouseEvent) => {
-      if (containerRef.current && !containerRef.current.contains(e.target as Node)) {
-        triggerClose();
-      }
-    };
-    document.addEventListener('mousedown', handler);
-    return () => document.removeEventListener('mousedown', handler);
-  }, [open]);
-
-  const triggerClose = () => {
-    setClosing(true);
-    setTimeout(() => {
-      setOpen(false);
-      setClosing(false);
-    }, 140);
-  };
-
-  const handleTrigger = () => {
-    if (open) {
-      triggerClose();
-    } else {
-      setOpen(true);
-    }
-  };
-
-  const handleSelect = (v: string) => {
-    onChange(v);
-    triggerClose();
-  };
-
-  const selectedLabel = processingModeOptions.find((o) => o.value === value)?.label ?? value;
-
-  return (
-    <div ref={containerRef} style={{ position: 'relative' }}>
-      <button
-        type="button"
-        onClick={handleTrigger}
-        style={{
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'space-between',
-          gap: '8px',
-          minWidth: '140px',
-          padding: '6px 8px 6px 12px',
-          fontSize: '13px',
-          fontFamily: 'var(--font-ui)',
-          fontWeight: 500,
-          color: 'var(--text-primary)',
-          background: 'var(--bg-surface-2)',
-          border: '1px solid var(--border-default)',
-          borderRadius: 'var(--radius-sm)',
-          cursor: 'pointer',
-          outline: 'none',
-        }}
-      >
-        <span>{selectedLabel}</span>
-        <svg
-          width="12"
-          height="12"
-          viewBox="0 0 12 12"
-          style={{
-            transition: 'transform 200ms cubic-bezier(0.16, 1, 0.3, 1)',
-            transform: open ? 'rotate(180deg)' : 'rotate(0deg)',
-            flexShrink: 0,
-          }}
-        >
-          <path
-            d="M3 4.5L6 7.5L9 4.5"
-            stroke="var(--text-muted)"
-            strokeWidth="1.5"
-            fill="none"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-          />
-        </svg>
-      </button>
-
-      {open && (
-        <div
-          className={closing ? 'animate-fade-out-up' : 'animate-fade-in-up'}
-          style={{
-            position: 'absolute',
-            top: 0,
-            left: 0,
-            right: 0,
-            zIndex: 100,
-            background: 'var(--bg-surface-2)',
-            border: '1px solid var(--border-default)',
-            borderRadius: 'var(--radius-sm)',
-            overflow: 'hidden',
-            boxShadow: 'var(--shadow-md)',
-          }}
-        >
-          {processingModeOptions.map((opt) => {
-            const isSelected = opt.value === value;
-            return (
-              <div
-                key={opt.value}
-                onClick={() => handleSelect(opt.value)}
-                style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'space-between',
-                  padding: '6px 8px 6px 12px',
-                  cursor: 'pointer',
-                  fontSize: '13px',
-                  fontFamily: 'var(--font-ui)',
-                  fontWeight: isSelected ? 600 : 400,
-                  color: isSelected ? 'var(--text-primary)' : 'var(--text-secondary)',
-                  background: 'transparent',
-                  transition: 'background 120ms ease, color 120ms ease',
-                  position: 'relative',
-                }}
-                onMouseEnter={(e) => {
-                  e.currentTarget.style.background = 'var(--bg-surface-3)';
-                }}
-                onMouseLeave={(e) => {
-                  e.currentTarget.style.background = 'transparent';
-                }}
-              >
-                <div
-                  style={{
-                    position: 'absolute',
-                    left: 0,
-                    top: '4px',
-                    bottom: '4px',
-                    width: '3px',
-                    borderRadius: '0 2px 2px 0',
-                    background: isSelected ? 'var(--accent)' : 'transparent',
-                    transition: 'background 200ms ease',
-                  }}
-                />
-                <span style={{ paddingLeft: '2px' }}>{opt.label}</span>
-                {isSelected && (
-                  <svg
-                    width="12"
-                    height="12"
-                    viewBox="0 0 12 12"
-                    style={{ flexShrink: 0, transition: 'transform 200ms cubic-bezier(0.16, 1, 0.3, 1)', transform: open ? 'rotate(180deg)' : 'rotate(0deg)' }}
-                  >
-                    <path d="M3 4.5L6 7.5L9 4.5" stroke="var(--text-muted)" strokeWidth="1.5" fill="none" strokeLinecap="round" strokeLinejoin="round" />
-                  </svg>
-                )}
-              </div>
-            );
-          })}
-        </div>
-      )}
-    </div>
   );
 }
 

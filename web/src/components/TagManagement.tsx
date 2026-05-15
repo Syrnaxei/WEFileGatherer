@@ -482,8 +482,26 @@ export default function TagManagement({ isDark: _isDark }: TagManagementProps) {
                     />
                   </div>
                   <div style={{ display: 'flex', gap: '6px', justifyContent: 'center' }}>
-                    <button onClick={() => handleUpdate(tag.id)} className="btn btn-success" style={{ padding: '4px 12px', fontSize: '12px' }}>保存</button>
-                    <button onClick={cancelEdit} className="btn btn-ghost" style={{ padding: '4px 12px', fontSize: '12px' }}>取消</button>
+                    <button
+                      onClick={() => handleUpdate(tag.id)}
+                      className="btn btn-outline"
+                      style={{ padding: '4px 6px', fontSize: '12px', lineHeight: 0 }}
+                      title="保存"
+                    >
+                      <svg width="14" height="14" viewBox="0 0 1024 1024" style={{ fill: 'currentColor', pointerEvents: 'none' }}>
+                        <path d="M682.666667 597.333333H341.333333v256h341.333334v-256z m-17.664-426.666666H341.333333v128h298.666667a42.666667 42.666667 0 0 1 0 85.333333H298.666667a42.666667 42.666667 0 0 1-42.666667-42.666667V170.666667H213.333333a42.666667 42.666667 0 0 0-42.666666 42.666666v597.333334a42.666667 42.666667 0 0 0 42.666666 42.666666h42.666667v-298.666666a42.666667 42.666667 0 0 1 37.674667-42.368L298.666667 512h426.666666a42.666667 42.666667 0 0 1 42.666667 42.666667v298.666666h42.666667a42.666667 42.666667 0 0 0 42.666666-42.666666V358.997333L665.002667 170.666667zM682.666667 85.333333c11.306667 0 22.186667 4.48 30.165333 12.501334l213.333333 213.333333A42.538667 42.538667 0 0 1 938.666667 341.333333v469.333334a128 128 0 0 1-128 128H213.333333a128 128 0 0 1-128-128V213.333333a128 128 0 0 1 128-128h469.333334z" />
+                      </svg>
+                    </button>
+                    <button
+                      onClick={cancelEdit}
+                      className="btn btn-outline"
+                      style={{ padding: '4px 6px', fontSize: '12px', lineHeight: 0 }}
+                      title="取消"
+                    >
+                      <svg width="14" height="14" viewBox="0 0 1024 1024" style={{ fill: 'currentColor', pointerEvents: 'none' }}>
+                        <path d="M632.117978 513.833356l361.805812 361.735298a85.462608 85.462608 0 1 1-121.001515 120.789974L511.116463 634.552816 146.913186 998.756094a86.026718 86.026718 0 0 1-121.706652-121.706652L389.480325 512.775651 27.674513 150.969839A85.392095 85.392095 0 0 1 148.393973 30.250379L510.199785 392.056191l366.671258-366.671258a86.026718 86.026718 0 0 1 121.706652 121.706652z" />
+                      </svg>
+                    </button>
                   </div>
                 </>
               ) : (
@@ -508,18 +526,36 @@ export default function TagManagement({ isDark: _isDark }: TagManagementProps) {
                       <path d="M64.1 194v89.6h896.1V194H64.1z m0 358.4h896.1v-89.6H64.1v89.6z m0 268.9h896.1v-89.6H64.1v89.6z" />
                     </svg>
                   </div>
-                  <div style={{ fontSize: '14px', fontWeight: 500, color: 'var(--text-primary)', letterSpacing: '-0.01em' }}>
+                  <div style={{ fontSize: '14px', fontWeight: 500, color: 'var(--text-primary)', letterSpacing: '-0.01em', minHeight: '34px', display: 'flex', alignItems: 'center' }}>
                     {tag.name}
                   </div>
-                  <div style={{ fontSize: '12px', color: 'var(--accent)', fontFamily: 'var(--font-mono)' }}>
+                  <div style={{ fontSize: '12px', color: 'var(--accent)', fontFamily: 'var(--font-mono)', minHeight: '34px', display: 'flex', alignItems: 'center' }}>
                     {tag.target_path}
                   </div>
-                  <div style={{ fontSize: '13px', color: 'var(--text-secondary)' }}>
+                  <div style={{ fontSize: '13px', color: 'var(--text-secondary)', minHeight: '34px', display: 'flex', alignItems: 'center' }}>
                     {tag.description || '-'}
                   </div>
                   <div style={{ display: 'flex', gap: '6px', justifyContent: 'center' }}>
-                    <button onClick={() => startEdit(tag)} className="btn btn-outline" style={{ padding: '4px 10px', fontSize: '12px' }}>编辑</button>
-                    <button onClick={() => handleDelete(tag.id, tag.name)} className="btn btn-ghost" style={{ padding: '4px 10px', fontSize: '12px', color: 'var(--error)' }}>删除</button>
+                    <button
+                      onClick={() => startEdit(tag)}
+                      className="btn btn-outline"
+                      style={{ padding: '4px 6px', fontSize: '12px', lineHeight: 0 }}
+                      title="编辑"
+                    >
+                      <svg width="15" height="15" viewBox="0 0 1024 1024" style={{ fill: 'currentColor', pointerEvents: 'none' }}>
+                        <path d="M469.333333 128a42.666667 42.666667 0 0 1 0 85.333333H213.333333v597.333334h597.333334v-256l0.298666-4.992A42.666667 42.666667 0 0 1 896 554.666667v256a85.333333 85.333333 0 0 1-85.333333 85.333333H213.333333a85.333333 85.333333 0 0 1-85.333333-85.333333V213.333333a85.333333 85.333333 0 0 1 85.333333-85.333333z m414.72 12.501333a42.666667 42.666667 0 0 1 0 60.330667L491.861333 593.066667a42.666667 42.666667 0 0 1-60.330666-60.330667l392.192-392.192a42.666667 42.666667 0 0 1 60.330666 0z" />
+                      </svg>
+                    </button>
+                    <button
+                      onClick={() => handleDelete(tag.id, tag.name)}
+                      className="btn btn-outline"
+                      style={{ padding: '4px 6px', fontSize: '12px', lineHeight: 0, color: 'var(--error)' }}
+                      title="删除"
+                    >
+                      <svg width="15" height="15" viewBox="0 0 1024 1024" style={{ fill: 'currentColor', pointerEvents: 'none' }}>
+                        <path d="M576.416 736V383.871c0-17.814 14.521-32.256 32.434-32.256 17.912 0 32.433 14.442 32.433 32.256V736c0 17.815-14.52 32.256-32.433 32.256S576.416 753.814 576.416 736z m-193.7 0V383.871c0-17.814 14.522-32.256 32.434-32.256 17.913 0 32.434 14.442 32.434 32.256V736c0 17.815-14.521 32.256-32.434 32.256-17.912 0-32.433-14.441-32.433-32.256z m548.666-512.063H770.116v-64.064c0-52.774-42.885-95.625-95.949-95.872H350.734c-25.645-0.12-50.28 9.929-68.456 27.921-18.176 17.993-28.394 42.446-28.394 67.95v64.065H92.618C76.295 225.86 64 239.622 64 255.969c0 16.346 12.295 30.108 28.618 32.032h838.764C947.705 286.077 960 272.315 960 255.969c0-16.347-12.295-30.11-28.618-32.032zM318.3 159.873c0.482-17.539 14.794-31.574 32.434-31.808h323.433a31.17 31.17 0 0 1 22.597 9.206 30.82 30.82 0 0 1 8.936 22.602v64.064H318.3v-64.064z m418.932 800.126H286.768c-25.645 0.12-50.28-9.929-68.456-27.921-18.176-17.993-28.394-42.446-28.394-67.95V383.871a31.271 31.271 0 0 1 9.232-22.626 31.623 31.623 0 0 1 22.751-9.182 32.076 32.076 0 0 1 22.907 9.157 31.721 31.721 0 0 1 9.526 22.651v480.255c0.482 17.539 14.794 31.574 32.434 31.808h450.464c17.64-0.234 31.952-14.27 32.434-31.808v-478.91c1.933-16.234 15.771-28.462 32.208-28.462 16.436 0 30.274 12.228 32.208 28.461v478.911c0 25.505-10.218 49.958-28.394 67.95-18.176 17.993-42.811 28.041-68.456 27.922z" />
+                      </svg>
+                    </button>
                   </div>
                 </>
               )}

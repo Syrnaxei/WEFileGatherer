@@ -1,6 +1,5 @@
 import LogTerminal from './LogTerminal';
 import ScrapeStatsDashboard from './ScrapeStatsDashboard';
-import Toast from './Toast';
 import type { ScrapeFileItem } from '../App';
 
 /*
@@ -88,7 +87,6 @@ export default function ScrapePage({
       background: 'var(--bg-base)',
       overflow: 'hidden',
     }}>
-      <Toast isDark={isDark} />
 
       <div style={{
         padding: '20px 24px',
