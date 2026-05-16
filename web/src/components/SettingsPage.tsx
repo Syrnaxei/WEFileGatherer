@@ -467,9 +467,6 @@ export default function SettingsPage({
                 style={{ width: '64px', textAlign: 'center', fontFamily: 'var(--font-mono)' }}
               />
             </SettingRow>
-          </SettingCard>
-
-          <SettingCard title="Tag 管理">
             <SettingRow label="Tag 名称自动填充" description="选择目标路径后自动使用文件夹名称填充 Tag 名称">
               <ToggleSwitch checked={autoFillTagName} onChange={handleAutoFillChange} />
             </SettingRow>

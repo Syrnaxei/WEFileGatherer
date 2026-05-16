@@ -1,15 +1,10 @@
+import { useState } from 'react';
 import LogTerminal from './LogTerminal';
 import ScrapeStatsDashboard from './ScrapeStatsDashboard';
 import type { ScrapeFileItem } from '../App';
-
-/*
- * 布局间距比例系统 — 详见 doc/布局间距比例系统.md
- * 列宽比例: 文件名:路径:操作 = 3:3:1
- * 调整 GRID_GAP / GRID_COLUMNS / ROW_PADDING 即可改变布局
- */
-const GRID_GAP = '16px';
-const ROW_PADDING = '10px 12px';
-const GRID_COLUMNS = 'minmax(120px, 3fr) minmax(120px, 3fr) minmax(60px, 1fr)';
+import ThumbnailImg from './ThumbnailImg';
+import ThumbnailLightbox from './ThumbnailLightbox';
+import { formatFileSize, formatBitrate, formatDuration } from '../utils/format';
 
 interface LogEntry {
   event: string;
@@ -44,6 +39,7 @@ interface ScrapePageProps {
   connected: boolean;
   debugLogEnabled: boolean;
   scrapeShowFullPath: boolean;
+  thumbnailCount: number;
   onLoad: () => void;
   onStart: () => void;
   onStop: () => void;
@@ -63,6 +59,7 @@ export default function ScrapePage({
   connected,
   debugLogEnabled,
   scrapeShowFullPath,
+  thumbnailCount,
   onLoad,
   onStart,
   onStop,
@@ -77,6 +74,27 @@ export default function ScrapePage({
       return '~' + normalizedPath.slice(normalizedBase.length);
     }
     return filePath;
+  };
+
+  const thumbColWidth = thumbnailCount <= 1 ? 80 : 72;
+  const thumbHeight = thumbnailCount <= 1 ? 45 : 40;
+  const gridCols = `${thumbColWidth}px 1fr 1fr 40px`;
+
+  const [lightbox, setLightbox] = useState<{ fileIndex: number; thumbIndex: number } | null>(null);
+
+  const openLightbox = (fileIndex: number, thumbIndex: number) => {
+    setLightbox({ fileIndex, thumbIndex });
+  };
+
+  const closeLightbox = () => {
+    setLightbox(null);
+  };
+
+  const navigateLightbox = (direction: -1 | 1) => {
+    if (!lightbox) return;
+    const newIndex = lightbox.thumbIndex + direction;
+    if (newIndex < 0 || newIndex >= thumbnailCount) return;
+    setLightbox({ ...lightbox, thumbIndex: newIndex });
   };
 
   return (
@@ -180,17 +198,19 @@ export default function ScrapePage({
           </div>
           <div style={{
             display: 'grid',
-            gridTemplateColumns: GRID_COLUMNS,
-            gap: GRID_GAP,
+            gridTemplateColumns: gridCols,
+            gap: '12px',
             padding: '8px 20px',
             background: 'var(--bg-surface-2)',
             borderBottom: '1px solid var(--border-default)',
             fontSize: '11px',
             fontWeight: 600,
             color: 'var(--text-muted)',
-            textTransform: 'uppercase',
+            textTransform: 'uppercase' as const,
             letterSpacing: '0.04em',
+            alignItems: 'center',
           }}>
+            <div>预览</div>
             <div>文件名</div>
             <div>路径</div>
             <div style={{ textAlign: 'center' }}>操作</div>
@@ -220,9 +240,9 @@ export default function ScrapePage({
                     key={file.id}
                     style={{
                       display: 'grid',
-                      gridTemplateColumns: GRID_COLUMNS,
-                      gap: GRID_GAP,
-                      padding: ROW_PADDING,
+                      gridTemplateColumns: gridCols,
+                      gap: '12px',
+                      padding: '10px 20px',
                       background: isCompleted ? 'var(--success-muted)' :
                                   isFailed ? 'var(--error-muted)' :
                                   index % 2 === 0 ? 'var(--bg-surface-1)' : 'var(--bg-base)',
@@ -232,18 +252,63 @@ export default function ScrapePage({
                       transition: 'background 150ms ease',
                     }}
                   >
-                    <div style={{ fontSize: '13px', color: 'var(--text-primary)', minWidth: 0 }}>
-                      <div style={{ fontWeight: 500, display: 'flex', alignItems: 'center', gap: '6px', letterSpacing: '-0.01em' }}>
+                    <div style={{ width: `${thumbColWidth}px`, height: `${thumbHeight}px`, flexShrink: 0, display: 'flex', gap: '4px', position: 'relative' }}>
+                      <ThumbnailImg videoHash={file.videoHash} index={0} thumbnailCount={thumbnailCount} onClick={thumbnailCount > 1 ? () => openLightbox(index, 0) : undefined} />
+                      {thumbnailCount > 1 && (
+                        <div style={{
+                          position: 'absolute',
+                          bottom: '2px',
+                          right: '2px',
+                          background: 'rgba(0,0,0,0.65)',
+                          color: '#fff',
+                          fontSize: '9px',
+                          fontFamily: 'var(--font-mono)',
+                          padding: '1px 4px',
+                          borderRadius: '3px',
+                          lineHeight: '14px',
+                          pointerEvents: 'none',
+                        }}>
+                          +{thumbnailCount - 1}
+                        </div>
+                      )}
+                    </div>
+
+                    <div style={{ minWidth: 0 }}>
+                      <div style={{
+                        fontSize: '13px',
+                        fontWeight: 500,
+                        color: 'var(--text-primary)',
+                        letterSpacing: '-0.01em',
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '6px',
+                        overflow: 'hidden',
+                        textOverflow: 'ellipsis',
+                        whiteSpace: 'nowrap',
+                      }}>
                         {file.fileName}
                         {isCompleted && <span className="badge badge-success">已完成</span>}
                         {isFailed && <span className="badge badge-error">失败</span>}
                       </div>
+                      <div style={{
+                        fontSize: '11px',
+                        fontFamily: 'var(--font-mono)',
+                        color: 'var(--text-muted)',
+                        marginTop: '4px',
+                        display: 'flex',
+                        gap: '8px',
+                        flexWrap: 'wrap',
+                      }}>
+                        <span>{formatFileSize(file.fileSize || 0)}</span>
+                        <span>{formatBitrate(file.bitrate || 0)}</span>
+                        <span>{formatDuration(file.duration || 0)}</span>
+                      </div>
                     </div>
 
                     <div style={{
-                      fontSize: '11px',
+                      fontSize: '12px',
                       fontFamily: 'var(--font-mono)',
-                      color: 'var(--text-muted)',
+                      color: 'var(--text-secondary)',
                       overflow: 'hidden',
                       textOverflow: 'ellipsis',
                       whiteSpace: 'nowrap',
@@ -257,8 +322,8 @@ export default function ScrapePage({
                         disabled={isRunning}
                         title="删除"
                         style={{
-                          width: '30px',
-                          height: '30px',
+                          width: '28px',
+                          height: '28px',
                           display: 'flex',
                           alignItems: 'center',
                           justifyContent: 'center',
@@ -269,6 +334,7 @@ export default function ScrapePage({
                           color: 'var(--text-muted)',
                           padding: 0,
                           transition: 'all 150ms ease',
+                          outline: 'none',
                         }}
                         onMouseEnter={(e) => {
                           if (!isRunning) {
@@ -283,7 +349,7 @@ export default function ScrapePage({
                           }
                         }}
                       >
-                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024" width="18" height="18" fill="currentColor">
+                        <svg viewBox="0 0 1024 1024" width="14" height="14" fill="currentColor">
                           <path d="M576.416 736V383.871c0-17.814 14.521-32.256 32.434-32.256 17.912 0 32.433 14.442 32.433 32.256V736c0 17.815-14.52 32.256-32.433 32.256S576.416 753.814 576.416 736z m-193.7 0V383.871c0-17.814 14.522-32.256 32.434-32.256 17.913 0 32.434 14.442 32.434 32.256V736c0 17.815-14.521 32.256-32.434 32.256-17.912 0-32.433-14.441-32.433-32.256z m548.666-512.063H770.116v-64.064c0-52.774-42.885-95.625-95.949-95.872H350.734c-25.645-0.12-50.28 9.929-68.456 27.921-18.176 17.993-28.394 42.446-28.394 67.95v64.065H92.618C76.295 225.86 64 239.622 64 255.969c0 16.346 12.295 30.108 28.618 32.032h838.764C947.705 286.077 960 272.315 960 255.969c0-16.347-12.295-30.11-28.618-32.032zM318.3 159.873c0.482-17.539 14.794-31.574 32.434-31.808h323.433a31.17 31.17 0 0 1 22.597 9.206 30.82 30.82 0 0 1 8.936 22.602v64.064H318.3v-64.064z m418.932 800.126H286.768c-25.645 0.12-50.28-9.929-68.456-27.921-18.176-17.993-28.394-42.446-28.394-67.95V383.871a31.271 31.271 0 0 1 9.232-22.626 31.623 31.623 0 0 1 22.751-9.182 32.076 32.076 0 0 1 22.907 9.157 31.721 31.721 0 0 1 9.526 22.651v480.255c0.482 17.539 14.794 31.574 32.434 31.808h450.464c17.64-0.234 31.952-14.27 32.434-31.808v-478.91c1.933-16.234 15.771-28.462 32.208-28.462 16.436 0 30.274 12.228 32.208 28.461v478.911c0 25.505-10.218 49.958-28.394 67.95-18.176 17.993-42.811 28.041-68.456 27.922z" />
                         </svg>
                       </button>
@@ -307,6 +373,15 @@ export default function ScrapePage({
           <LogTerminal logs={logs} connected={connected} isDark={isDark} debugLogEnabled={debugLogEnabled} />
         </div>
       </div>
+      {lightbox && files[lightbox.fileIndex]?.videoHash && (
+        <ThumbnailLightbox
+          videoHash={files[lightbox.fileIndex].videoHash!}
+          thumbIndex={lightbox.thumbIndex}
+          thumbnailCount={thumbnailCount}
+          onClose={closeLightbox}
+          onNavigate={navigateLightbox}
+        />
+      )}
     </div>
   );
 }

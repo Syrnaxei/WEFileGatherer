@@ -5,7 +5,8 @@ import { IFlow } from '../core/flow';
 import { NodeFactory } from '../factory/node-factory';
 import { FlowRunner } from '../core/runner';
 import { SQLiteDb } from '../db/sqlite';
-import { findFfprobe, generateThumbnailsForVideo, getFfmpegInfo, computeVideoHash } from '../utils/thumbnail';
+import { findFfprobe, generateThumbnailsForVideo, getFfmpegInfo, computeVideoHash, getQualityDimensions } from '../utils/thumbnail';
+import { probeVideoFile, resolveFfprobeCmd } from '../utils/probe';
 import type { Server as SocketIOServer } from 'socket.io';
 
 const router = express.Router();
@@ -22,6 +23,33 @@ function emitThumbnailReady(fileId: string, urls: string[]) {
   if (_io) {
     _io.emit('thumbnail:ready', { fileId, urls });
     console.log(`[Socket] thumbnail:ready fileId=${fileId} urls=${urls.length}`);
+  }
+}
+
+async function startThumbnailGeneration(files: { filePath: string; fileName: string; duration: number }[], logPrefix: string) {
+  const db = SQLiteDb.getInstance();
+  const ffmpegInfo = await getFfmpegInfo();
+  if (!ffmpegInfo.available) {
+    console.warn(`[${logPrefix}] ffmpeg not available, skipping thumbnail generation`);
+    return;
+  }
+  const thumbnailCount = parseInt(db.getSetting('thumbnailCount') || '3', 10) || 3;
+  const thumbnailQuality = db.getSetting('thumbnailQuality') || 'medium';
+  const qualityDims = getQualityDimensions(thumbnailQuality);
+  console.log(`[${logPrefix}] Starting thumbnail generation for ${files.length} videos (count=${thumbnailCount}, quality=${thumbnailQuality}, ${qualityDims.width}x${qualityDims.height})`);
+
+  for (const file of files) {
+    generateThumbnailsForVideo(file.filePath, '', thumbnailCount, { quality: thumbnailQuality, duration: file.duration, width: qualityDims.width, height: qualityDims.height })
+      .then((result) => {
+        if (result.urls.length > 0) {
+          emitThumbnailReady(file.filePath, result.urls);
+        } else if (result.error) {
+          console.warn(`[${logPrefix}] thumbnail failed for ${file.fileName}: ${result.error}`);
+        }
+      })
+      .catch((err) => {
+        console.error(`[${logPrefix}] thumbnail error for ${file.fileName}:`, err);
+      });
   }
 }
 
@@ -48,10 +76,9 @@ router.post('/scan', async (req, res) => {
     const videoExts = ['.mp4', '.avi', '.mkv', '.mov', '.wmv', '.flv', '.webm'];
 
     const { randomUUID } = await import('crypto');
-    const { execFile } = await import('child_process');
 
     const db = SQLiteDb.getInstance();
-    const ffprobeCmd = await findFfprobe(db.getSetting('ffmpegBinPath') || undefined);
+    const ffprobeCmd = await resolveFfprobeCmd(db.getSetting('ffmpegBinPath') || undefined);
 
     const videoEntries = entries
       .filter((entry) => entry.isFile())
@@ -62,76 +89,27 @@ router.post('/scan', async (req, res) => {
 
     const files = await Promise.all(videoEntries.map(async (entry) => {
       const filePath = path.join(directory, entry.name);
-      let fileSize = 0;
-      let duration = 0;
-      let bitrate = 0;
-
-      try {
-        const stat = await fs.stat(filePath);
-        fileSize = stat.size;
-      } catch {}
-
-      if (ffprobeCmd) {
-        try {
-          const probeResult = await new Promise<string>((resolve, reject) => {
-            execFile(ffprobeCmd, [
-              '-v', 'quiet',
-              '-print_format', 'json',
-              '-show_format',
-              '-show_streams',
-              filePath,
-            ], { timeout: 10000 }, (err, stdout) => {
-              err ? reject(err) : resolve(stdout);
-            });
-          });
-          const probe = JSON.parse(probeResult);
-          if (probe.format) {
-            duration = parseFloat(probe.format.duration) || 0;
-            bitrate = parseInt(probe.format.bit_rate, 10) || 0;
-          }
-        } catch (e: any) {
-          console.error(`[Scan] ffprobe failed for ${entry.name}: ${e.message}`);
-        }
-      }
+      const probe = await probeVideoFile(filePath, ffprobeCmd);
 
       return {
         id: randomUUID(),
         fileName: entry.name,
         filePath,
         tag: '',
-        fileSize,
-        duration,
-        bitrate,
+        fileSize: probe.fileSize,
+        duration: probe.duration,
+        bitrate: probe.bitrate,
         videoHash: computeVideoHash(filePath),
       };
     }));
 
     res.json({ success: true, files });
 
-    const ffmpegInfo = await getFfmpegInfo();
     const viewMode = clientViewMode || db.getSetting('fileListViewMode') || 'thumbnail';
-    if (ffmpegInfo.available && viewMode !== 'list') {
-      const thumbnailCount = parseInt(db.getSetting('thumbnailCount') || '3', 10) || 3;
-      const thumbnailQuality = db.getSetting('thumbnailQuality') || 'medium';
-      console.log(`[Scan] Starting thumbnail generation for ${files.length} videos (count=${thumbnailCount}, quality=${thumbnailQuality})`);
-
-      for (const file of files) {
-        generateThumbnailsForVideo(file.filePath, file.id, thumbnailCount, { quality: thumbnailQuality, duration: file.duration })
-          .then((result) => {
-            if (result.urls.length > 0) {
-              emitThumbnailReady(file.id, result.urls);
-            } else if (result.error) {
-              console.warn(`[Scan] thumbnail failed for ${file.fileName}: ${result.error}`);
-            }
-          })
-          .catch((err) => {
-            console.error(`[Scan] thumbnail error for ${file.fileName}:`, err);
-          });
-      }
-    } else if (viewMode === 'list') {
-      console.log('[Scan] List view mode, skipping thumbnail generation');
+    if (viewMode !== 'list') {
+      startThumbnailGeneration(files, 'Scan');
     } else {
-      console.warn('[Scan] ffmpeg not available, skipping thumbnail generation');
+      console.log('[Scan] List view mode, skipping thumbnail generation');
     }
   } catch (err: any) {
     res.status(500).json({ error: `Failed to scan directory: ${err.message}` });
@@ -303,14 +281,28 @@ router.post('/scrape/scan', async (req, res) => {
     const videoExts = ['.mp4', '.avi', '.mkv', '.mov', '.wmv', '.flv', '.webm'];
     const { randomUUID } = await import('crypto');
 
+    const db = SQLiteDb.getInstance();
+    const ffprobeCmd = await resolveFfprobeCmd(db.getSetting('ffmpegBinPath') || undefined);
+
     const found = await scanRecursive(directory, searchDepth, 0, videoExts);
-    const files = found.map((f) => ({
-      id: randomUUID(),
-      fileName: f.fileName,
-      filePath: f.filePath,
+
+    const files = await Promise.all(found.map(async (f) => {
+      const probe = await probeVideoFile(f.filePath, ffprobeCmd);
+
+      return {
+        id: randomUUID(),
+        fileName: f.fileName,
+        filePath: f.filePath,
+        fileSize: probe.fileSize,
+        duration: probe.duration,
+        bitrate: probe.bitrate,
+        videoHash: computeVideoHash(f.filePath),
+      };
     }));
 
     res.json({ success: true, files });
+
+    startThumbnailGeneration(files, 'ScrapeScan');
   } catch (err: any) {
     res.status(500).json({ error: `Failed to scan directory: ${err.message}` });
   }

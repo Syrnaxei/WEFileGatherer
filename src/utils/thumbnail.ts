@@ -4,21 +4,28 @@ import * as fsSync from 'fs';
 import * as path from 'path';
 import * as crypto from 'crypto';
 
-const DEFAULT_WIDTH = 320;
-const DEFAULT_HEIGHT = 180;
+const DEFAULT_WIDTH = 640;
+const DEFAULT_HEIGHT = 360;
 const DEFAULT_JPEG_QUALITY = 5;
 
-const QUALITY_MAP: Record<string, number> = {
-  low: 12,
-  medium: 5,
-  high: 2,
+const QUALITY_MAP: Record<string, { qv: number; width: number; height: number }> = {
+  low: { qv: 12, width: 480, height: 270 },
+  medium: { qv: 6, width: 640, height: 360 },
+  high: { qv: 3, width: 960, height: 540 },
 };
 
 export function getJpegQuality(quality?: string): number {
   if (quality && QUALITY_MAP[quality] !== undefined) {
-    return QUALITY_MAP[quality];
+    return QUALITY_MAP[quality].qv;
   }
   return DEFAULT_JPEG_QUALITY;
+}
+
+export function getQualityDimensions(quality?: string): { width: number; height: number } {
+  if (quality && QUALITY_MAP[quality] !== undefined) {
+    return { width: QUALITY_MAP[quality].width, height: QUALITY_MAP[quality].height };
+  }
+  return { width: DEFAULT_WIDTH, height: DEFAULT_HEIGHT };
 }
 
 export function getThumbnailDir(): string {
@@ -258,6 +265,24 @@ export async function generateThumbnailsForVideo(
 
   const videoHash = computeVideoHash(videoPath);
   const thumbDir = path.join(getThumbnailDir(), videoHash);
+
+  const cachedUrls: string[] = [];
+  let allCached = true;
+  for (let i = 1; i <= count; i++) {
+    const cachedPath = path.join(thumbDir, `${i}.jpg`);
+    const exists = await fs.access(cachedPath).then(() => true).catch(() => false);
+    if (exists) {
+      cachedUrls.push(`/api/thumbnail-files/${videoHash}/${i}.jpg`);
+    } else {
+      allCached = false;
+      break;
+    }
+  }
+  if (allCached) {
+    console.log(`[thumbnail] all ${count} cached, skip generation for ${path.basename(videoPath)}`);
+    return { videoHash, urls: cachedUrls };
+  }
+
   await ensureDir(thumbDir);
 
   const binDir = getPersistedBinPath() || undefined;

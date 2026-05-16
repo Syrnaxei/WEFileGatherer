@@ -24,6 +24,10 @@ export interface ScrapeFileItem {
   fileName: string;
   filePath: string;
   status?: 'pending' | 'completed' | 'failed';
+  fileSize?: number;
+  duration?: number;
+  bitrate?: number;
+  videoHash?: string;
 }
 
 export default function App() {
@@ -463,6 +467,7 @@ export default function App() {
             connected={scrapeSocket.connected}
             debugLogEnabled={debugLogEnabled}
             scrapeShowFullPath={effectiveScrapeShowFullPath}
+            thumbnailCount={thumbnailCount}
             onLoad={handleScrapeLoad}
             onStart={handleScrapeStart}
             onStop={handleScrapeStop}
