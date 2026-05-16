@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
-import FileList, { type FileItem } from './components/FileList';
+import FileList, { type FileItem, type ViewMode } from './components/FileList';
 import LogTerminal from './components/LogTerminal';
 import StatsDashboard from './components/StatsDashboard';
 import Toast, { showToast } from './components/Toast';
@@ -46,6 +46,9 @@ export default function App() {
   const [showFullPathOptions, setShowFullPathOptions] = useState(true);
   const [workspaceShowFullPath, setWorkspaceShowFullPath] = useState(true);
   const [scrapeShowFullPath, setScrapeShowFullPath] = useState(true);
+  const [thumbnailCount, setThumbnailCount] = useState(3);
+  const [fileListViewMode, setFileListViewMode] = useState<ViewMode>('list');
+  const [ffmpegAvailable, setFfmpegAvailable] = useState(true);
 
   const effectiveWorkspaceShowFullPath = showFullPathOptions && workspaceShowFullPath;
   const effectiveScrapeShowFullPath = showFullPathOptions && scrapeShowFullPath;
@@ -120,6 +123,34 @@ export default function App() {
       .then((data) => {
         if (data.success && data.value !== null) {
           setScrapeShowFullPath(data.value !== 'false');
+        }
+      })
+      .catch(() => {});
+
+    fetch(`${API_BASE}/settings/thumbnailCount`)
+      .then((r) => r.json())
+      .then((data) => {
+        if (data.success && data.value !== null && data.value !== undefined) {
+          const v = parseInt(data.value, 10);
+          if (!isNaN(v) && v >= 1 && v <= 5) setThumbnailCount(v);
+        }
+      })
+      .catch(() => {});
+
+    fetch(`${API_BASE}/settings/fileListViewMode`)
+      .then((r) => r.json())
+      .then((data) => {
+        if (data.success && data.value) {
+          setFileListViewMode(data.value === 'list' ? 'list' : 'thumbnail');
+        }
+      })
+      .catch(() => {});
+
+    fetch(`${API_BASE}/ffmpeg/status`)
+      .then((r) => r.json())
+      .then((data) => {
+        if (data.success) {
+          setFfmpegAvailable(data.available);
         }
       })
       .catch(() => {});
@@ -203,7 +234,7 @@ export default function App() {
       const res = await fetch(`${API_BASE}/scan`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ directory: wfpPath }),
+        body: JSON.stringify({ directory: wfpPath, viewMode: fileListViewMode }),
       });
       const data = await res.json();
       if (data.success) {
@@ -380,6 +411,24 @@ export default function App() {
     }).catch(() => {});
   };
 
+  const handleThumbnailCountChange = (value: number) => {
+    setThumbnailCount(value);
+    fetch(`${API_BASE}/settings/thumbnailCount`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ value: String(value) }),
+    }).catch(() => {});
+  };
+
+  const handleFileListViewModeChange = (mode: ViewMode) => {
+    setFileListViewMode(mode);
+    fetch(`${API_BASE}/settings/fileListViewMode`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ value: mode }),
+    }).catch(() => {});
+  };
+
   const renderPage = () => {
     switch (activePage) {
       case 'tags':
@@ -392,6 +441,12 @@ export default function App() {
           onWorkspaceShowFullPathChange={handleWorkspaceShowFullPathChange}
           scrapeShowFullPath={scrapeShowFullPath}
           onScrapeShowFullPathChange={handleScrapeShowFullPathChange}
+          thumbnailCount={thumbnailCount}
+          onThumbnailCountChange={handleThumbnailCountChange}
+          fileListViewMode={fileListViewMode}
+          onFileListViewModeChange={handleFileListViewModeChange}
+          ffmpegAvailable={ffmpegAvailable}
+          onFfmpegAvailableChange={setFfmpegAvailable}
         />;
       case 'scrape':
         return (
@@ -508,29 +563,13 @@ export default function App() {
                   alignItems: 'center',
                 }}>
                   <span>待处理文件 ({files.length})</span>
-                  {files.some((f) => f.tag.trim() !== '') && (
-                    <span style={{ fontSize: '11px', fontWeight: 400, color: 'var(--text-muted)' }}>
-                      目标路径由 tag 配置决定
-                    </span>
-                  )}
-                </div>
-                <div style={{
-                  display: 'grid',
-                  gridTemplateColumns: 'minmax(120px, 3fr) minmax(140px, 2fr) minmax(120px, 3fr) minmax(60px, 1fr)',
-                  gap: '16px',
-                  padding: '8px 20px',
-                  background: 'var(--bg-surface-2)',
-                  borderBottom: '1px solid var(--border-default)',
-                  fontSize: '11px',
-                  fontWeight: 600,
-                  color: 'var(--text-muted)',
-                  textTransform: 'uppercase',
-                  letterSpacing: '0.04em',
-                }}>
-                  <div>文件名</div>
-                  <div>Tag</div>
-                  <div>目标路径</div>
-                  <div style={{ textAlign: 'center' }}>操作</div>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                    {files.some((f) => f.tag.trim() !== '') && (
+                      <span style={{ fontSize: '11px', fontWeight: 400, color: 'var(--text-muted)' }}>
+                        目标路径由 tag 配置决定
+                      </span>
+                    )}
+                  </div>
                 </div>
                 <FileList
                   files={files}
@@ -542,6 +581,9 @@ export default function App() {
                   isRunning={isRunning}
                   showFullPath={effectiveWorkspaceShowFullPath}
                   baseDir={wfpPath}
+                  thumbnailCount={thumbnailCount}
+                  viewMode={fileListViewMode}
+                  ffmpegAvailable={ffmpegAvailable}
                 />
               </div>
 

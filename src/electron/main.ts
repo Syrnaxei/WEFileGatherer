@@ -7,6 +7,8 @@ import { Server } from 'socket.io';
 import flowsRouter, { setSocketIO } from '../api/flows';
 import tagsRouter from '../api/tags';
 import settingsRouter from '../api/settings';
+import thumbnailRouter from '../api/thumbnail';
+import { getFfmpegInfo, cleanupOldThumbnails } from '../utils/thumbnail';
 import { RecoveryManager } from '../db/recovery';
 import { SQLiteDb, ContextStatus } from '../db/sqlite';
 import { APP_SHORT_NAME, APP_VERSION } from '../version';
@@ -69,6 +71,7 @@ async function startServer() {
   expressApp.use('/api', flowsRouter);
   expressApp.use('/api', tagsRouter);
   expressApp.use('/api', settingsRouter);
+  expressApp.use('/api', thumbnailRouter);
 
   io.on('connection', (socket) => {
     console.log(`[Socket] Client connected: ${socket.id}`);
@@ -82,8 +85,14 @@ async function startServer() {
   });
 
   const PORT = process.env.PORT || 3000;
-  httpServer.listen(PORT, () => {
+  httpServer.listen(PORT, async () => {
     console.log(`[Electron Main] Server running on http://localhost:${PORT}`);
+    const ffmpegInfo = await getFfmpegInfo();
+    if (ffmpegInfo.available) {
+      console.log(`[Electron Main] ffmpeg detected: ${ffmpegInfo.version || 'unknown version'} at ${ffmpegInfo.path || 'unknown path'}`);
+    } else {
+      console.warn('[Electron Main] ffmpeg not found — thumbnail generation will be unavailable');
+    }
   });
 
   expressServer = httpServer;
@@ -122,6 +131,7 @@ ipcMain.handle('recovery:check', async () => {
 
 app.whenReady().then(async () => {
   SQLiteDb.getInstance();
+  await cleanupOldThumbnails();
   await startServer();
   const recovery = new RecoveryManager();
   const report = recovery.checkAndRecover();

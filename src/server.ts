@@ -6,7 +6,9 @@ import path from 'path';
 import flowsRouter, { setSocketIO } from './api/flows';
 import tagsRouter from './api/tags';
 import settingsRouter from './api/settings';
+import thumbnailRouter from './api/thumbnail';
 import { SQLiteDb } from './db/sqlite';
+import { getFfmpegInfo, cleanupOldThumbnails } from './utils/thumbnail';
 
 const app = express();
 const httpServer = createServer(app);
@@ -24,6 +26,7 @@ setSocketIO(io);
 app.use('/api', flowsRouter);
 app.use('/api', tagsRouter);
 app.use('/api', settingsRouter);
+app.use('/api', thumbnailRouter);
 
 app.get('/{*splat}', (req, res) => {
   res.sendFile(path.join(__dirname, '../web/dist/index.html'));
@@ -46,6 +49,16 @@ const PORT = process.env.PORT || 3000;
 
 async function main() {
   SQLiteDb.getInstance();
+
+  await cleanupOldThumbnails();
+
+  const ffmpegInfo = await getFfmpegInfo();
+  if (ffmpegInfo.available) {
+    console.log(`[Server] ffmpeg detected: ${ffmpegInfo.version || 'unknown version'} at ${ffmpegInfo.path || 'unknown path'}`);
+  } else {
+    console.warn('[Server] ffmpeg not found in PATH — thumbnail generation will be unavailable');
+  }
+
   httpServer.listen(PORT, () => {
     console.log(`[Server] Running on http://localhost:${PORT}`);
   });

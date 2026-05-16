@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useTheme } from '../contexts/ThemeContext';
 import SelectDropdown from './SelectDropdown';
 import { setToastDuration } from './Toast';
+import { type ViewMode } from './FileList';
 
 const API_BASE = 'http://localhost:3000/api';
 
@@ -13,6 +14,13 @@ interface VersionInfo {
   githubUrl: string;
 }
 
+interface FfmpegInfo {
+  available: boolean;
+  version?: string;
+  path?: string;
+  error?: string;
+}
+
 interface SettingsPageProps {
   showFullPathOptions: boolean;
   onShowFullPathOptionsChange: (value: boolean) => void;
@@ -20,6 +28,12 @@ interface SettingsPageProps {
   onWorkspaceShowFullPathChange: (value: boolean) => void;
   scrapeShowFullPath: boolean;
   onScrapeShowFullPathChange: (value: boolean) => void;
+  thumbnailCount: number;
+  onThumbnailCountChange: (value: number) => void;
+  fileListViewMode: ViewMode;
+  onFileListViewModeChange: (value: ViewMode) => void;
+  ffmpegAvailable: boolean;
+  onFfmpegAvailableChange: (value: boolean) => void;
 }
 
 export default function SettingsPage({
@@ -29,6 +43,12 @@ export default function SettingsPage({
   onWorkspaceShowFullPathChange,
   scrapeShowFullPath,
   onScrapeShowFullPathChange,
+  thumbnailCount,
+  onThumbnailCountChange,
+  fileListViewMode,
+  onFileListViewModeChange,
+  //ffmpegAvailable,
+  onFfmpegAvailableChange,
 }: SettingsPageProps) {
   const { mode, setMode } = useTheme();
   const [version, setVersion] = useState<VersionInfo | null>(null);
@@ -41,6 +61,12 @@ export default function SettingsPage({
   const [processingMode, setProcessingMode] = useState('parallel');
   const [concurrency, setConcurrency] = useState(5);
   const [toastDuration, setToastDurationState] = useState(5);
+  const [ffmpegBinPath, setFfmpegBinPath] = useState('');
+  const [ffmpegDetecting, setFfmpegDetecting] = useState(false);
+  const [ffmpegDetectResult, setFfmpegDetectResult] = useState<FfmpegInfo | null>(null);
+  const [cacheSize, setCacheSize] = useState<number | null>(null);
+  const [clearingCache, setClearingCache] = useState(false);
+  const [thumbnailQuality, setThumbnailQuality] = useState('medium');
 
   useEffect(() => {
     fetch(`${API_BASE}/version`)
@@ -136,6 +162,46 @@ export default function SettingsPage({
             setToastDurationState(v);
             setToastDuration(v);
           }
+        }
+      })
+      .catch(() => {});
+
+    fetch(`${API_BASE}/settings/ffmpegBinPath`)
+      .then((r) => r.json())
+      .then((data) => {
+        if (data.success && data.value) {
+          setFfmpegBinPath(data.value);
+        }
+      })
+      .catch(() => {});
+
+    fetch(`${API_BASE}/ffmpeg/status`)
+      .then((r) => r.json())
+      .then((data) => {
+        if (data.success) {
+          setFfmpegDetectResult({
+            available: data.available,
+            version: data.version,
+            path: data.path,
+          });
+        }
+      })
+      .catch(() => {});
+
+    fetch(`${API_BASE}/ffmpeg/cache-size`)
+      .then((r) => r.json())
+      .then((data) => {
+        if (data.success) {
+          setCacheSize(data.size);
+        }
+      })
+      .catch(() => {});
+
+    fetch(`${API_BASE}/settings/thumbnailQuality`)
+      .then((r) => r.json())
+      .then((data) => {
+        if (data.success && data.value) {
+          setThumbnailQuality(data.value);
         }
       })
       .catch(() => {});
@@ -244,6 +310,81 @@ export default function SettingsPage({
     }
   };
 
+  const handleSelectFfmpegBin = async () => {
+    if (window.electronAPI) {
+      const dir = await window.electronAPI.openDirectory();
+      if (dir) setFfmpegBinPath(dir);
+    }
+  };
+
+  const handleDetectFfmpeg = async () => {
+    if (!ffmpegBinPath.trim()) return;
+    setFfmpegDetecting(true);
+    setFfmpegDetectResult(null);
+    try {
+      const res = await fetch(`${API_BASE}/ffmpeg/detect`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ binPath: ffmpegBinPath.trim() }),
+      });
+      const data = await res.json();
+      if (data.success) {
+        setFfmpegDetectResult({
+          available: data.available,
+          version: data.version,
+          path: data.path,
+        });
+        onFfmpegAvailableChange(data.available);
+      } else {
+        setFfmpegDetectResult({
+          available: false,
+          version: undefined,
+          path: undefined,
+          error: data.error || '检测失败',
+        });
+      }
+    } catch (err: any) {
+      console.error('[FFmpeg detect] fetch error:', err);
+      setFfmpegDetectResult({
+        available: false,
+        version: undefined,
+        path: undefined,
+        error: `请求失败: ${err.message || '网络错误'}`,
+      });
+    } finally {
+      setFfmpegDetecting(false);
+    }
+  };
+
+  const handleClearCache = async () => {
+    setClearingCache(true);
+    try {
+      const res = await fetch(`${API_BASE}/ffmpeg/clear-cache`, { method: 'POST' });
+      const data = await res.json();
+      if (data.success) {
+        setCacheSize(0);
+      }
+    } catch {} finally {
+      setClearingCache(false);
+    }
+  };
+
+  const saveThumbnailQuality = (value: string) => {
+    setThumbnailQuality(value);
+    fetch(`${API_BASE}/settings/thumbnailQuality`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ value }),
+    }).catch(() => {});
+  };
+
+  const formatCacheSize = (bytes: number | null): string => {
+    if (bytes === null || bytes === 0) return '0 B';
+    if (bytes < 1024) return `${bytes} B`;
+    if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
+    return `${(bytes / (1024 * 1024)).toFixed(2)} MB`;
+  };
+
   return (
     <div style={{
       flex: 1,
@@ -297,6 +438,16 @@ export default function SettingsPage({
                 ]}
                 value={mode}
                 onChange={(v) => setMode(v as 'light' | 'dark' | 'system')}
+              />
+            </SettingRow>
+            <SettingRow label="文件列表视图" description="选择文件列表的默认显示方式">
+              <SelectDropdown
+                options={[
+                  { value: 'list', label: '列表视图' },
+                  { value: 'thumbnail', label: '缩略图视图（beta）' },
+                ]}
+                value={fileListViewMode}
+                onChange={(v) => onFileListViewModeChange(v as ViewMode)}
               />
             </SettingRow>
           </SettingCard>
@@ -399,7 +550,7 @@ export default function SettingsPage({
               <SelectDropdown
                 options={[
                   { value: 'parallel', label: '并行模式' },
-                  { value: 'fifo', label: 'FIFO 模式' },
+                  { value: 'fifo', label: 'FIFO 模式（beta）' },
                 ]}
                 value={processingMode}
                 onChange={saveProcessingMode}
@@ -445,6 +596,147 @@ export default function SettingsPage({
                 </SettingRow>
               </div>
             )}
+          </SettingCard>
+
+          <SettingCard title="FFmpeg 设置">
+            <SettingRow label="缩略图质量" description="控制生成缩略图的 JPEG 质量，质量越高文件越大">
+              <SelectDropdown
+                options={[
+                  { value: 'low', label: '低质量' },
+                  { value: 'medium', label: '中质量' },
+                  { value: 'high', label: '高质量' },
+                ]}
+                value={thumbnailQuality}
+                onChange={(v) => saveThumbnailQuality(v as string)}
+              />
+            </SettingRow>
+            <SettingRow label="缩略图数量" description="每个视频文件生成的缩略图数量（1-5），数量越多预览越详细">
+              <input
+                type="number"
+                min={1}
+                max={5}
+                value={thumbnailCount}
+                onChange={(e) => {
+                  const v = parseInt(e.target.value, 10);
+                  if (!isNaN(v) && v >= 1 && v <= 5) onThumbnailCountChange(v);
+                }}
+                className="input"
+                style={{ width: '64px', textAlign: 'center', fontFamily: 'var(--font-mono)' }}
+              />
+            </SettingRow>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+              <div>
+                <label style={labelStyle}>FFmpeg 文件夹</label>
+                <div style={{ display: 'flex', gap: '8px' }}>
+                  <input
+                    type="text"
+                    value={ffmpegBinPath}
+                    onChange={(e) => {
+                      setFfmpegBinPath(e.target.value);
+                    }}
+                    placeholder="如未自动获取请填写bin文件夹路径"
+                    className="input input-mono"
+                  />
+                  {window.electronAPI && (
+                    <button onClick={handleSelectFfmpegBin} className="btn btn-outline" style={{ padding: '6px 14px', fontSize: '12px' }}>选择...</button>
+                  )}
+                  <button
+                    onClick={handleDetectFfmpeg}
+                    disabled={!ffmpegBinPath.trim() || ffmpegDetecting}
+                    className="btn btn-primary"
+                    style={{ padding: '6px 14px', fontSize: '12px' }}
+                  >
+                    {ffmpegDetecting ? '检测中...' : '检测'}
+                  </button>
+                </div>
+              </div>
+
+              {ffmpegDetectResult && ffmpegDetectResult.available && (
+                <div style={{
+                  padding: '12px',
+                  background: 'var(--bg-surface-2)',
+                  borderRadius: 'var(--radius-sm)',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  gap: '8px',
+                }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <span style={{ fontSize: '13px', color: 'var(--text-muted)' }}>状态</span>
+                    <span className="badge badge-success">已连接</span>
+                  </div>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <span style={{ fontSize: '13px', color: 'var(--text-muted)' }}>版本</span>
+                    <span style={{ fontSize: '13px', fontFamily: 'var(--font-mono)' }}>{ffmpegDetectResult.version || '未知'}</span>
+                  </div>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                    <span style={{ fontSize: '13px', color: 'var(--text-muted)', flexShrink: 0 }}>路径</span>
+                    <span style={{
+                      fontSize: '12px',
+                      fontFamily: 'var(--font-mono)',
+                      maxWidth: '300px',
+                      overflow: 'hidden',
+                      textOverflow: 'ellipsis',
+                      whiteSpace: 'nowrap',
+                      marginLeft: '12px',
+                    }}>
+                      {ffmpegDetectResult.path || '未知'}
+                    </span>
+                  </div>
+                </div>
+              )}
+
+              {ffmpegDetectResult && !ffmpegDetectResult.available && (
+                <div style={{
+                  padding: '12px',
+                  background: 'var(--error-muted)',
+                  borderRadius: 'var(--radius-sm)',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  gap: '8px',
+                }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <span style={{ fontSize: '13px', color: 'var(--text-muted)' }}>状态</span>
+                    <span className="badge badge-error">未连接</span>
+                  </div>
+                  <p style={{ margin: 0, fontSize: '12px', color: 'var(--text-secondary)' }}>
+                    {ffmpegDetectResult.error
+                      ? ffmpegDetectResult.error
+                      : '在指定路径中未找到 ffmpeg.exe，请确认路径是否正确。'}
+                  </p>
+                </div>
+              )}
+
+              {!ffmpegDetectResult && (
+                <p style={{ margin: 0, fontSize: '12px', color: 'var(--text-muted)' }}>
+                  请输入 ffmpeg.exe 所在的文件夹路径，然后点击"检测"按钮验证。
+                </p>
+              )}
+
+              <div style={{
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                paddingTop: '12px',
+                borderTop: '1px solid var(--border-subtle)',
+                marginTop: '4px',
+              }}>
+                <span style={{
+                  fontSize: '12px',
+                  fontFamily: 'var(--font-mono)',
+                  color: 'var(--text-muted)',
+                }}>
+                  缓存大小: {formatCacheSize(cacheSize)}
+                </span>
+                <button
+                  onClick={handleClearCache}
+                  disabled={clearingCache || cacheSize === 0}
+                  className="btn btn-primary"
+                  style={{ padding: '6px 14px', fontSize: '12px' }}
+                >
+                  {clearingCache ? '清除中...' : '清除缓存'}
+                </button>
+              </div>
+            </div>
           </SettingCard>
 
           <SettingCard title="关于">

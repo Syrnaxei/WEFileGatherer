@@ -1,14 +1,7 @@
 import { useState, useRef, useEffect } from 'react';
 import { type SavedTag } from '../App';
 
-/*
- * 布局间距比例系统 — 详见 doc/布局间距比例系统.md
- * 列宽比例: 文件名:Tag:目标路径:操作 = 3:2:3:1
- * 调整 GRID_GAP / GRID_COLUMNS / ROW_PADDING 即可改变布局
- */
-const GRID_GAP = '16px';
-const ROW_PADDING = '10px 12px';
-const GRID_COLUMNS = 'minmax(120px, 3fr) minmax(140px, 2fr) minmax(120px, 3fr) minmax(60px, 1fr)';
+const API_BASE = 'http://localhost:3000/api';
 
 export interface FileItem {
   id: string;
@@ -16,7 +9,15 @@ export interface FileItem {
   filePath: string;
   tag: string;
   status?: 'pending' | 'processing' | 'completed' | 'failed';
+  fileSize?: number;
+  duration?: number;
+  bitrate?: number;
+  videoHash?: string;
 }
+
+type ViewMode = 'thumbnail' | 'list';
+
+export type { ViewMode };
 
 interface FileListProps {
   files: FileItem[];
@@ -28,18 +29,154 @@ interface FileListProps {
   isRunning?: boolean;
   showFullPath?: boolean;
   baseDir?: string;
+  thumbnailCount?: number;
+  viewMode?: ViewMode;
+  ffmpegAvailable?: boolean;
 }
 
-function shortenPath(filePath: string, baseDir: string): string {
-  const normalizedPath = filePath.replace(/\\/g, '/');
-  const normalizedBase = baseDir.replace(/\\/g, '/').replace(/\/$/, '');
-  if (normalizedPath.toLowerCase().startsWith(normalizedBase.toLowerCase())) {
-    return '~' + normalizedPath.slice(normalizedBase.length);
+function formatFileSize(bytes: number): string {
+  if (!bytes || bytes <= 0) return '-';
+  if (bytes < 1024) return `${bytes} B`;
+  if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
+  if (bytes < 1024 * 1024 * 1024) return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
+  return `${(bytes / (1024 * 1024 * 1024)).toFixed(2)} GB`;
+}
+
+function formatBitrate(bps: number): string {
+  if (!bps || bps <= 0) return '-';
+  if (bps < 1000) return `${bps} bps`;
+  if (bps < 1000000) return `${(bps / 1000).toFixed(0)} Kbps`;
+  return `${(bps / 1000000).toFixed(1)} Mbps`;
+}
+
+function formatDuration(seconds: number): string {
+  if (!seconds || seconds <= 0) return '-';
+  const h = Math.floor(seconds / 3600);
+  const m = Math.floor((seconds % 3600) / 60);
+  const s = Math.floor(seconds % 60);
+  if (h > 0) return `${h}:${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
+  return `${m}:${String(s).padStart(2, '0')}`;
+}
+
+function ThumbnailImg({ videoHash, index, onClick }: { videoHash?: string; index: number; thumbnailCount: number; onClick?: () => void }) {
+  const [loaded, setLoaded] = useState(false);
+  const [error, setError] = useState(false);
+  const [retryCount, setRetryCount] = useState(0);
+
+  const src = videoHash
+    ? `${API_BASE.replace('/api', '')}/api/thumbnail-files/${videoHash}/${index + 1}.jpg`
+    : '';
+
+  useEffect(() => {
+    if (!src) return;
+    setLoaded(false);
+    setError(false);
+  }, [src]);
+
+  useEffect(() => {
+    if (!src || loaded || error) return;
+    if (retryCount >= 20) return;
+    const timer = setTimeout(() => {
+      setRetryCount((prev) => prev + 1);
+    }, 1000 + retryCount * 500);
+    return () => clearTimeout(timer);
+  }, [src, loaded, error, retryCount]);
+
+  if (!src) {
+    return (
+      <div style={{
+        width: '100%',
+        height: '100%',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        background: 'var(--bg-surface-3)',
+        borderRadius: 'var(--radius-sm)',
+      }}>
+        <div style={{
+          width: '16px',
+          height: '16px',
+          border: '2px solid var(--border-default)',
+          borderTopColor: 'var(--accent)',
+          borderRadius: '50%',
+          animation: 'spin 0.8s linear infinite',
+        }} />
+      </div>
+    );
   }
-  return filePath;
+
+  if (error) {
+    return (
+      <div style={{
+        width: '100%',
+        height: '100%',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        background: 'var(--bg-surface-3)',
+        borderRadius: 'var(--radius-sm)',
+      }}>
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--text-muted)" strokeWidth="1.5">
+          <polygon points="5 3 19 12 5 21 5 3" />
+        </svg>
+      </div>
+    );
+  }
+
+  return (
+    <div style={{
+      width: '100%',
+      height: '100%',
+      position: 'relative',
+      borderRadius: 'var(--radius-sm)',
+      overflow: 'hidden',
+      background: 'var(--bg-surface-3)',
+      cursor: onClick ? 'pointer' : 'default',
+    }} onClick={onClick}>
+      {!loaded && (
+        <div style={{
+          position: 'absolute',
+          inset: 0,
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+        }}>
+          <div style={{
+            width: '16px',
+            height: '16px',
+            border: '2px solid var(--border-default)',
+            borderTopColor: 'var(--accent)',
+            borderRadius: '50%',
+            animation: 'spin 0.8s linear infinite',
+          }} />
+        </div>
+      )}
+      <img
+        key={`${videoHash}-${index}-${retryCount}`}
+        src={src}
+        loading="eager"
+        onLoad={() => { setLoaded(true); setError(false); }}
+        onError={() => {
+          if (retryCount < 20) {
+            setError(false);
+          } else {
+            setError(true);
+          }
+        }}
+        style={{
+          width: '100%',
+          height: '100%',
+          objectFit: 'cover',
+          display: loaded ? 'block' : 'none',
+          borderRadius: 'var(--radius-sm)',
+        }}
+      />
+    </div>
+  );
 }
 
-export default function FileList({ files, onTagChange, onRemove, savedTags, getTargetPathForTag, isDark: _isDark, isRunning, showFullPath = true, baseDir = '' }: FileListProps) {
+export default function FileList({ files, onTagChange, onRemove, savedTags, getTargetPathForTag, isDark: _isDark, isRunning, showFullPath = true, baseDir = '', thumbnailCount = 1, viewMode = 'thumbnail', ffmpegAvailable = true }: FileListProps) {
+  const effectiveViewMode = ffmpegAvailable ? viewMode : 'list';
   if (files.length === 0) {
     return (
       <div style={{
@@ -63,6 +200,259 @@ export default function FileList({ files, onTagChange, onRemove, savedTags, getT
       overflowY: 'auto',
       background: 'var(--bg-base)',
     }}>
+      {effectiveViewMode === 'thumbnail' ? (
+        <ThumbnailView
+          files={files}
+          onTagChange={onTagChange}
+          onRemove={onRemove}
+          savedTags={savedTags}
+          getTargetPathForTag={getTargetPathForTag}
+          isDark={_isDark}
+          isRunning={isRunning}
+          thumbnailCount={thumbnailCount}
+        />
+      ) : (
+        <ListView
+          files={files}
+          onTagChange={onTagChange}
+          onRemove={onRemove}
+          savedTags={savedTags}
+          getTargetPathForTag={getTargetPathForTag}
+          isDark={_isDark}
+          isRunning={isRunning}
+          showFullPath={showFullPath}
+          baseDir={baseDir}
+        />
+      )}
+    </div>
+  );
+}
+
+function ThumbnailLightbox({ videoHash, thumbIndex, thumbnailCount, onClose, onNavigate }: {
+  videoHash: string;
+  thumbIndex: number;
+  thumbnailCount: number;
+  onClose: () => void;
+  onNavigate: (direction: -1 | 1) => void;
+}) {
+  const [showLeft, setShowLeft] = useState(false);
+  const [showRight, setShowRight] = useState(false);
+  const [imgLoaded, setImgLoaded] = useState(false);
+
+  useEffect(() => {
+    const handleKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') onClose();
+      if (e.key === 'ArrowLeft') onNavigate(-1);
+      if (e.key === 'ArrowRight') onNavigate(1);
+    };
+    document.addEventListener('keydown', handleKey);
+    return () => document.removeEventListener('keydown', handleKey);
+  }, [onClose, onNavigate]);
+
+  useEffect(() => {
+    setImgLoaded(false);
+  }, [videoHash, thumbIndex]);
+
+  const src = `${API_BASE.replace('/api', '')}/api/thumbnail-files/${videoHash}/${thumbIndex + 1}.jpg`;
+  const canGoLeft = thumbIndex > 0;
+  const canGoRight = thumbIndex < thumbnailCount - 1;
+  const maxW = window.innerWidth / 4;
+  const maxH = window.innerHeight / 4;
+
+  return (
+    <div
+      style={{
+        position: 'fixed',
+        inset: 0,
+        zIndex: 1000,
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        background: 'rgba(0,0,0,0.75)',
+        animation: 'fade-in 200ms ease',
+      }}
+      onClick={onClose}
+    >
+      <div
+        style={{
+          position: 'relative',
+          maxWidth: `${maxW}px`,
+          maxHeight: `${maxH}px`,
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+        }}
+        onClick={(e) => e.stopPropagation()}
+        onMouseMove={(e) => {
+          const rect = e.currentTarget.getBoundingClientRect();
+          const x = e.clientX - rect.left;
+          const threshold = rect.width * 0.2;
+          setShowLeft(canGoLeft && x < threshold);
+          setShowRight(canGoRight && x > rect.width - threshold);
+        }}
+        onMouseLeave={() => {
+          setShowLeft(false);
+          setShowRight(false);
+        }}
+      >
+        {!imgLoaded && (
+          <div style={{
+            position: 'absolute',
+            inset: 0,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+          }}>
+            <div style={{
+              width: '24px',
+              height: '24px',
+              border: '2px solid rgba(255,255,255,0.3)',
+              borderTopColor: '#fff',
+              borderRadius: '50%',
+              animation: 'spin 0.8s linear infinite',
+            }} />
+          </div>
+        )}
+        <img
+          key={`${videoHash}-${thumbIndex}`}
+          src={src}
+          onLoad={() => setImgLoaded(true)}
+          style={{
+            maxWidth: `${maxW}px`,
+            maxHeight: `${maxH}px`,
+            objectFit: 'contain',
+            opacity: imgLoaded ? 1 : 0,
+            transition: 'opacity 200ms ease',
+            borderRadius: '4px',
+          }}
+        />
+
+        <button
+          onClick={(e) => { e.stopPropagation(); onNavigate(-1); }}
+          style={{
+            position: 'absolute',
+            left: '-48px',
+            top: '50%',
+            transform: 'translateY(-50%)',
+            width: '40px',
+            height: '40px',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            background: 'none',
+            border: 'none',
+            color: '#fff',
+            fontSize: '28px',
+            cursor: canGoLeft ? 'pointer' : 'default',
+            opacity: showLeft ? 1 : 0,
+            transition: 'opacity 200ms ease',
+            outline: 'none',
+            padding: 0,
+            lineHeight: 1,
+            fontFamily: 'var(--font-mono)',
+          }}
+          disabled={!canGoLeft}
+        >
+          &lt;
+        </button>
+
+        <button
+          onClick={(e) => { e.stopPropagation(); onNavigate(1); }}
+          style={{
+            position: 'absolute',
+            right: '-48px',
+            top: '50%',
+            transform: 'translateY(-50%)',
+            width: '40px',
+            height: '40px',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            background: 'none',
+            border: 'none',
+            color: '#fff',
+            fontSize: '28px',
+            cursor: canGoRight ? 'pointer' : 'default',
+            opacity: showRight ? 1 : 0,
+            transition: 'opacity 200ms ease',
+            outline: 'none',
+            padding: 0,
+            lineHeight: 1,
+            fontFamily: 'var(--font-mono)',
+          }}
+          disabled={!canGoRight}
+        >
+          &gt;
+        </button>
+      </div>
+
+      <div style={{
+        position: 'absolute',
+        bottom: '24px',
+        left: '50%',
+        transform: 'translateX(-50%)',
+        color: 'rgba(255,255,255,0.6)',
+        fontSize: '12px',
+        fontFamily: 'var(--font-mono)',
+      }}>
+        {thumbIndex + 1} / {thumbnailCount}
+      </div>
+    </div>
+  );
+}
+
+function ThumbnailView({ files, onTagChange, onRemove, savedTags, getTargetPathForTag, isDark, isRunning, thumbnailCount }: {
+  files: FileItem[];
+  onTagChange: (index: number, tag: string) => void;
+  onRemove: (index: number) => void;
+  savedTags: SavedTag[];
+  getTargetPathForTag: (tagName: string) => string;
+  isDark: boolean;
+  isRunning?: boolean;
+  thumbnailCount: number;
+}) {
+  const [lightbox, setLightbox] = useState<{ fileIndex: number; thumbIndex: number } | null>(null);
+  const thumbColWidth = thumbnailCount <= 1 ? 80 : 72;
+  const thumbHeight = thumbnailCount <= 1 ? 45 : 40;
+  const gridCols = `${thumbColWidth}px 1fr 160px 1fr 40px`;
+
+  const openLightbox = (fileIndex: number, thumbIndex: number) => {
+    setLightbox({ fileIndex, thumbIndex });
+  };
+
+  const closeLightbox = () => {
+    setLightbox(null);
+  };
+
+  const navigateLightbox = (direction: -1 | 1) => {
+    if (!lightbox) return;
+    const newIndex = lightbox.thumbIndex + direction;
+    if (newIndex < 0 || newIndex >= thumbnailCount) return;
+    setLightbox({ ...lightbox, thumbIndex: newIndex });
+  };
+
+  return (
+    <>
+      <div style={{
+        display: 'grid',
+        gridTemplateColumns: gridCols,
+        gap: '12px',
+        padding: '8px 20px',
+        background: 'var(--bg-surface-2)',
+        borderBottom: '1px solid var(--border-default)',
+        fontSize: '11px',
+        fontWeight: 600,
+        color: 'var(--text-muted)',
+        textTransform: 'uppercase' as const,
+        letterSpacing: '0.04em',
+        alignItems: 'center',
+      }}>
+        <div>预览</div>
+        <div>文件名</div>
+        <div>Tag</div>
+        <div>目标路径</div>
+        <div style={{ textAlign: 'center' }}>操作</div>
+      </div>
       {files.map((file, index) => {
         const targetPath = file.tag.trim() ? getTargetPathForTag(file.tag.trim()) : '';
         const isCompleted = file.status === 'completed';
@@ -70,7 +460,206 @@ export default function FileList({ files, onTagChange, onRemove, savedTags, getT
 
         return (
           <div
-            key={index}
+            key={file.id}
+            style={{
+              display: 'grid',
+              gridTemplateColumns: gridCols,
+              gap: '12px',
+              padding: '10px 20px',
+              background: isCompleted ? 'var(--success-muted)' :
+                          isFailed ? 'var(--error-muted)' :
+                          index % 2 === 0 ? 'var(--bg-surface-1)' : 'var(--bg-base)',
+              borderBottom: '1px solid var(--border-subtle)',
+              alignItems: 'center',
+              opacity: isCompleted ? 0.75 : 1,
+              transition: 'background 150ms ease',
+            }}
+          >
+            <div style={{ width: `${thumbColWidth}px`, height: `${thumbHeight}px`, flexShrink: 0, display: 'flex', gap: '4px', position: 'relative' }}>
+              <ThumbnailImg
+                videoHash={file.videoHash}
+                index={0}
+                thumbnailCount={thumbnailCount}
+                onClick={thumbnailCount > 1 ? () => openLightbox(index, 0) : undefined}
+              />
+              {thumbnailCount > 1 && (
+                <div style={{
+                  position: 'absolute',
+                  bottom: '2px',
+                  right: '2px',
+                  background: 'rgba(0,0,0,0.65)',
+                  color: '#fff',
+                  fontSize: '9px',
+                  fontFamily: 'var(--font-mono)',
+                  padding: '1px 4px',
+                  borderRadius: '3px',
+                  lineHeight: '14px',
+                  pointerEvents: 'none',
+                }}>
+                  +{thumbnailCount - 1}
+                </div>
+              )}
+            </div>
+
+            <div style={{ minWidth: 0 }}>
+              <div style={{
+                fontSize: '13px',
+                fontWeight: 500,
+                color: 'var(--text-primary)',
+                letterSpacing: '-0.01em',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '6px',
+                overflow: 'hidden',
+                textOverflow: 'ellipsis',
+                whiteSpace: 'nowrap',
+              }}>
+                {file.fileName}
+                {isCompleted && <span className="badge badge-success">已完成</span>}
+                {isFailed && <span className="badge badge-error">失败</span>}
+              </div>
+              <div style={{
+                fontSize: '11px',
+                fontFamily: 'var(--font-mono)',
+                color: 'var(--text-muted)',
+                marginTop: '4px',
+                display: 'flex',
+                gap: '8px',
+                flexWrap: 'wrap',
+              }}>
+                <span>{formatFileSize(file.fileSize || 0)}</span>
+                <span>{formatBitrate(file.bitrate || 0)}</span>
+                <span>{formatDuration(file.duration || 0)}</span>
+              </div>
+            </div>
+
+            <div>
+              <TagInput
+                value={file.tag}
+                onChange={(tag) => onTagChange(index, tag)}
+                savedTags={savedTags}
+                isDark={isDark}
+                disabled={isCompleted || isFailed}
+              />
+            </div>
+
+            <div style={{
+              fontSize: '12px',
+              fontFamily: 'var(--font-mono)',
+              color: targetPath ? 'var(--accent)' : 'var(--text-muted)',
+              overflow: 'hidden',
+              textOverflow: 'ellipsis',
+              whiteSpace: 'nowrap',
+            }}>
+              {targetPath || (file.tag.trim() ? '未配置路径' : '-')}
+            </div>
+
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              <button
+                onClick={() => onRemove(index)}
+                disabled={isRunning}
+                title="删除"
+                style={{
+                  width: '28px',
+                  height: '28px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  borderRadius: 'var(--radius-sm)',
+                  border: 'none',
+                  background: 'transparent',
+                  cursor: isRunning ? 'not-allowed' : 'pointer',
+                  color: 'var(--text-muted)',
+                  padding: 0,
+                  transition: 'all 150ms ease',
+                  outline: 'none',
+                }}
+                onMouseEnter={(e) => {
+                  if (!isRunning) {
+                    e.currentTarget.style.background = 'var(--error-muted)';
+                    e.currentTarget.style.color = 'var(--error)';
+                  }
+                }}
+                onMouseLeave={(e) => {
+                  if (!isRunning) {
+                    e.currentTarget.style.background = 'transparent';
+                    e.currentTarget.style.color = 'var(--text-muted)';
+                  }
+                }}
+              >
+                <svg viewBox="0 0 1024 1024" width="14" height="14" fill="currentColor">
+                  <path d="M576.416 736V383.871c0-17.814 14.521-32.256 32.434-32.256 17.912 0 32.433 14.442 32.433 32.256V736c0 17.815-14.52 32.256-32.433 32.256S576.416 753.814 576.416 736z m-193.7 0V383.871c0-17.814 14.522-32.256 32.434-32.256 17.913 0 32.434 14.442 32.434 32.256V736c0 17.815-14.521 32.256-32.434 32.256-17.912 0-32.433-14.441-32.433-32.256z m548.666-512.063H770.116v-64.064c0-52.774-42.885-95.625-95.949-95.872H350.734c-25.645-0.12-50.28 9.929-68.456 27.921-18.176 17.993-28.394 42.446-28.394 67.95v64.065H92.618C76.295 225.86 64 239.622 64 255.969c0 16.346 12.295 30.108 28.618 32.032h838.764C947.705 286.077 960 272.315 960 255.969c0-16.347-12.295-30.11-28.618-32.032zM318.3 159.873c0.482-17.539 14.794-31.574 32.434-31.808h323.433a31.17 31.17 0 0 1 22.597 9.206 30.82 30.82 0 0 1 8.936 22.602v64.064H318.3v-64.064z m418.932 800.126H286.768c-25.645 0.12-50.28-9.929-68.456-27.921-18.176-17.993-28.394-42.446-28.394-67.95V383.871a31.271 31.271 0 0 1 9.232-22.626 31.623 31.623 0 0 1 22.751-9.182 32.076 32.076 0 0 1 22.907 9.157 31.721 31.721 0 0 1 9.526 22.651v480.255c0.482 17.539 14.794 31.574 32.434 31.808h450.464c17.64-0.234 31.952-14.27 32.434-31.808v-478.91c1.933-16.234 15.771-28.462 32.208-28.462 16.436 0 30.274 12.228 32.208 28.461v478.911c0 25.505-10.218 49.958-28.394 67.95-18.176 17.993-42.811 28.041-68.456 27.922z" />
+                </svg>
+              </button>
+            </div>
+          </div>
+        );
+      })}
+      {lightbox && files[lightbox.fileIndex]?.videoHash && (
+        <ThumbnailLightbox
+          videoHash={files[lightbox.fileIndex].videoHash!}
+          thumbIndex={lightbox.thumbIndex}
+          thumbnailCount={thumbnailCount}
+          onClose={closeLightbox}
+          onNavigate={navigateLightbox}
+        />
+      )}
+    </>
+  );
+}
+
+function ListView({ files, onTagChange, onRemove, savedTags, getTargetPathForTag, isDark, isRunning, showFullPath, baseDir }: {
+  files: FileItem[];
+  onTagChange: (index: number, tag: string) => void;
+  onRemove: (index: number) => void;
+  savedTags: SavedTag[];
+  getTargetPathForTag: (tagName: string) => string;
+  isDark: boolean;
+  isRunning?: boolean;
+  showFullPath?: boolean;
+  baseDir?: string;
+}) {
+  const GRID_GAP = '16px';
+  const ROW_PADDING = '10px 12px';
+  const GRID_COLUMNS = 'minmax(120px, 3fr) minmax(140px, 2fr) minmax(120px, 3fr) minmax(60px, 1fr)';
+
+  function shortenPath(filePath: string, base: string): string {
+    const normalizedPath = filePath.replace(/\\/g, '/');
+    const normalizedBase = base.replace(/\\/g, '/').replace(/\/$/, '');
+    if (normalizedPath.toLowerCase().startsWith(normalizedBase.toLowerCase())) {
+      return '~' + normalizedPath.slice(normalizedBase.length);
+    }
+    return filePath;
+  }
+
+  return (
+    <>
+      <div style={{
+        display: 'grid',
+        gridTemplateColumns: GRID_COLUMNS,
+        gap: GRID_GAP,
+        padding: '8px 20px',
+        background: 'var(--bg-surface-2)',
+        borderBottom: '1px solid var(--border-default)',
+        fontSize: '11px',
+        fontWeight: 600,
+        color: 'var(--text-muted)',
+        textTransform: 'uppercase',
+        letterSpacing: '0.04em',
+      }}>
+        <div>文件名</div>
+        <div>Tag</div>
+        <div>目标路径</div>
+        <div style={{ textAlign: 'center' }}>操作</div>
+      </div>
+      {files.map((file, index) => {
+        const targetPath = file.tag.trim() ? getTargetPathForTag(file.tag.trim()) : '';
+        const isCompleted = file.status === 'completed';
+        const isFailed = file.status === 'failed';
+
+        return (
+          <div
+            key={file.id}
             style={{
               display: 'grid',
               gridTemplateColumns: GRID_COLUMNS,
@@ -100,7 +689,7 @@ export default function FileList({ files, onTagChange, onRemove, savedTags, getT
                 textOverflow: 'ellipsis',
                 whiteSpace: 'nowrap',
               }}>
-                {showFullPath ? file.filePath : shortenPath(file.filePath, baseDir)}
+                {showFullPath ? file.filePath : shortenPath(file.filePath, baseDir || '')}
               </div>
             </div>
 
@@ -109,7 +698,7 @@ export default function FileList({ files, onTagChange, onRemove, savedTags, getT
                 value={file.tag}
                 onChange={(tag) => onTagChange(index, tag)}
                 savedTags={savedTags}
-                isDark={_isDark}
+                isDark={isDark}
                 disabled={isCompleted || isFailed}
               />
             </div>
@@ -143,6 +732,7 @@ export default function FileList({ files, onTagChange, onRemove, savedTags, getT
                   color: 'var(--text-muted)',
                   padding: 0,
                   transition: 'all 150ms ease',
+                  outline: 'none',
                 }}
                 onMouseEnter={(e) => {
                   if (!isRunning) {
@@ -157,7 +747,7 @@ export default function FileList({ files, onTagChange, onRemove, savedTags, getT
                   }
                 }}
               >
-                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024" width="18" height="18" fill="currentColor">
+                <svg viewBox="0 0 1024 1024" width="18" height="18" fill="currentColor">
                   <path d="M576.416 736V383.871c0-17.814 14.521-32.256 32.434-32.256 17.912 0 32.433 14.442 32.433 32.256V736c0 17.815-14.52 32.256-32.433 32.256S576.416 753.814 576.416 736z m-193.7 0V383.871c0-17.814 14.522-32.256 32.434-32.256 17.913 0 32.434 14.442 32.434 32.256V736c0 17.815-14.521 32.256-32.434 32.256-17.912 0-32.433-14.441-32.433-32.256z m548.666-512.063H770.116v-64.064c0-52.774-42.885-95.625-95.949-95.872H350.734c-25.645-0.12-50.28 9.929-68.456 27.921-18.176 17.993-28.394 42.446-28.394 67.95v64.065H92.618C76.295 225.86 64 239.622 64 255.969c0 16.346 12.295 30.108 28.618 32.032h838.764C947.705 286.077 960 272.315 960 255.969c0-16.347-12.295-30.11-28.618-32.032zM318.3 159.873c0.482-17.539 14.794-31.574 32.434-31.808h323.433a31.17 31.17 0 0 1 22.597 9.206 30.82 30.82 0 0 1 8.936 22.602v64.064H318.3v-64.064z m418.932 800.126H286.768c-25.645 0.12-50.28-9.929-68.456-27.921-18.176-17.993-28.394-42.446-28.394-67.95V383.871a31.271 31.271 0 0 1 9.232-22.626 31.623 31.623 0 0 1 22.751-9.182 32.076 32.076 0 0 1 22.907 9.157 31.721 31.721 0 0 1 9.526 22.651v480.255c0.482 17.539 14.794 31.574 32.434 31.808h450.464c17.64-0.234 31.952-14.27 32.434-31.808v-478.91c1.933-16.234 15.771-28.462 32.208-28.462 16.436 0 30.274 12.228 32.208 28.461v478.911c0 25.505-10.218 49.958-28.394 67.95-18.176 17.993-42.811 28.041-68.456 27.922z" />
                 </svg>
               </button>
@@ -165,7 +755,7 @@ export default function FileList({ files, onTagChange, onRemove, savedTags, getT
           </div>
         );
       })}
-    </div>
+    </>
   );
 }
 
