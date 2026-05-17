@@ -299,9 +299,9 @@ export default function ScrapePage({
                         gap: '8px',
                         flexWrap: 'wrap',
                       }}>
-                        <span>{formatFileSize(file.fileSize || 0)}</span>
-                        <span>{formatBitrate(file.bitrate || 0)}</span>
-                        <span>{formatDuration(file.duration || 0)}</span>
+                        <span>{formatFileSize(file.fileSize, file.probePending)}</span>
+                        <span>{formatBitrate(file.bitrate, file.probePending)}</span>
+                        <span>{formatDuration(file.duration, file.probePending)}</span>
                       </div>
                     </div>
 

@@ -2,7 +2,7 @@
 
 ## Frontend design system (Precision Terminal)
 
-The web frontend uses a CSS-variable-driven design system. **All colors, spacing, radii, and shadows must be referenced via `var(--xxx)` — never hardcoded.** The full spec is at `doc/前端设计系统规范.md`.
+The web frontend uses a CSS-variable-driven design system. **All colors, spacing, radii, and shadows must be referenced via `var(--xxx)` — never hardcoded.** The full spec is at `docs/前端设计系统规范.md`.
 
 Key rules for any UI change:
 
@@ -82,6 +82,57 @@ A second batch-processing page (`ScrapePage`) for recursive directory scraping a
 - `POST /api/scrape/stop` — stops the running scrape flow
 - Sets `ctx.metadata.exportDir` on each file context; no `TaggerNode` involved
 - The flow ID is hardcoded as `'scrape-flow'`
+
+## Thumbnail generation (ffmpeg-based)
+
+`src/utils/thumbnail.ts` provides video thumbnail generation via ffmpeg:
+
+- `computeVideoHash(filePath)` — SHA256 of file path truncated to 16 hex chars, used as cache directory name in `SVFPcache/`
+- `generateThumbnailsForVideo(videoPath, fileId, count, options)` — extracts N frames at evenly-spaced timestamps, caches as JPEG. Cached thumbnails are reused on subsequent calls.
+- `getFfmpegInfo()` / `detectFfmpegInDir()` / `clearFfmpegCache()` — ffmpeg binary detection with persistence
+- `cleanupOldThumbnails()` is called on server startup — deletes all cached thumbnail directories
+
+Thumbnail quality (low/medium/high) maps to JPEG quality values (12/6/3) and resolutions (480x270 / 640x360 / 960x540).
+
+`src/api/thumbnail.ts` serves cached images at `GET /api/thumbnail-files/:videoHash/:filename` and provides ffmpeg status, detection, cache size, and cache clearing endpoints. `src/utils/probe.ts` uses ffprobe for duration/bitrate/fileSize.
+
+## Processing modes
+
+FlowRunner supports two modes, persisted via `tbl_settings` key `processingMode`:
+
+- **parallel** (default) — uses `PromiseQueue` with configurable concurrency (1-5, default 5)
+- **fifo** — processes files one at a time sequentially (concurrency forced to 1)
+
+`resolveConcurrency()` in `src/api/flows.ts:56` reads these settings and enforces the 1-5 bound.
+
+## Extended settings keys
+
+Beyond the basics in README (sourceDir, theme, scrapeSourceDir, etc.), these settings control additional behavior:
+
+| Key | Default | Description |
+|-----|---------|-------------|
+| `debugLog` | `false` | Show full processing logs vs. start/complete only |
+| `processingMode` | `parallel` | `parallel` or `fifo` |
+| `concurrency` | `5` | Max parallel files (1-5) |
+| `toastDuration` | `5` | Toast notification duration in seconds (0-30) |
+| `ffmpegBinPath` | — | User-configured ffmpeg directory path |
+| `ffmpegAvailable` | — | Persisted ffmpeg detection result |
+| `ffmpegVersion` | — | Persisted ffmpeg version string |
+| `ffmpegPath` | — | Persisted ffmpeg resolved path |
+| `thumbnailQuality` | `medium` | `low` / `medium` / `high` |
+| `thumbnailCount` | `3` | Number of thumbnails per video |
+| `showFullPathOptions` | — | Master toggle for full path display |
+| `workspaceShowFullPath` | — | Per-page full path toggle |
+| `scrapeShowFullPath` | — | Per-page full path toggle |
+| `fileListViewMode` | `list` | `list` or `thumbnail` |
+
+## Legacy lowdb
+
+`src/db.ts` uses `lowdb` (JSON file at `data/db.json`) for flow persistence. This predates the SQLite layer and is largely superseded by `src/db/sqlite.ts`. New code should use SQLite.
+
+## Version management
+
+Single source of truth: `src/version.ts` exports `APP_NAME`, `APP_SHORT_NAME`, `APP_VERSION`, `BUILD_DATE`, `GITHUB_URL`.
 
 ## Path template syntax
 

@@ -8,6 +8,7 @@ import TagManagement from './components/TagManagement';
 import SettingsPage from './components/SettingsPage';
 import ScrapePage from './components/ScrapePage';
 import { useSocket } from './hooks/useSocket';
+import { useProbePolling } from './hooks/useProbePolling';
 import { useTheme } from './contexts/ThemeContext';
 
 const API_BASE = 'http://localhost:3000/api';
@@ -28,6 +29,7 @@ export interface ScrapeFileItem {
   duration?: number;
   bitrate?: number;
   videoHash?: string;
+  probePending?: boolean;
 }
 
 export default function App() {
@@ -56,6 +58,9 @@ export default function App() {
 
   const effectiveWorkspaceShowFullPath = showFullPathOptions && workspaceShowFullPath;
   const effectiveScrapeShowFullPath = showFullPathOptions && scrapeShowFullPath;
+
+  useProbePolling(files, setFiles);
+  useProbePolling(scrapeFiles, setScrapeFiles);
 
   const { logs, connected, completedCount, completedIds, failedIds, subscribe, clearLogs } = useSocket(flowId);
   const scrapeSocket = useSocket('scrape-flow');
@@ -242,7 +247,14 @@ export default function App() {
       });
       const data = await res.json();
       if (data.success) {
-        setFiles(data.files);
+        const mapped = data.files.map((f: any) => ({
+          ...f,
+          fileSize: f.fileSize || undefined,
+          duration: f.duration || undefined,
+          bitrate: f.bitrate || undefined,
+          probePending: true,
+        }));
+        setFiles(mapped);
         if(data.files.length !== 0) {
           showToast(`已加载 ${data.files.length} 个视频文件`, 'success');
         } else {
@@ -330,7 +342,15 @@ export default function App() {
       });
       const data = await res.json();
       if (data.success) {
-        setScrapeFiles(data.files.map((f: any) => ({ ...f, status: 'pending' as const })));
+        const mapped = data.files.map((f: any) => ({
+          ...f,
+          status: 'pending' as const,
+          fileSize: f.fileSize || undefined,
+          duration: f.duration || undefined,
+          bitrate: f.bitrate || undefined,
+          probePending: true,
+        }));
+        setScrapeFiles(mapped);
         if(data.files.length !== 0) {
           showToast(`已加载 ${data.files.length} 个视频文件`, 'success');
         } else {
