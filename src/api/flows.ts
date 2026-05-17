@@ -99,7 +99,7 @@ function resolveConcurrency(): number {
 }
 
 router.post('/scan', async (req, res) => {
-  const { directory, viewMode: clientViewMode } = req.body;
+  const { directory, viewMode: clientViewMode, existingHashes } = req.body;
   if (!directory) {
     return res.status(400).json({ error: 'Directory path is required' });
   }
@@ -117,7 +117,11 @@ router.post('/scan', async (req, res) => {
         return videoExts.includes(ext);
       });
 
-    const files = videoEntries.map((entry) => {
+    const existingHashSet = new Set<string>(
+      Array.isArray(existingHashes) ? existingHashes.filter((h: any) => typeof h === 'string') : []
+    );
+
+    const allFiles = videoEntries.map((entry) => {
       const filePath = path.join(directory, entry.name);
       return {
         id: randomUUID(),
@@ -131,10 +135,19 @@ router.post('/scan', async (req, res) => {
       };
     });
 
-    res.json({ success: true, files });
+    const files = existingHashSet.size > 0
+      ? allFiles.filter((f) => !existingHashSet.has(f.videoHash))
+      : allFiles;
+
+    const skippedCount = allFiles.length - files.length;
+    if (skippedCount > 0) {
+      console.log(`[Scan] Skipped ${skippedCount} duplicate file(s) based on videoHash`);
+    }
+
+    res.json({ success: true, files, skippedCount });
 
     if (files.length === 0) {
-      console.log('[Scan] No video files found, skipping probe and thumbnail generation');
+      console.log('[Scan] No new video files found, skipping probe and thumbnail generation');
       return;
     }
 
@@ -325,7 +338,7 @@ async function scanRecursive(
 }
 
 router.post('/scrape/scan', async (req, res) => {
-  const { directory, depth } = req.body;
+  const { directory, depth, existingHashes } = req.body;
   if (!directory) {
     return res.status(400).json({ error: 'Directory path is required' });
   }
@@ -338,7 +351,11 @@ router.post('/scrape/scan', async (req, res) => {
 
     const found = await scanRecursive(directory, searchDepth, 0, videoExts);
 
-    const files = found.map((f) => {
+    const existingHashSet = new Set<string>(
+      Array.isArray(existingHashes) ? existingHashes.filter((h: any) => typeof h === 'string') : []
+    );
+
+    const allFiles = found.map((f) => {
       return {
         id: randomUUID(),
         fileName: f.fileName,
@@ -350,10 +367,19 @@ router.post('/scrape/scan', async (req, res) => {
       };
     });
 
-    res.json({ success: true, files });
+    const files = existingHashSet.size > 0
+      ? allFiles.filter((f) => !existingHashSet.has(f.videoHash))
+      : allFiles;
+
+    const skippedCount = allFiles.length - files.length;
+    if (skippedCount > 0) {
+      console.log(`[ScrapeScan] Skipped ${skippedCount} duplicate file(s) based on videoHash`);
+    }
+
+    res.json({ success: true, files, skippedCount });
 
     if (files.length === 0) {
-      console.log('[ScrapeScan] No video files found, skipping probe and thumbnail generation');
+      console.log('[ScrapeScan] No new video files found, skipping probe and thumbnail generation');
       return;
     }
 

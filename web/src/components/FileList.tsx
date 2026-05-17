@@ -40,22 +40,6 @@ export { formatFileSize, formatBitrate, formatDuration };
 
 export default function FileList({ files, onTagChange, onRemove, savedTags, getTargetPathForTag, isDark: _isDark, isRunning, showFullPath = true, baseDir = '', thumbnailCount = 1, viewMode = 'thumbnail', ffmpegAvailable = true }: FileListProps) {
   const effectiveViewMode = ffmpegAvailable ? viewMode : 'list';
-  if (files.length === 0) {
-    return (
-      <div style={{
-        flex: 1,
-        padding: '60px 20px',
-        textAlign: 'center',
-        color: 'var(--text-muted)',
-        fontSize: '13px',
-        background: 'var(--bg-base)',
-        fontFamily: 'var(--font-ui)',
-      }}>
-        <div style={{ fontSize: '32px', marginBottom: '12px', opacity: 0.3 }}>+</div>
-        暂无文件，请点击"加载"按钮扫描目录
-      </div>
-    );
-  }
 
   return (
     <div style={{
@@ -143,7 +127,19 @@ function ThumbnailView({ files, onTagChange, onRemove, savedTags, getTargetPathF
         <div>目标路径</div>
         <div style={{ textAlign: 'center' }}>操作</div>
       </div>
-      {files.map((file, index) => {
+      {files.length === 0 && (
+        <div style={{
+          padding: '60px 20px',
+          textAlign: 'center',
+          color: 'var(--text-muted)',
+          fontSize: '13px',
+          fontFamily: 'var(--font-ui)',
+        }}>
+          <div style={{ fontSize: '32px', marginBottom: '12px', opacity: 0.3 }}>+</div>
+          暂无文件，请点击"加载"按钮扫描目录
+        </div>
+      )}
+      {files.length > 0 && files.map((file, index) => {
         const targetPath = file.tag.trim() ? getTargetPathForTag(file.tag.trim()) : '';
         const isCompleted = file.status === 'completed';
         const isFailed = file.status === 'failed';
@@ -342,7 +338,19 @@ function ListView({ files, onTagChange, onRemove, savedTags, getTargetPathForTag
         <div>目标路径</div>
         <div style={{ textAlign: 'center' }}>操作</div>
       </div>
-      {files.map((file, index) => {
+      {files.length === 0 && (
+        <div style={{
+          padding: '60px 20px',
+          textAlign: 'center',
+          color: 'var(--text-muted)',
+          fontSize: '13px',
+          fontFamily: 'var(--font-ui)',
+        }}>
+          <div style={{ fontSize: '32px', marginBottom: '12px', opacity: 0.3 }}>+</div>
+          暂无文件，请点击"加载"按钮扫描目录
+        </div>
+      )}
+      {files.length > 0 && files.map((file, index) => {
         const targetPath = file.tag.trim() ? getTargetPathForTag(file.tag.trim()) : '';
         const isCompleted = file.status === 'completed';
         const isFailed = file.status === 'failed';

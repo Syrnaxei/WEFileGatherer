@@ -240,10 +240,14 @@ export default function App() {
 
   const handleLoad = async () => {
     try {
+      const existingHashes = files.length > 0
+        ? files.map((f) => f.videoHash).filter((h): h is string => !!h)
+        : [];
+
       const res = await fetch(`${API_BASE}/scan`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ directory: wfpPath, viewMode: fileListViewMode }),
+        body: JSON.stringify({ directory: wfpPath, viewMode: fileListViewMode, existingHashes }),
       });
       const data = await res.json();
       if (data.success) {
@@ -254,11 +258,24 @@ export default function App() {
           bitrate: f.bitrate || undefined,
           probePending: true,
         }));
-        setFiles(mapped);
-        if(data.files.length !== 0) {
-          showToast(`已加载 ${data.files.length} 个视频文件`, 'success');
+
+        if (existingHashes.length > 0) {
+          setFiles((prev) => [...prev, ...mapped]);
+          const skipped = data.skippedCount || 0;
+          if (mapped.length > 0) {
+            showToast(`已加载 ${mapped.length} 个新文件`, 'success');
+          } else if (skipped > 0) {
+            showToast('无匹配新文件', 'info');
+          } else {
+            showToast('无匹配文件','info');
+          }
         } else {
-          showToast('未找到匹配文件');
+          setFiles(mapped);
+          if (data.files.length !== 0) {
+            showToast(`已加载 ${data.files.length} 个视频文件`, 'success');
+          } else {
+            showToast('无匹配文件');
+          }
         }
       } else {
         showToast(data.error || '加载失败', 'error');
@@ -335,10 +352,14 @@ export default function App() {
       return;
     }
     try {
+      const existingHashes = scrapeFiles.length > 0
+        ? scrapeFiles.map((f) => f.videoHash).filter((h): h is string => !!h)
+        : [];
+
       const res = await fetch(`${API_BASE}/scrape/scan`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ directory: scrapeSourceDir, depth: scrapeDepth }),
+        body: JSON.stringify({ directory: scrapeSourceDir, depth: scrapeDepth, existingHashes }),
       });
       const data = await res.json();
       if (data.success) {
@@ -350,11 +371,24 @@ export default function App() {
           bitrate: f.bitrate || undefined,
           probePending: true,
         }));
-        setScrapeFiles(mapped);
-        if(data.files.length !== 0) {
-          showToast(`已加载 ${data.files.length} 个视频文件`, 'success');
+
+        if (existingHashes.length > 0) {
+          setScrapeFiles((prev) => [...prev, ...mapped]);
+          const skipped = data.skippedCount || 0;
+          if (mapped.length > 0) {
+            showToast(`已加载 ${mapped.length} 个新文件`, 'success');
+          } else if (skipped > 0) {
+            showToast('无匹配新文件', 'info');
+          } else {
+            showToast('无匹配文件','info');
+          }
         } else {
-          showToast('未找到匹配文件');
+          setScrapeFiles(mapped);
+          if (data.files.length !== 0) {
+            showToast(`已加载 ${data.files.length} 个视频文件`, 'success');
+          } else {
+            showToast('未找到匹配文件');
+          }
         }
       } else {
         showToast(data.error || '加载失败', 'error');

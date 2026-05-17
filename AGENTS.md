@@ -38,6 +38,14 @@ Key rules for any UI change:
 
 ---
 
+## Coding Standards: Chinese Comments
+
+- All code must include Chinese comments. The comments should clearly describe the functionality, implementation logic, or key algorithm explanations of the code block.
+- Comments should be placed before or next to key code blocks (such as functions, classes, complex logic, and algorithms) to ensure other developers can quickly understand the intent of the code.
+- The language for comments must be uniformly in Chinese to maintain consistency across team collaboration.
+
+---
+
 ## Three entrypoints
 
 - `src/main.ts` — CLI mode (uses `.env`, watches a directory, deprecated in favor of the batch workflow but still compiles)
@@ -209,6 +217,8 @@ PENDING → RUNNING → MOVED → COMPLETED
 There is no test framework, no test files, and no CI configuration in this repo.
 
 ## Quick verification
+
+You must run the first three commands for verification if any frontend/backend code is changed.
 
 ```bash
 # 1. Type-check everything
