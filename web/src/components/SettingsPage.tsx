@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useTheme } from '../contexts/ThemeContext';
 import SelectDropdown from './SelectDropdown';
+import InputNumber from './InputNumber';
 import { setToastDuration } from './Toast';
 import { type ViewMode } from './FileList';
 
@@ -454,17 +455,12 @@ export default function SettingsPage({
 
           <SettingCard title='通用设置'>
             <SettingRow label='通知持续时间' description='设置右下角通知持续显示时间（0-30s）'>
-              <input
-                type="number"
+              <InputNumber
+                value={toastDuration}
+                onChange={saveToastDuration}
                 min={0}
                 max={30}
-                value={toastDuration}
-                onChange={(e) => {
-                  const v = parseInt(e.target.value, 10);
-                  if (!isNaN(v) && v >= 0 && v <= 30) saveToastDuration(v);
-                }}
-                className="input"
-                style={{ width: '64px', textAlign: 'center', fontFamily: 'var(--font-mono)' }}
+                unit="秒"
               />
             </SettingRow>
             <SettingRow label="Tag 名称自动填充" description="选择目标路径后自动使用文件夹名称填充 Tag 名称">
@@ -523,17 +519,11 @@ export default function SettingsPage({
                 </div>
               </div>
               <SettingRow label="搜刮深度" description="递归搜索子文件夹的层级深度（0-4）">
-                <input
-                  type="number"
+                <InputNumber
+                  value={scrapeDepth}
+                  onChange={saveScrapeDepth}
                   min={0}
                   max={4}
-                  value={scrapeDepth}
-                  onChange={(e) => {
-                    const v = parseInt(e.target.value, 10);
-                    if (!isNaN(v) && v >= 0 && v <= 4) saveScrapeDepth(v);
-                  }}
-                  className="input"
-                  style={{ width: '64px', textAlign: 'center', fontFamily: 'var(--font-mono)' }}
                 />
               </SettingRow>
             </div>
@@ -561,17 +551,11 @@ export default function SettingsPage({
                 animation: 'fade-in 200ms ease',
               }}>
                 <SettingRow label="并发数 (Concurrency)" description="同时处理的文件数量上限（1-5）">
-                  <input
-                    type="number"
+                  <InputNumber
+                    value={concurrency}
+                    onChange={saveConcurrency}
                     min={1}
                     max={5}
-                    value={concurrency}
-                    onChange={(e) => {
-                      const v = parseInt(e.target.value, 10);
-                      if (!isNaN(v) && v >= 1 && v <= 5) saveConcurrency(v);
-                    }}
-                    className="input"
-                    style={{ width: '64px', textAlign: 'center', fontFamily: 'var(--font-mono)' }}
                   />
                 </SettingRow>
               </div>
@@ -608,17 +592,12 @@ export default function SettingsPage({
               />
             </SettingRow>
             <SettingRow label="缩略图数量" description="每个视频文件生成的缩略图数量（1-5），数量越多预览越详细">
-              <input
-                type="number"
+              <InputNumber
+                value={thumbnailCount}
+                onChange={onThumbnailCountChange}
                 min={1}
                 max={5}
-                value={thumbnailCount}
-                onChange={(e) => {
-                  const v = parseInt(e.target.value, 10);
-                  if (!isNaN(v) && v >= 1 && v <= 5) onThumbnailCountChange(v);
-                }}
-                className="input"
-                style={{ width: '64px', textAlign: 'center', fontFamily: 'var(--font-mono)' }}
+                unit="张"
               />
             </SettingRow>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
