@@ -13,7 +13,7 @@ Key rules for any UI change:
 - **Dark/light**: themes switch via `data-theme` attribute on `<html>`. Components should NOT pass `isDark` for color decisions; CSS variables handle it automatically. Use `isDark` only for behavioral differences.
 - **Spacing**: 4px grid. Page horizontal padding = 20px, card gaps = 16px, button gaps = 8px.
 - **Header height**: 52px.
-- **Sidebar width**: 60px.
+- **Sidebar width**: 180px (expanded) / 60px (collapsed). Toggle via hamburger icon at top.
 - **Log panel width**: 420px.
 - **Animations**: `transition: 150ms ease` for hover/color changes. Use `animate-fade-in-up` class for page enters.
 

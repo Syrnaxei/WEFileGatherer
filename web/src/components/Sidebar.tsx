@@ -1,3 +1,5 @@
+import { useState, useEffect } from 'react';
+
 export type PageKey = 'workspace' | 'scrape' | 'tags' | 'settings';
 
 interface SidebarProps {
@@ -54,33 +56,97 @@ const navItems: { key: PageKey; label: string }[] = [
 ];
 
 export default function Sidebar({ activePage, onNavigate, isDark: _isDark }: SidebarProps) {
+  const [userPref, setUserPref] = useState(false);
+  const [windowWidth, setWindowWidth] = useState(window.innerWidth);
+
+  const collapsed = windowWidth <= 800 ? true : userPref;
+
+  useEffect(() => {
+    const handleResize = () => {
+      setWindowWidth(window.innerWidth);
+    };
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
+
   const iconSize = 20;
   const activeIndex = navItems.findIndex((item) => item.key === activePage);
 
+  const expandedWidth = 220;
+  const collapsedWidth = 60;
+  const currentWidth = collapsed ? collapsedWidth : expandedWidth;
+
+  const buttonHeight = 40;
+  const buttonMargin = 1;
+  const barHeight = 24;
+  const barWidth = 3;
+  const buttonRadius = '6px';
+
+  const toggleTotalH = buttonHeight + 2 * buttonMargin;
+
+  const activeBarTop =
+    toggleTotalH +
+    buttonMargin +
+    activeIndex * (buttonHeight + 2 * buttonMargin) +
+    (buttonHeight - barHeight) / 2;
+
   return (
     <nav style={{
-      width: '60px',
-      minWidth: '60px',
+      width: `${currentWidth}px`,
+      minWidth: `${currentWidth}px`,
       background: 'var(--bg-surface-1)',
       borderRight: '1px solid var(--border-default)',
       display: 'flex',
       flexDirection: 'column',
-      alignItems: 'center',
-      paddingTop: '16px',
-      gap: '2px',
+      alignItems: 'stretch',
       flexShrink: 0,
       position: 'relative',
+      overflow: 'hidden',
+      transition: `width var(--duration-normal) var(--ease-out), min-width var(--duration-normal) var(--ease-out)`,
     }}>
+      <button
+        onClick={() => setUserPref(!userPref)}
+        title={collapsed ? '展开侧边栏' : '收起侧边栏'}
+        style={{
+          width: collapsed ? `${buttonHeight}px` : `calc(100% - ${2 * buttonMargin}px)`,
+          height: `${buttonHeight}px`,
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: collapsed ? 'center' : 'flex-start',
+          border: 'none',
+          borderRadius: '0',
+          cursor: 'pointer',
+          background: 'transparent',
+          color: 'var(--text-muted)',
+          padding: 0,
+          paddingLeft: collapsed ? '0' : '16px',
+          margin: collapsed ? `${buttonMargin}px auto` : `${buttonMargin}px`,
+          flexShrink: 0,
+          transition: `color var(--duration-fast) var(--ease-out), width var(--duration-normal) var(--ease-out), margin var(--duration-normal) var(--ease-out), padding var(--duration-normal) var(--ease-out), justify-content var(--duration-normal) var(--ease-out)`,
+        }}
+        onMouseEnter={(e) => {
+          e.currentTarget.style.color = 'var(--text-secondary)';
+        }}
+        onMouseLeave={(e) => {
+          e.currentTarget.style.color = 'var(--text-muted)';
+        }}
+      >
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024" width="20" height="20" fill="currentColor">
+          <path d="M64.1 194v89.6h896.1V194H64.1z m0 358.4h896.1v-89.6H64.1v89.6z m0 268.9h896.1v-89.6H64.1v89.6z" />
+        </svg>
+      </button>
+
       <div style={{
         position: 'absolute',
         left: '0',
-        top: `${16 + activeIndex * 44 + 11}px`,
-        width: '3px',
-        height: '20px',
+        top: `${activeBarTop}px`,
+        width: `${barWidth}px`,
+        height: `${barHeight}px`,
         background: 'var(--accent)',
         borderRadius: '0 3px 3px 0',
-        transition: 'top var(--duration-normal) var(--ease-out)',
+        transition: `top var(--duration-normal) var(--ease-out)`,
       }} />
+
       {navItems.map((item) => {
         const isActive = activePage === item.key;
         const IconComponent = iconMap[item.key];
@@ -89,24 +155,30 @@ export default function Sidebar({ activePage, onNavigate, isDark: _isDark }: Sid
           <button
             key={item.key}
             onClick={() => onNavigate(item.key)}
-            title={item.label}
+            title={collapsed ? item.label : undefined}
             style={{
-              width: '42px',
-              height: '42px',
+              width: collapsed ? `${buttonHeight}px` : `calc(100% - ${2 * buttonMargin}px)`,
+              height: `${buttonHeight}px`,
               display: 'flex',
-              flexDirection: 'column',
+              flexDirection: 'row',
               alignItems: 'center',
-              justifyContent: 'center',
-              gap: '4px',
+              justifyContent: collapsed ? 'center' : 'flex-start',
+              gap: collapsed ? '0' : '10px',
+              paddingLeft: collapsed ? '0' : '16px',
+              paddingRight: '0',
+              margin: collapsed ? `${buttonMargin}px auto` : `${buttonMargin}px`,
               border: 'none',
-              borderRadius: 'var(--radius-md)',
+              borderRadius: buttonRadius,
               cursor: 'pointer',
               background: isActive ? 'var(--accent-muted)' : 'transparent',
               color: isActive ? 'var(--accent)' : 'var(--text-muted)',
-              fontSize: '10px',
+              fontSize: '12px',
               fontWeight: isActive ? 600 : 400,
               fontFamily: 'var(--font-ui)',
-              transition: 'background var(--duration-fast) var(--ease-out), color var(--duration-fast) var(--ease-out)',
+              flexShrink: 0,
+              transition: `background var(--duration-fast) var(--ease-out), color var(--duration-fast) var(--ease-out), width var(--duration-normal) var(--ease-out), margin var(--duration-normal) var(--ease-out), padding var(--duration-normal) var(--ease-out), justify-content var(--duration-normal) var(--ease-out)`,
+              whiteSpace: 'nowrap',
+              overflow: 'hidden',
             }}
             onMouseEnter={(e) => {
               if (!isActive) {
@@ -124,7 +196,16 @@ export default function Sidebar({ activePage, onNavigate, isDark: _isDark }: Sid
             }}
           >
             <IconComponent size={item.key === 'settings' ? 19 : iconSize} />
-            <span style={{ lineHeight: 1, letterSpacing: '-0.01em' }}>{item.label}</span>
+            {!collapsed && (
+              <span style={{
+                lineHeight: 1,
+                letterSpacing: '-0.01em',
+                opacity: 1,
+                transition: `opacity var(--duration-normal) var(--ease-out)`,
+              }}>
+                {item.label}
+              </span>
+            )}
           </button>
         );
       })}
