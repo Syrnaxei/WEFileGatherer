@@ -66,24 +66,28 @@ async function startThumbnailGeneration(files: { filePath: string; fileName: str
   }
 }
 
-async function startAsyncProbe(files: { id: string; filePath: string; fileName: string }[], ffprobeCmd: string | null, logPrefix: string) {
-  if (!files || files.length === 0) return;
+async function startAsyncProbe(files: { id: string; filePath: string; fileName: string }[], ffprobeCmd: string | null, logPrefix: string): Promise<{ fileSize: number; duration: number; bitrate: number }[]> {
+  if (!files || files.length === 0) return [];
 
   console.log(`[${logPrefix}] Starting async probe for ${files.length} files`);
 
-  for (const file of files) {
-    probeVideoFile(file.filePath, ffprobeCmd)
-      .then((result) => {
+  const results = await Promise.all(
+    files.map(async (file) => {
+      try {
+        const result = await probeVideoFile(file.filePath, ffprobeCmd);
         probeCache.set(file.id, result);
         emitProbeReady(file.id, result);
-      })
-      .catch((err) => {
+        return result;
+      } catch (err) {
         console.error(`[${logPrefix}] probe error for ${file.fileName}:`, err);
         const fallback = { fileSize: 0, duration: 0, bitrate: 0 };
         probeCache.set(file.id, fallback);
         emitProbeReady(file.id, fallback);
-      });
-  }
+        return fallback;
+      }
+    })
+  );
+  return results;
 }
 
 function resolveConcurrency(): number {
@@ -154,11 +158,18 @@ router.post('/scan', async (req, res) => {
     const db = SQLiteDb.getInstance();
     const ffprobeCmd = await resolveFfprobeCmd(db.getSetting('ffmpegBinPath') || undefined);
 
-    startAsyncProbe(files, ffprobeCmd, 'Scan');
+    const probePromise = startAsyncProbe(files, ffprobeCmd, 'Scan');
 
     const viewMode = clientViewMode || db.getSetting('fileListViewMode') || 'thumbnail';
     if (viewMode !== 'list') {
-      startThumbnailGeneration(files, 'Scan');
+      probePromise.then((probeResults) => {
+        const filesWithDuration = files.map((f, i) => ({
+          filePath: f.filePath,
+          fileName: f.fileName,
+          duration: probeResults[i]?.duration ?? 0,
+        }));
+        startThumbnailGeneration(filesWithDuration, 'Scan');
+      });
     } else {
       console.log('[Scan] List view mode, skipping thumbnail generation');
     }
@@ -386,9 +397,14 @@ router.post('/scrape/scan', async (req, res) => {
     const db = SQLiteDb.getInstance();
     const ffprobeCmd = await resolveFfprobeCmd(db.getSetting('ffmpegBinPath') || undefined);
 
-    startAsyncProbe(files, ffprobeCmd, 'ScrapeScan');
-
-    startThumbnailGeneration(files, 'ScrapeScan');
+    startAsyncProbe(files, ffprobeCmd, 'ScrapeScan').then((probeResults) => {
+    const filesWithDuration = files.map((f, i) => ({
+      filePath: f.filePath,
+      fileName: f.fileName,
+      duration: probeResults[i]?.duration ?? 0,
+    }));
+    startThumbnailGeneration(filesWithDuration, 'ScrapeScan');
+  });
   } catch (err: any) {
     res.status(500).json({ error: `Failed to scan directory: ${err.message}` });
   }

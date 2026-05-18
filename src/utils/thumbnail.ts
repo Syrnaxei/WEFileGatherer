@@ -298,8 +298,8 @@ export async function generateThumbnailsForVideo(
     const outputPath = path.join(thumbDir, `${i}.jpg`);
 
     let seekSeconds: number;
-    if (duration > 0 && count > 1) {
-      seekSeconds = (i * duration) / (count + 1);
+    if (duration > 0 && count >= 2) {
+      seekSeconds = 1 + ((i - 1) * (duration - 2)) / (count - 1);
     } else if (duration > 0) {
       seekSeconds = duration / 2;
     } else {

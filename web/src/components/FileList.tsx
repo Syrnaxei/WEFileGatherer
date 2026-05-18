@@ -86,9 +86,18 @@ function ThumbnailView({ files, onTagChange, onRemove, savedTags, getTargetPathF
   thumbnailCount: number;
 }) {
   const [lightbox, setLightbox] = useState<{ fileIndex: number; thumbIndex: number } | null>(null);
-  const thumbColWidth = thumbnailCount <= 1 ? 80 : 72;
-  const thumbHeight = thumbnailCount <= 1 ? 45 : 40;
-  const gridCols = `${thumbColWidth}px 1fr 160px 1fr 40px`;
+  const THUMB_COL_PREVIEW_SINGLE = 80;
+  const THUMB_COL_PREVIEW_MULTI = 72;
+  const THUMB_THUMB_HEIGHT_SINGLE = 45;
+  const THUMB_THUMB_HEIGHT_MULTI = 40;
+  const THUMB_COL_TAG = '160px';
+  const THUMB_COL_ACTION = '40px';
+  const THUMB_GRID_GAP = '12px';
+  const THUMB_ROW_PADDING = '10px 20px';
+  const THUMB_HEADER_PADDING = '8px 20px';
+  const thumbColWidth = thumbnailCount <= 1 ? THUMB_COL_PREVIEW_SINGLE : THUMB_COL_PREVIEW_MULTI;
+  const thumbHeight = thumbnailCount <= 1 ? THUMB_THUMB_HEIGHT_SINGLE : THUMB_THUMB_HEIGHT_MULTI;
+  const gridCols = `${thumbColWidth}px 1fr ${THUMB_COL_TAG} 2fr ${THUMB_COL_ACTION}`;
 
   const openLightbox = (fileIndex: number, thumbIndex: number) => {
     setLightbox({ fileIndex, thumbIndex });
@@ -110,8 +119,8 @@ function ThumbnailView({ files, onTagChange, onRemove, savedTags, getTargetPathF
       <div style={{
         display: 'grid',
         gridTemplateColumns: gridCols,
-        gap: '12px',
-        padding: '8px 20px',
+        gap: THUMB_GRID_GAP,
+        padding: THUMB_HEADER_PADDING,
         background: 'var(--bg-surface-2)',
         borderBottom: '1px solid var(--border-default)',
         fontSize: '11px',
@@ -150,8 +159,8 @@ function ThumbnailView({ files, onTagChange, onRemove, savedTags, getTargetPathF
             style={{
               display: 'grid',
               gridTemplateColumns: gridCols,
-              gap: '12px',
-              padding: '10px 20px',
+              gap: THUMB_GRID_GAP,
+              padding: THUMB_ROW_PADDING,
               background: isCompleted ? 'var(--success-muted)' :
                           isFailed ? 'var(--error-muted)' :
                           index % 2 === 0 ? 'var(--bg-surface-1)' : 'var(--bg-base)',
