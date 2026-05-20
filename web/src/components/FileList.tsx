@@ -97,7 +97,7 @@ function ThumbnailView({ files, onTagChange, onRemove, savedTags, getTargetPathF
   const THUMB_HEADER_PADDING = '8px 20px';
   const thumbColWidth = thumbnailCount <= 1 ? THUMB_COL_PREVIEW_SINGLE : THUMB_COL_PREVIEW_MULTI;
   const thumbHeight = thumbnailCount <= 1 ? THUMB_THUMB_HEIGHT_SINGLE : THUMB_THUMB_HEIGHT_MULTI;
-  const gridCols = `${thumbColWidth}px 1fr ${THUMB_COL_TAG} 2fr ${THUMB_COL_ACTION}`;
+  const gridCols = `${thumbColWidth}px 1fr ${THUMB_COL_TAG} 2fr 120px ${THUMB_COL_ACTION}`;
 
   const openLightbox = (fileIndex: number, thumbIndex: number) => {
     setLightbox({ fileIndex, thumbIndex });
@@ -134,6 +134,7 @@ function ThumbnailView({ files, onTagChange, onRemove, savedTags, getTargetPathF
         <div>文件名</div>
         <div>Tag</div>
         <div>目标路径</div>
+        <div style={{ textAlign: 'center' }}>处理进度</div>
         <div style={{ textAlign: 'center' }}>操作</div>
       </div>
       {files.length === 0 && (
@@ -152,6 +153,7 @@ function ThumbnailView({ files, onTagChange, onRemove, savedTags, getTargetPathF
         const targetPath = file.tag.trim() ? getTargetPathForTag(file.tag.trim()) : '';
         const isCompleted = file.status === 'completed';
         const isFailed = file.status === 'failed';
+        const isProcessing = file.status === 'processing';
 
         return (
           <div
@@ -163,6 +165,7 @@ function ThumbnailView({ files, onTagChange, onRemove, savedTags, getTargetPathF
               padding: THUMB_ROW_PADDING,
               background: isCompleted ? 'var(--success-muted)' :
                           isFailed ? 'var(--error-muted)' :
+                          isProcessing ? 'var(--accent-muted)' :
                           index % 2 === 0 ? 'var(--bg-surface-1)' : 'var(--bg-base)',
               borderBottom: '1px solid var(--border-subtle)',
               alignItems: 'center',
@@ -210,8 +213,6 @@ function ThumbnailView({ files, onTagChange, onRemove, savedTags, getTargetPathF
                 whiteSpace: 'nowrap',
               }}>
                 {file.fileName}
-                {isCompleted && <span className="badge badge-success">已完成</span>}
-                {isFailed && <span className="badge badge-error">失败</span>}
               </div>
               <div style={{
                 fontSize: '11px',
@@ -247,6 +248,36 @@ function ThumbnailView({ files, onTagChange, onRemove, savedTags, getTargetPathF
               whiteSpace: 'nowrap',
             }}>
               {targetPath || (file.tag.trim() ? '未配置路径' : '-')}
+            </div>
+
+            <div className="file-progress-cell">
+              {isProcessing && (
+                <>
+                  <span className="progress-label">处理中</span>
+                  <div className="progress-pill">
+                    <div className="progress-pill-indeterminate" />
+                  </div>
+                </>
+              )}
+              {isCompleted && (
+                <>
+                  <span className="progress-label" style={{ color: 'var(--success)' }}>完成</span>
+                  <div className="progress-pill">
+                    <div className="progress-pill-fill" style={{ width: '100%', background: 'var(--success)' }} />
+                  </div>
+                </>
+              )}
+              {isFailed && (
+                <>
+                  <span className="progress-label" style={{ color: 'var(--error)' }}>失败</span>
+                  <div className="progress-pill">
+                    <div className="progress-pill-fill" style={{ width: '100%', background: 'var(--error)' }} />
+                  </div>
+                </>
+              )}
+              {!isProcessing && !isCompleted && !isFailed && (
+                <span className="progress-label">-</span>
+              )}
             </div>
 
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
@@ -316,7 +347,7 @@ function ListView({ files, onTagChange, onRemove, savedTags, getTargetPathForTag
 }) {
   const GRID_GAP = '16px';
   const ROW_PADDING = '10px 12px';
-  const GRID_COLUMNS = 'minmax(120px, 3fr) minmax(140px, 2fr) minmax(120px, 3fr) minmax(60px, 1fr)';
+  const GRID_COLUMNS = 'minmax(120px, 3fr) minmax(140px, 2fr) minmax(120px, 3fr) 100px minmax(60px, 1fr)';
 
   function shortenPath(filePath: string, base: string): string {
     const normalizedPath = filePath.replace(/\\/g, '/');
@@ -345,6 +376,7 @@ function ListView({ files, onTagChange, onRemove, savedTags, getTargetPathForTag
         <div>文件名</div>
         <div>Tag</div>
         <div>目标路径</div>
+        <div style={{ textAlign: 'center' }}>处理进度</div>
         <div style={{ textAlign: 'center' }}>操作</div>
       </div>
       {files.length === 0 && (
@@ -363,6 +395,7 @@ function ListView({ files, onTagChange, onRemove, savedTags, getTargetPathForTag
         const targetPath = file.tag.trim() ? getTargetPathForTag(file.tag.trim()) : '';
         const isCompleted = file.status === 'completed';
         const isFailed = file.status === 'failed';
+        const isProcessing = file.status === 'processing';
 
         return (
           <div
@@ -374,6 +407,7 @@ function ListView({ files, onTagChange, onRemove, savedTags, getTargetPathForTag
               padding: ROW_PADDING,
               background: isCompleted ? 'var(--success-muted)' :
                           isFailed ? 'var(--error-muted)' :
+                          isProcessing ? 'var(--accent-muted)' :
                           index % 2 === 0 ? 'var(--bg-surface-1)' : 'var(--bg-base)',
               borderBottom: '1px solid var(--border-subtle)',
               alignItems: 'center',
@@ -384,8 +418,6 @@ function ListView({ files, onTagChange, onRemove, savedTags, getTargetPathForTag
             <div style={{ fontSize: '13px', color: 'var(--text-primary)', minWidth: 0 }}>
               <div style={{ fontWeight: 500, display: 'flex', alignItems: 'center', gap: '6px', letterSpacing: '-0.01em' }}>
                 {file.fileName}
-                {isCompleted && <span className="badge badge-success">已完成</span>}
-                {isFailed && <span className="badge badge-error">失败</span>}
               </div>
               <div style={{
                 fontSize: '11px',
@@ -419,6 +451,36 @@ function ListView({ files, onTagChange, onRemove, savedTags, getTargetPathForTag
               whiteSpace: 'nowrap',
             }}>
               {targetPath || (file.tag.trim() ? '未配置路径' : '-')}
+            </div>
+
+            <div className="file-progress-cell">
+              {isProcessing && (
+                <>
+                  <span className="progress-label">处理中</span>
+                  <div className="progress-pill">
+                    <div className="progress-pill-indeterminate" />
+                  </div>
+                </>
+              )}
+              {isCompleted && (
+                <>
+                  <span className="progress-label" style={{ color: 'var(--success)' }}>完成</span>
+                  <div className="progress-pill">
+                    <div className="progress-pill-fill" style={{ width: '100%', background: 'var(--success)' }} />
+                  </div>
+                </>
+              )}
+              {isFailed && (
+                <>
+                  <span className="progress-label" style={{ color: 'var(--error)' }}>失败</span>
+                  <div className="progress-pill">
+                    <div className="progress-pill-fill" style={{ width: '100%', background: 'var(--error)' }} />
+                  </div>
+                </>
+              )}
+              {!isProcessing && !isCompleted && !isFailed && (
+                <span className="progress-label">-</span>
+              )}
             </div>
 
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>

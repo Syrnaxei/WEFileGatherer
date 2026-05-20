@@ -600,6 +600,60 @@ input, textarea, button, select {
   border-radius: var(--radius-sm);
 }
 
+/* 处理进度列 — 胶囊型进度条 */
+.file-progress-cell {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  justify-content: center;
+  gap: 3px;
+  padding: 2px 4px;
+}
+
+/* 胶囊型进度条轨道 — 细长药丸形状，4px 高，两端完全圆角 */
+.progress-pill {
+  width: 80%;
+  height: 4px;
+  background: var(--bg-surface-3);
+  border-radius: 2px;
+  overflow: hidden;
+}
+
+/* 胶囊型进度条填充 — 使用 accent 蓝色填充 */
+.progress-pill-fill {
+  height: 100%;
+  background: var(--accent);
+  border-radius: 2px;
+  transition: width 300ms ease;
+}
+
+/* 胶囊型进度条不确定动画 — 文件处理中时使用来回滑动效果 */
+.progress-pill-indeterminate {
+  width: 40%;
+  height: 100%;
+  background: var(--accent);
+  border-radius: 2px;
+  animation: progress-indeterminate 1.4s ease-in-out infinite;
+}
+
+/* 进度条标签文字 — 右对齐 */
+.progress-label {
+  font-size: 11px;
+  font-family: var(--font-mono);
+  color: var(--text-muted);
+  white-space: nowrap;
+  line-height: 1;
+}
+
+@keyframes progress-indeterminate {
+  0% {
+    transform: translateX(-100%);
+  }
+  100% {
+    transform: translateX(350%);
+  }
+}
+
 /* Page transition */
 .page-enter {
   animation: fade-in-up var(--duration-normal) var(--ease-out);
@@ -621,7 +675,7 @@ input, textarea, button, select {
 .settings-tile-left {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 12px;
   min-width: 0;
 }
 
@@ -639,7 +693,7 @@ input, textarea, button, select {
 .settings-tile-info {
   display: flex;
   flex-direction: column;
-  gap: 2px;
+  gap: 4px;
   min-width: 0;
 }
 

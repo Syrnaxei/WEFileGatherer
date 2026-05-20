@@ -33,6 +33,8 @@ interface SettingsPageProps {
   onFileListViewModeChange: (value: ViewMode) => void;
   ffmpegAvailable: boolean;
   onFfmpegAvailableChange: (value: boolean) => void;
+  showLogTerminal: boolean;
+  onShowLogTerminalChange: (value: boolean) => void;
 }
 
 export default function SettingsPage({
@@ -46,6 +48,8 @@ export default function SettingsPage({
   onFileListViewModeChange,
   //ffmpegAvailable,
   onFfmpegAvailableChange,
+  showLogTerminal,
+  onShowLogTerminalChange,
 }: SettingsPageProps) {
   const { mode, setMode } = useTheme();
   const [version, setVersion] = useState<VersionInfo | null>(null);
@@ -420,7 +424,6 @@ export default function SettingsPage({
         overflowY: 'auto',
       }}>
         <div style={{
-          maxWidth: '680px',
           display: 'flex',
           flexDirection: 'column',
           gap: '24px',
@@ -532,6 +535,9 @@ export default function SettingsPage({
           <SettingSection title="高级设置">
             <SettingsTile icon={<TerminalIcon />} title="调试日志输出" description="开启后显示完整的处理过程日志，关闭后仅显示开始和完成状态">
               <ToggleSwitch checked={debugLogEnabled} onChange={handleDebugLogChange} />
+            </SettingsTile>
+            <SettingsTile icon={<MonitorIcon />} title="日志显示" description="控制前端页面中日志终端窗口的显示与隐藏">
+              <ToggleSwitch checked={showLogTerminal} onChange={onShowLogTerminalChange} />
             </SettingsTile>
             <SettingsTile icon={<CpuIcon />} title="文件处理模式" description="并行模式可同时处理多个文件，FIFO 模式按顺序逐个处理">
               <SelectDropdown
@@ -800,6 +806,14 @@ function TerminalIcon() {
   </IconWrapper>;
 }
 
+function MonitorIcon() {
+  return <IconWrapper>
+    <rect x="2" y="3" width="20" height="14" rx="2" />
+    <line x1="8" y1="21" x2="16" y2="21" />
+    <line x1="12" y1="17" x2="12" y2="21" />
+  </IconWrapper>;
+}
+
 function CpuIcon() {
   return <IconWrapper>
     <rect x="4" y="4" width="16" height="16" rx="2" />
@@ -817,17 +831,21 @@ function CpuIcon() {
 
 function GaugeIcon() {
   return <IconWrapper>
-    <path d="M12 22C6.5 22 2 17.5 2 12S6.5 2 12 2s10 4.5 10 10" />
-    <path d="m12 12 4-7" />
-    <path d="M3 18h18" />
+    <line x1="4" y1="6" x2="20" y2="6" />
+    <polyline points="16 3 20 6 16 9" />
+    <line x1="4" y1="12" x2="20" y2="12" />
+    <polyline points="16 9 20 12 16 15" />
+    <line x1="4" y1="18" x2="20" y2="18" />
+    <polyline points="16 15 20 18 16 21" />
   </IconWrapper>;
 }
 
 function EyeIcon() {
-  return <IconWrapper>
-    <path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z" />
-    <circle cx="12" cy="12" r="3" />
-  </IconWrapper>;
+  return (
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1103 1024" width="24" height="24" fill="currentColor" stroke="none">
+      <path d="M123.649312 583.904806h197.118315c26.127231 0 51.193851 10.347418 69.689862 28.791691a98.300472 98.300472 0 0 1 28.869296 69.53465v217.580336a98.196998 98.196998 0 0 1-28.869296 69.53465 98.714369 98.714369 0 0 1-69.689862 28.817559h-197.118315a98.714369 98.714369 0 0 1-69.689862-28.817559 98.17113 98.17113 0 0 1-28.843428-69.53465v-217.580336c0-26.075494 10.373287-51.090377 28.843428-69.53465a98.688501 98.688501 0 0 1 69.689862-28.791691z m0 98.326341v217.580336h197.118315v-217.580336h-197.118315z m418.863487-53.004649h492.769921a24.652724 24.652724 0 0 1 24.626855 24.575118v49.176105a24.497512 24.497512 0 0 1-24.626855 24.575118H542.512799a24.626855 24.626855 0 0 1-24.652724-24.575118v-49.176105c0-13.580986 11.045869-24.575118 24.652724-24.575118z m0 241.974374h492.769921a24.652724 24.652724 0 0 1 24.626855 24.600986v49.150236a24.497512 24.497512 0 0 1-24.626855 24.575119H542.512799a24.600987 24.600987 0 0 1-24.652724-24.575119v-49.150236a24.575118 24.575118 0 0 1 24.652724-24.600986zM1060.194129 111.85559v194.298645c0 25.739203-10.347418 50.443664-28.791691 68.680988a98.973055 98.973055 0 0 1-69.53465 28.429531H123.442363a98.973055 98.973055 0 0 1-69.53465-28.429531 96.593148 96.593148 0 0 1-28.791691-68.680988V111.85559c0-25.739203 10.347418-50.469532 28.791691-68.680988A98.973055 98.973055 0 0 1 123.442363 14.745071h838.425425c26.075494 0 51.090377 10.218075 69.53465 28.429531a96.541411 96.541411 0 0 1 28.791691 68.680988z m-98.326341 0H123.442363v194.298645h838.425425V111.85559z" />
+    </svg>
+  );
 }
 
 function ImageIcon() {

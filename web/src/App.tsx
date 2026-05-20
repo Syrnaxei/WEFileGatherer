@@ -24,7 +24,7 @@ export interface ScrapeFileItem {
   id: string;
   fileName: string;
   filePath: string;
-  status?: 'pending' | 'completed' | 'failed';
+  status?: 'pending' | 'processing' | 'completed' | 'failed';
   fileSize?: number;
   duration?: number;
   bitrate?: number;
@@ -54,6 +54,7 @@ export default function App() {
   const [thumbnailCount, setThumbnailCount] = useState(3);
   const [fileListViewMode, setFileListViewMode] = useState<ViewMode>('list');
   const [ffmpegAvailable, setFfmpegAvailable] = useState(true);
+  const [showLogTerminal, setShowLogTerminal] = useState(true);
 
   const effectiveWorkspaceShowFullPath = workspaceShowFullPath;
   const effectiveScrapeShowFullPath = scrapeShowFullPath;
@@ -61,7 +62,7 @@ export default function App() {
   useProbePolling(files, setFiles);
   useProbePolling(scrapeFiles, setScrapeFiles);
 
-  const { logs, connected, completedCount, completedIds, failedIds, subscribe, clearLogs } = useSocket(flowId);
+  const { logs, connected, completedCount, completedIds, failedIds, processingIds, subscribe, clearLogs } = useSocket(flowId);
   const scrapeSocket = useSocket('scrape-flow');
 
   const fetchSavedTags = useCallback(async () => {
@@ -145,6 +146,15 @@ export default function App() {
       })
       .catch(() => {});
 
+    fetch(`${API_BASE}/settings/showLog`)
+      .then((r) => r.json())
+      .then((data) => {
+        if (data.success && data.value !== null) {
+          setShowLogTerminal(data.value !== 'false');
+        }
+      })
+      .catch(() => {});
+
     fetch(`${API_BASE}/ffmpeg/status`)
       .then((r) => r.json())
       .then((data) => {
@@ -167,7 +177,7 @@ export default function App() {
   }, [completedCount, isRunning, files]);
 
   useEffect(() => {
-    if (completedIds.size > 0 || failedIds.size > 0) {
+    if (completedIds.size > 0 || failedIds.size > 0 || processingIds.size > 0) {
       setFiles((prev) =>
         prev.map((f) => {
           if (completedIds.has(f.id)) {
@@ -176,11 +186,14 @@ export default function App() {
           if (failedIds.has(f.id)) {
             return { ...f, status: 'failed' as const };
           }
+          if (processingIds.has(f.id)) {
+            return { ...f, status: 'processing' as const };
+          }
           return f;
         })
       );
     }
-  }, [completedIds, failedIds]);
+  }, [completedIds, failedIds, processingIds]);
 
   useEffect(() => {
     if (activePage === 'workspace') {
@@ -212,16 +225,17 @@ export default function App() {
   }, [scrapeSocket.completedCount, scrapeIsRunning, scrapeFiles.length]);
 
   useEffect(() => {
-    if (scrapeSocket.completedIds.size > 0 || scrapeSocket.failedIds.size > 0) {
+    if (scrapeSocket.completedIds.size > 0 || scrapeSocket.failedIds.size > 0 || scrapeSocket.processingIds.size > 0) {
       setScrapeFiles((prev) =>
         prev.map((f) => {
           if (scrapeSocket.completedIds.has(f.id)) return { ...f, status: 'completed' as const };
           if (scrapeSocket.failedIds.has(f.id)) return { ...f, status: 'failed' as const };
+          if (scrapeSocket.processingIds.has(f.id)) return { ...f, status: 'processing' as const };
           return f;
         })
       );
     }
-  }, [scrapeSocket.completedIds, scrapeSocket.failedIds]);
+  }, [scrapeSocket.completedIds, scrapeSocket.failedIds, scrapeSocket.processingIds]);
 
   const getTargetPathForTag = (tagName: string): string => {
     const tag = savedTags.find((t) => t.name === tagName);
@@ -468,6 +482,15 @@ export default function App() {
     }).catch(() => {});
   };
 
+  const handleShowLogTerminalChange = (value: boolean) => {
+    setShowLogTerminal(value);
+    fetch(`${API_BASE}/settings/showLog`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ value: String(value) }),
+    }).catch(() => {});
+  };
+
   const renderPage = () => {
     switch (activePage) {
       case 'tags':
@@ -484,6 +507,8 @@ export default function App() {
           onFileListViewModeChange={handleFileListViewModeChange}
           ffmpegAvailable={ffmpegAvailable}
           onFfmpegAvailableChange={setFfmpegAvailable}
+          showLogTerminal={showLogTerminal}
+          onShowLogTerminalChange={handleShowLogTerminalChange}
         />;
       case 'scrape':
         return (
@@ -501,6 +526,7 @@ export default function App() {
             debugLogEnabled={debugLogEnabled}
             scrapeShowFullPath={effectiveScrapeShowFullPath}
             thumbnailCount={thumbnailCount}
+            showLogTerminal={showLogTerminal}
             onLoad={handleScrapeLoad}
             onStart={handleScrapeStart}
             onStop={handleScrapeStop}
@@ -625,6 +651,7 @@ export default function App() {
                 />
               </div>
 
+              {showLogTerminal && (
               <div style={{
                 width: '420px',
                 minWidth: '320px',
@@ -636,6 +663,7 @@ export default function App() {
               }}>
                 <LogTerminal logs={logs} connected={connected} isDark={isDark} debugLogEnabled={debugLogEnabled} />
               </div>
+            )}
             </div>
           </>
         );

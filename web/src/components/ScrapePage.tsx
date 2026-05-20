@@ -40,6 +40,7 @@ interface ScrapePageProps {
   debugLogEnabled: boolean;
   scrapeShowFullPath: boolean;
   thumbnailCount: number;
+  showLogTerminal: boolean;
   onLoad: () => void;
   onStart: () => void;
   onStop: () => void;
@@ -60,6 +61,7 @@ export default function ScrapePage({
   debugLogEnabled,
   scrapeShowFullPath,
   thumbnailCount,
+  showLogTerminal,
   onLoad,
   onStart,
   onStop,
@@ -78,7 +80,7 @@ export default function ScrapePage({
 
   const thumbColWidth = thumbnailCount <= 1 ? 80 : 72;
   const thumbHeight = thumbnailCount <= 1 ? 45 : 40;
-  const gridCols = `${thumbColWidth}px 1fr 1fr 40px`;
+  const gridCols = `${thumbColWidth}px 1fr 1fr 120px 40px`;
 
   const [lightbox, setLightbox] = useState<{ fileIndex: number; thumbIndex: number } | null>(null);
 
@@ -213,6 +215,7 @@ export default function ScrapePage({
             <div>预览</div>
             <div>文件名</div>
             <div>路径</div>
+            <div style={{ textAlign: 'center' }}>处理进度</div>
             <div style={{ textAlign: 'center' }}>操作</div>
           </div>
           <div style={{
@@ -234,6 +237,7 @@ export default function ScrapePage({
               files.map((file, index) => {
                 const isCompleted = file.status === 'completed';
                 const isFailed = file.status === 'failed';
+                const isProcessing = file.status === 'processing';
 
                 return (
                   <div
@@ -245,6 +249,7 @@ export default function ScrapePage({
                       padding: '10px 20px',
                       background: isCompleted ? 'var(--success-muted)' :
                                   isFailed ? 'var(--error-muted)' :
+                                  isProcessing ? 'var(--accent-muted)' :
                                   index % 2 === 0 ? 'var(--bg-surface-1)' : 'var(--bg-base)',
                       borderBottom: '1px solid var(--border-subtle)',
                       alignItems: 'center',
@@ -287,8 +292,6 @@ export default function ScrapePage({
                         whiteSpace: 'nowrap',
                       }}>
                         {file.fileName}
-                        {isCompleted && <span className="badge badge-success">已完成</span>}
-                        {isFailed && <span className="badge badge-error">失败</span>}
                       </div>
                       <div style={{
                         fontSize: '11px',
@@ -314,6 +317,36 @@ export default function ScrapePage({
                       whiteSpace: 'nowrap',
                     }}>
                       {scrapeShowFullPath ? file.filePath : shortenPath(file.filePath, scrapeSourceDir)}
+                    </div>
+
+                    <div className="file-progress-cell">
+                      {isProcessing && (
+                        <>
+                          <span className="progress-label">处理中</span>
+                          <div className="progress-pill">
+                            <div className="progress-pill-indeterminate" />
+                          </div>
+                        </>
+                      )}
+                      {isCompleted && (
+                        <>
+                          <span className="progress-label" style={{ color: 'var(--success)' }}>完成</span>
+                          <div className="progress-pill">
+                            <div className="progress-pill-fill" style={{ width: '100%', background: 'var(--success)' }} />
+                          </div>
+                        </>
+                      )}
+                      {isFailed && (
+                        <>
+                          <span className="progress-label" style={{ color: 'var(--error)' }}>失败</span>
+                          <div className="progress-pill">
+                            <div className="progress-pill-fill" style={{ width: '100%', background: 'var(--error)' }} />
+                          </div>
+                        </>
+                      )}
+                      {!isProcessing && !isCompleted && !isFailed && (
+                        <span className="progress-label">-</span>
+                      )}
                     </div>
 
                     <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
@@ -361,6 +394,7 @@ export default function ScrapePage({
           </div>
         </div>
 
+        {showLogTerminal && (
         <div style={{
           width: '420px',
           minWidth: '320px',
@@ -372,6 +406,7 @@ export default function ScrapePage({
         }}>
           <LogTerminal logs={logs} connected={connected} isDark={isDark} debugLogEnabled={debugLogEnabled} />
         </div>
+      )}
       </div>
       {lightbox && files[lightbox.fileIndex]?.videoHash && (
         <ThumbnailLightbox

@@ -27,6 +27,7 @@ export function useSocket(flowId: string | null) {
   const [connected, setConnected] = useState(false);
   const [completedIds, setCompletedIds] = useState<Set<string>>(new Set());
   const [failedIds, setFailedIds] = useState<Set<string>>(new Set());
+  const [processingIds, setProcessingIds] = useState<Set<string>>(new Set());
 
   const completedCount = completedIds.size + failedIds.size;
 
@@ -47,11 +48,23 @@ export function useSocket(flowId: string | null) {
 
     socket.on('log', (payload: Omit<LogEntry, 'timestamp'>) => {
       setLogs((prev) => [...prev, { ...payload, timestamp: Date.now() }]);
+      if (payload.event === 'node_start' && payload.traceId) {
+        setProcessingIds((prev) => {
+          const next = new Set(prev);
+          next.add(payload.traceId!);
+          return next;
+        });
+      }
       if (payload.event === 'flow_complete') {
         if (payload.traceId) {
           setCompletedIds((prev) => {
             const next = new Set(prev);
             next.add(payload.traceId!);
+            return next;
+          });
+          setProcessingIds((prev) => {
+            const next = new Set(prev);
+            next.delete(payload.traceId!);
             return next;
           });
         }
@@ -60,6 +73,11 @@ export function useSocket(flowId: string | null) {
           setFailedIds((prev) => {
             const next = new Set(prev);
             next.add(payload.traceId!);
+            return next;
+          });
+          setProcessingIds((prev) => {
+            const next = new Set(prev);
+            next.delete(payload.traceId!);
             return next;
           });
         }
@@ -82,7 +100,8 @@ export function useSocket(flowId: string | null) {
     setLogs([]);
     setCompletedIds(new Set());
     setFailedIds(new Set());
+    setProcessingIds(new Set());
   }, []);
 
-  return { socket: socketRef.current, logs, connected, completedCount, completedIds, failedIds, subscribe, clearLogs };
+  return { socket: socketRef.current, logs, connected, completedCount, completedIds, failedIds, processingIds, subscribe, clearLogs };
 }
