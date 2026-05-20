@@ -72,22 +72,23 @@ export default function Sidebar({ activePage, onNavigate, isDark: _isDark }: Sid
   const iconSize = 20;
   const activeIndex = navItems.findIndex((item) => item.key === activePage);
 
-  const expandedWidth = 220;
+  const expandedWidth = 280;
   const collapsedWidth = 60;
   const currentWidth = collapsed ? collapsedWidth : expandedWidth;
 
   const buttonHeight = 40;
-  const buttonMargin = 1;
+  const marginY = 2;
+  const marginX = 10;
   const barHeight = 24;
   const barWidth = 3;
-  const buttonRadius = '6px';
+  const buttonRadius = '4px';
 
-  const toggleTotalH = buttonHeight + 2 * buttonMargin;
+  const toggleTotalH = buttonHeight + 2 * marginY;
 
   const activeBarTop =
     toggleTotalH +
-    buttonMargin +
-    activeIndex * (buttonHeight + 2 * buttonMargin) +
+    marginY +
+    activeIndex * (buttonHeight + 2 * marginY) +
     (buttonHeight - barHeight) / 2;
 
   return (
@@ -108,7 +109,7 @@ export default function Sidebar({ activePage, onNavigate, isDark: _isDark }: Sid
         onClick={() => setUserPref(!userPref)}
         title={collapsed ? '展开侧边栏' : '收起侧边栏'}
         style={{
-          width: collapsed ? `${buttonHeight}px` : `calc(100% - ${2 * buttonMargin}px)`,
+          width: collapsed ? `${buttonHeight}px` : `calc(100% - ${2 * marginX}px)`,
           height: `${buttonHeight}px`,
           display: 'flex',
           alignItems: 'center',
@@ -120,7 +121,7 @@ export default function Sidebar({ activePage, onNavigate, isDark: _isDark }: Sid
           color: 'var(--text-muted)',
           padding: 0,
           paddingLeft: collapsed ? '0' : '16px',
-          margin: collapsed ? `${buttonMargin}px auto` : `${buttonMargin}px`,
+          margin: collapsed ? `${marginY}px auto` : `${marginY}px ${marginX}px`,
           flexShrink: 0,
           transition: `color var(--duration-fast) var(--ease-out), width var(--duration-normal) var(--ease-out), margin var(--duration-normal) var(--ease-out), padding var(--duration-normal) var(--ease-out), justify-content var(--duration-normal) var(--ease-out)`,
         }}
@@ -138,12 +139,12 @@ export default function Sidebar({ activePage, onNavigate, isDark: _isDark }: Sid
 
       <div style={{
         position: 'absolute',
-        left: '0',
+        left: '9px',
         top: `${activeBarTop}px`,
         width: `${barWidth}px`,
         height: `${barHeight}px`,
         background: 'var(--accent)',
-        borderRadius: '0 3px 3px 0',
+        borderRadius: '3px',
         transition: `top var(--duration-normal) var(--ease-out)`,
       }} />
 
@@ -157,7 +158,7 @@ export default function Sidebar({ activePage, onNavigate, isDark: _isDark }: Sid
             onClick={() => onNavigate(item.key)}
             title={collapsed ? item.label : undefined}
             style={{
-              width: collapsed ? `${buttonHeight}px` : `calc(100% - ${2 * buttonMargin}px)`,
+              width: collapsed ? `${buttonHeight}px` : `calc(100% - ${2 * marginX}px)`,
               height: `${buttonHeight}px`,
               display: 'flex',
               flexDirection: 'row',
@@ -166,12 +167,12 @@ export default function Sidebar({ activePage, onNavigate, isDark: _isDark }: Sid
               gap: collapsed ? '0' : '10px',
               paddingLeft: collapsed ? '0' : '16px',
               paddingRight: '0',
-              margin: collapsed ? `${buttonMargin}px auto` : `${buttonMargin}px`,
+              margin: collapsed ? `${marginY}px auto` : `${marginY}px ${marginX}px`,
               border: 'none',
               borderRadius: buttonRadius,
               cursor: 'pointer',
-              background: isActive ? 'var(--accent-muted)' : 'transparent',
-              color: isActive ? 'var(--accent)' : 'var(--text-muted)',
+              background: isActive ? 'var(--bg-surface-3)' : 'transparent',
+              color: isActive ? 'var(--text-primary)' : 'var(--text-muted)',
               fontSize: '12px',
               fontWeight: isActive ? 600 : 400,
               fontFamily: 'var(--font-ui)',

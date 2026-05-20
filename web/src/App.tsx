@@ -49,15 +49,14 @@ export default function App() {
   const [scrapeDepth, setScrapeDepth] = useState(1);
   const [scrapeProcessedCount, setScrapeProcessedCount] = useState(0);
   const [debugLogEnabled, setDebugLogEnabled] = useState(false);
-  const [showFullPathOptions, setShowFullPathOptions] = useState(true);
   const [workspaceShowFullPath, setWorkspaceShowFullPath] = useState(true);
   const [scrapeShowFullPath, setScrapeShowFullPath] = useState(true);
   const [thumbnailCount, setThumbnailCount] = useState(3);
   const [fileListViewMode, setFileListViewMode] = useState<ViewMode>('list');
   const [ffmpegAvailable, setFfmpegAvailable] = useState(true);
 
-  const effectiveWorkspaceShowFullPath = showFullPathOptions && workspaceShowFullPath;
-  const effectiveScrapeShowFullPath = showFullPathOptions && scrapeShowFullPath;
+  const effectiveWorkspaceShowFullPath = workspaceShowFullPath;
+  const effectiveScrapeShowFullPath = scrapeShowFullPath;
 
   useProbePolling(files, setFiles);
   useProbePolling(scrapeFiles, setScrapeFiles);
@@ -105,15 +104,6 @@ export default function App() {
       .then((data) => {
         if (data.success && data.value !== null) {
           setDebugLogEnabled(data.value === 'true');
-        }
-      })
-      .catch(() => {});
-
-    fetch(`${API_BASE}/settings/showFullPathOptions`)
-      .then((r) => r.json())
-      .then((data) => {
-        if (data.success && data.value !== null) {
-          setShowFullPathOptions(data.value !== 'false');
         }
       })
       .catch(() => {});
@@ -442,15 +432,6 @@ export default function App() {
     }
   };
 
-  const handleShowFullPathOptionsChange = (value: boolean) => {
-    setShowFullPathOptions(value);
-    fetch(`${API_BASE}/settings/showFullPathOptions`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ value: String(value) }),
-    }).catch(() => {});
-  };
-
   const handleWorkspaceShowFullPathChange = (value: boolean) => {
     setWorkspaceShowFullPath(value);
     fetch(`${API_BASE}/settings/workspaceShowFullPath`, {
@@ -493,8 +474,6 @@ export default function App() {
         return <TagManagement isDark={isDark} />;
       case 'settings':
         return <SettingsPage
-          showFullPathOptions={showFullPathOptions}
-          onShowFullPathOptionsChange={handleShowFullPathOptionsChange}
           workspaceShowFullPath={workspaceShowFullPath}
           onWorkspaceShowFullPathChange={handleWorkspaceShowFullPathChange}
           scrapeShowFullPath={scrapeShowFullPath}

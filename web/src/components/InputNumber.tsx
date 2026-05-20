@@ -84,8 +84,8 @@ export default function InputNumber({
         onClick={handleDecrement}
         onMouseEnter={(e) => {
           if (canDecrement && !disabled) {
-            e.currentTarget.style.background = 'var(--accent-muted)';
-            e.currentTarget.style.color = 'var(--accent)';
+            e.currentTarget.style.background = 'var(--md-sys-color-surface-container-highest)';
+            e.currentTarget.style.color = 'var(--text-primary)';
           }
         }}
         onMouseLeave={(e) => {
@@ -149,8 +149,8 @@ export default function InputNumber({
         onClick={handleIncrement}
         onMouseEnter={(e) => {
           if (canIncrement && !disabled) {
-            e.currentTarget.style.background = 'var(--accent-muted)';
-            e.currentTarget.style.color = 'var(--accent)';
+            e.currentTarget.style.background = 'var(--md-sys-color-surface-container-highest)';
+            e.currentTarget.style.color = 'var(--text-primary)';
           }
         }}
         onMouseLeave={(e) => {

@@ -6,6 +6,6 @@
 
 export const APP_NAME = 'Syrnaxies Video File Processor';
 export const APP_SHORT_NAME = 'SVFP';
-export const APP_VERSION = '1.2.3';
+export const APP_VERSION = '1.2.4';
 export const BUILD_DATE = '2026-05-16';
 export const GITHUB_URL = 'https://github.com/Syrnaxei/SyrnaxiesVideoFileProcessor';

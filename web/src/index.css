@@ -1,6 +1,6 @@
 /* ═══════════════════════════════════════════════════════════════
-   SVFP Design System — Material Design 3
-   Official MD3 tonal palette color scheme (Dark + Light)
+   SVFP Design System — Windows 10 UWP Blue
+   Accent: #4CC2FF softer cyan-blue (Dark + Light)
    ═══════════════════════════════════════════════════════════════ */
 
 /* ── CSS Custom Properties ─────────────────────────────────── */
@@ -34,91 +34,77 @@
 }
 
 /* ═══════════════════════════════════════════════════════════════
-   MD3 Dark Theme (default)
-   Source color: #6750A4 (MD3 baseline purple primary)
+   Windows 10 UWP Blue Theme (Dark)
+   Accent: #4CC2FF — softer cyan-blue
    ═══════════════════════════════════════════════════════════════ */
 
 :root,
 [data-theme="dark"] {
-  /* ── MD3 Core Tokens ──────────────────────────────────── */
+  /* ── Primary (Accent Blue) ────────────────────────────── */
+  --md-sys-color-primary: #4CC2FF;
+  --md-sys-color-on-primary: #003344;
+  --md-sys-color-primary-container: #00475A;
+  --md-sys-color-on-primary-container: #C1EEFF;
 
-  /* Primary */
-  --md-sys-color-primary: #D0BCFF;
-  --md-sys-color-on-primary: #381E72;
-  --md-sys-color-primary-container: #4F378B;
-  --md-sys-color-on-primary-container: #EADDFF;
+  /* ── Surface hierarchy ───────────────────────────────── */
+  --md-sys-color-background: #1A1A1A;
+  --md-sys-color-on-background: #FFFFFF;
+  --md-sys-color-surface: #202020;
+  --md-sys-color-on-surface: #FFFFFF;
+  --md-sys-color-surface-variant: #2D2D2D;
+  --md-sys-color-on-surface-variant: #CCCCCC;
 
-  /* Secondary */
-  --md-sys-color-secondary: #CCC2DC;
-  --md-sys-color-on-secondary: #332D41;
-  --md-sys-color-secondary-container: #4A4458;
-  --md-sys-color-on-secondary-container: #E8DEF8;
+  --md-sys-color-surface-container-lowest: #171717;
+  --md-sys-color-surface-container-low: #252525;
+  --md-sys-color-surface-container: #2A2A2A;
+  --md-sys-color-surface-container-high: #333333;
+  --md-sys-color-surface-container-highest: #3D3D3D;
 
-  /* Tertiary */
-  --md-sys-color-tertiary: #EFB8C8;
-  --md-sys-color-on-tertiary: #492532;
-  --md-sys-color-tertiary-container: #633B48;
-  --md-sys-color-on-tertiary-container: #FFD8E4;
+  /* ── Outline ──────────────────────────────────────────── */
+  --md-sys-color-outline: #7A7A7A;
+  --md-sys-color-outline-variant: #404040;
 
-  /* Error */
-  --md-sys-color-error: #F2B8B5;
-  --md-sys-color-on-error: #601410;
-  --md-sys-color-error-container: #8C1D18;
-  --md-sys-color-on-error-container: #F9DEDC;
+  /* ── Inverse ──────────────────────────────────────────── */
+  --md-sys-color-inverse-surface: #FFFFFF;
+  --md-sys-color-inverse-on-surface: #1A1A1A;
+  --md-sys-color-inverse-primary: #4CC2FF;
 
-  /* Background */
-  --md-sys-color-background: #1C1B1F;
-  --md-sys-color-on-background: #E6E1E5;
-
-  /* Surface */
-  --md-sys-color-surface: #1C1B1F;
-  --md-sys-color-on-surface: #E6E1E5;
-  --md-sys-color-surface-variant: #49454F;
-  --md-sys-color-on-surface-variant: #CAC4D0;
-
-  /* Surface Containers (elevation hierarchy) */
-  --md-sys-color-surface-container-lowest: #0F0D13;
-  --md-sys-color-surface-container-low: #2B2930;
-  --md-sys-color-surface-container: #2F2D33;
-  --md-sys-color-surface-container-high: #3A373D;
-  --md-sys-color-surface-container-highest: #454248;
-
-  /* Outline */
-  --md-sys-color-outline: #938F99;
-  --md-sys-color-outline-variant: #49454F;
-
-  /* Inverse */
-  --md-sys-color-inverse-surface: #E6E1E5;
-  --md-sys-color-inverse-on-surface: #1C1B1F;
-  --md-sys-color-inverse-primary: #6750A4;
-
-  /* Utility */
+  /* ── Utility ──────────────────────────────────────────── */
   --md-sys-color-shadow: #000000;
   --md-sys-color-scrim: #000000;
-  --md-sys-color-surface-tint: #D0BCFF;
+  --md-sys-color-surface-tint: #4CC2FF;
 
-  /* ── Extended Colors (MD3 tonal palette) ──────────────── */
+  /* ── Secondary ────────────────────────────────────────── */
+  --md-sys-color-secondary: #999999;
+  --md-sys-color-on-secondary: #1A1A1A;
+  --md-sys-color-secondary-container: #383838;
+  --md-sys-color-on-secondary-container: #E0E0E0;
 
-  /* Success (Green) */
-  --md-sys-color-success: #7BDB8E;
-  --md-sys-color-on-success: #003910;
-  --md-sys-color-success-container: #1B5E20;
-  --md-sys-color-on-success-container: #A5F0B0;
+  /* ── Error (Windows Red) ──────────────────────────────── */
+  --md-sys-color-error: #F1707B;
+  --md-sys-color-on-error: #FFFFFF;
+  --md-sys-color-error-container: #5C1A1F;
+  --md-sys-color-on-error-container: #FFDAD8;
 
-  /* Warning (Amber) */
-  --md-sys-color-warning: #FFD970;
-  --md-sys-color-on-warning: #3A2E00;
-  --md-sys-color-warning-container: #5A4500;
-  --md-sys-color-on-warning-container: #FFE088;
+  /* ── Success (Windows Green) ──────────────────────────── */
+  --md-sys-color-success: #6BBF6E;
+  --md-sys-color-on-success: #FFFFFF;
+  --md-sys-color-success-container: #1B4D1E;
+  --md-sys-color-on-success-container: #B7F0B9;
 
-  /* Info (Blue) */
-  --md-sys-color-info: #A8C7FF;
-  --md-sys-color-on-info: #00315F;
-  --md-sys-color-info-container: #1B4A8A;
-  --md-sys-color-on-info-container: #D3E4FF;
+  /* ── Warning (Orange) ─────────────────────────────────── */
+  --md-sys-color-warning: #FFA940;
+  --md-sys-color-on-warning: #1A1A1A;
+  --md-sys-color-warning-container: #5C3800;
+  --md-sys-color-on-warning-container: #FFDDA3;
+
+  /* ── Info (Light Blue) ────────────────────────────────── */
+  --md-sys-color-info: #60CDFF;
+  --md-sys-color-on-info: #00324A;
+  --md-sys-color-info-container: #004B6E;
+  --md-sys-color-on-info-container: #C1E8FF;
 
   /* ── Backward-compatible aliases ──────────────────────── */
-
   --bg-base: var(--md-sys-color-background);
   --bg-surface-1: var(--md-sys-color-surface);
   --bg-surface-2: var(--md-sys-color-surface-container-low);
@@ -126,129 +112,115 @@
   --bg-elevated: var(--md-sys-color-surface-container-low);
 
   --border-default: var(--md-sys-color-outline-variant);
-  --border-subtle: #3A373D;
-  --border-accent: rgba(208, 188, 255, 0.25);
+  --border-subtle: #333333;
+  --border-accent: rgba(76, 194, 255, 0.30);
 
   --text-primary: var(--md-sys-color-on-surface);
   --text-secondary: var(--md-sys-color-on-surface-variant);
   --text-muted: var(--md-sys-color-outline);
 
   --accent: var(--md-sys-color-primary);
-  --accent-hover: #DDD0FF;
-  --accent-muted: rgba(208, 188, 255, 0.12);
-  --accent-strong: rgba(208, 188, 255, 0.20);
+  --accent-hover: #70D2FF;
+  --accent-muted: rgba(76, 194, 255, 0.12);
+  --accent-strong: rgba(76, 194, 255, 0.20);
 
   --success: var(--md-sys-color-success);
-  --success-hover: #8FE89E;
-  --success-muted: rgba(123, 219, 142, 0.12);
-  --success-strong: rgba(123, 219, 142, 0.20);
+  --success-hover: #7CCF82;
+  --success-muted: rgba(107, 191, 110, 0.12);
+  --success-strong: rgba(107, 191, 110, 0.20);
 
   --warning: var(--md-sys-color-warning);
-  --warning-muted: rgba(255, 217, 112, 0.12);
+  --warning-muted: rgba(255, 169, 64, 0.12);
 
   --error: var(--md-sys-color-error);
-  --error-hover: #F7C9C7;
-  --error-muted: rgba(242, 184, 181, 0.12);
-  --error-strong: rgba(242, 184, 181, 0.20);
+  --error-hover: #F5858F;
+  --error-muted: rgba(241, 112, 123, 0.12);
+  --error-strong: rgba(241, 112, 123, 0.20);
 
   --info: var(--md-sys-color-info);
-  --info-muted: rgba(168, 199, 255, 0.12);
+  --info-muted: rgba(96, 205, 255, 0.12);
 
   --scrollbar-thumb: rgba(255, 255, 255, 0.10);
   --scrollbar-thumb-hover: rgba(255, 255, 255, 0.18);
 
   /* Shadows (dark) */
-  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.3);
-  --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.4);
-  --shadow-lg: 0 8px 24px rgba(0, 0, 0, 0.5);
-  --shadow-glow: 0 0 20px rgba(208, 188, 255, 0.15);
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.4);
+  --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.5);
+  --shadow-lg: 0 8px 24px rgba(0, 0, 0, 0.6);
+  --shadow-glow: 0 0 20px rgba(76, 194, 255, 0.15);
 }
 
 /* ═══════════════════════════════════════════════════════════════
-   MD3 Light Theme
-   Source color: #6750A4 (MD3 baseline purple primary)
+   Windows 10 UWP Blue Theme (Light)
+   Accent: #4CC2FF — softer cyan-blue
    ═══════════════════════════════════════════════════════════════ */
 
 [data-theme="light"] {
-  /* ── MD3 Core Tokens ──────────────────────────────────── */
+  /* ── Primary (Accent Blue) ────────────────────────────── */
+  --md-sys-color-primary: #4CC2FF;
+  --md-sys-color-on-primary: #003344;
+  --md-sys-color-primary-container: #C1EEFF;
+  --md-sys-color-on-primary-container: #003344;
 
-  /* Primary */
-  --md-sys-color-primary: #6750A4;
-  --md-sys-color-on-primary: #FFFFFF;
-  --md-sys-color-primary-container: #EADDFF;
-  --md-sys-color-on-primary-container: #21005D;
+  /* ── Surface hierarchy ───────────────────────────────── */
+  --md-sys-color-background: #F0F0F0;
+  --md-sys-color-on-background: #1A1A1A;
+  --md-sys-color-surface: #FFFFFF;
+  --md-sys-color-on-surface: #1A1A1A;
+  --md-sys-color-surface-variant: #F3F3F3;
+  --md-sys-color-on-surface-variant: #666666;
 
-  /* Secondary */
-  --md-sys-color-secondary: #625B71;
-  --md-sys-color-on-secondary: #FFFFFF;
-  --md-sys-color-secondary-container: #E8DEF8;
-  --md-sys-color-on-secondary-container: #1D192B;
-
-  /* Tertiary */
-  --md-sys-color-tertiary: #7D5260;
-  --md-sys-color-on-tertiary: #FFFFFF;
-  --md-sys-color-tertiary-container: #FFD8E4;
-  --md-sys-color-on-tertiary-container: #31111D;
-
-  /* Error */
-  --md-sys-color-error: #B3261E;
-  --md-sys-color-on-error: #FFFFFF;
-  --md-sys-color-error-container: #F9DEDC;
-  --md-sys-color-on-error-container: #410E0B;
-
-  /* Background */
-  --md-sys-color-background: #FFFBFE;
-  --md-sys-color-on-background: #1C1B1F;
-
-  /* Surface */
-  --md-sys-color-surface: #FFFBFE;
-  --md-sys-color-on-surface: #1C1B1F;
-  --md-sys-color-surface-variant: #E7E0EC;
-  --md-sys-color-on-surface-variant: #49454F;
-
-  /* Surface Containers (elevation hierarchy) */
   --md-sys-color-surface-container-lowest: #FFFFFF;
-  --md-sys-color-surface-container-low: #F7F2FA;
-  --md-sys-color-surface-container: #F3EDF7;
-  --md-sys-color-surface-container-high: #ECE6F0;
-  --md-sys-color-surface-container-highest: #E6E0E9;
+  --md-sys-color-surface-container-low: #F7F7F7;
+  --md-sys-color-surface-container: #F3F3F3;
+  --md-sys-color-surface-container-high: #ECECEC;
+  --md-sys-color-surface-container-highest: #E5E5E5;
 
-  /* Outline */
-  --md-sys-color-outline: #79747E;
-  --md-sys-color-outline-variant: #CAC4D0;
+  /* ── Outline ──────────────────────────────────────────── */
+  --md-sys-color-outline: #999999;
+  --md-sys-color-outline-variant: #E0E0E0;
 
-  /* Inverse */
-  --md-sys-color-inverse-surface: #313033;
-  --md-sys-color-inverse-on-surface: #F4EFF4;
-  --md-sys-color-inverse-primary: #D0BCFF;
+  /* ── Inverse ──────────────────────────────────────────── */
+  --md-sys-color-inverse-surface: #1A1A1A;
+  --md-sys-color-inverse-on-surface: #FFFFFF;
+  --md-sys-color-inverse-primary: #4CC2FF;
 
-  /* Utility */
+  /* ── Utility ──────────────────────────────────────────── */
   --md-sys-color-shadow: #000000;
   --md-sys-color-scrim: #000000;
-  --md-sys-color-surface-tint: #6750A4;
+  --md-sys-color-surface-tint: #4CC2FF;
 
-  /* ── Extended Colors (MD3 tonal palette) ──────────────── */
+  /* ── Secondary ────────────────────────────────────────── */
+  --md-sys-color-secondary: #666666;
+  --md-sys-color-on-secondary: #FFFFFF;
+  --md-sys-color-secondary-container: #E8E8E8;
+  --md-sys-color-on-secondary-container: #333333;
 
-  /* Success (Green) */
-  --md-sys-color-success: #1B6D2F;
+  /* ── Error (Windows Red) ──────────────────────────────── */
+  --md-sys-color-error: #E81123;
+  --md-sys-color-on-error: #FFFFFF;
+  --md-sys-color-error-container: #FDE7E9;
+  --md-sys-color-on-error-container: #5C0D14;
+
+  /* ── Success (Windows Green) ──────────────────────────── */
+  --md-sys-color-success: #107C10;
   --md-sys-color-on-success: #FFFFFF;
-  --md-sys-color-success-container: #A5F0B0;
-  --md-sys-color-on-success-container: #002106;
+  --md-sys-color-success-container: #DFF6DD;
+  --md-sys-color-on-success-container: #0B3B0B;
 
-  /* Warning (Amber) */
-  --md-sys-color-warning: #7A5900;
-  --md-sys-color-on-warning: #FFFFFF;
-  --md-sys-color-warning-container: #FFE088;
-  --md-sys-color-on-warning-container: #261A00;
+  /* ── Warning (Orange) ─────────────────────────────────── */
+  --md-sys-color-warning: #FF8C00;
+  --md-sys-color-on-warning: #1A1A1A;
+  --md-sys-color-warning-container: #FFE8CC;
+  --md-sys-color-on-warning-container: #663800;
 
-  /* Info (Blue) */
-  --md-sys-color-info: #1B4A8A;
-  --md-sys-color-on-info: #FFFFFF;
-  --md-sys-color-info-container: #D3E4FF;
-  --md-sys-color-on-info-container: #001C3A;
+  /* ── Info (Light Blue) ────────────────────────────────── */
+  --md-sys-color-info: #4CC2FF;
+  --md-sys-color-on-info: #003344;
+  --md-sys-color-info-container: #C1EEFF;
+  --md-sys-color-on-info-container: #003344;
 
   /* ── Backward-compatible aliases ──────────────────────── */
-
   --bg-base: var(--md-sys-color-background);
   --bg-surface-1: var(--md-sys-color-surface);
   --bg-surface-2: var(--md-sys-color-surface-container-low);
@@ -256,42 +228,42 @@
   --bg-elevated: var(--md-sys-color-surface-container-low);
 
   --border-default: var(--md-sys-color-outline-variant);
-  --border-subtle: #E0DAE5;
-  --border-accent: rgba(103, 80, 164, 0.20);
+  --border-subtle: #EBEBEB;
+  --border-accent: rgba(76, 194, 255, 0.25);
 
   --text-primary: var(--md-sys-color-on-surface);
   --text-secondary: var(--md-sys-color-on-surface-variant);
   --text-muted: var(--md-sys-color-outline);
 
   --accent: var(--md-sys-color-primary);
-  --accent-hover: #5A48B5;
-  --accent-muted: rgba(103, 80, 164, 0.08);
-  --accent-strong: rgba(103, 80, 164, 0.15);
+  --accent-hover: #29B0EC;
+  --accent-muted: rgba(76, 194, 255, 0.08);
+  --accent-strong: rgba(76, 194, 255, 0.15);
 
   --success: var(--md-sys-color-success);
-  --success-hover: #155A26;
-  --success-muted: rgba(27, 109, 47, 0.08);
-  --success-strong: rgba(27, 109, 47, 0.15);
+  --success-hover: #0B600B;
+  --success-muted: rgba(16, 124, 16, 0.08);
+  --success-strong: rgba(16, 124, 16, 0.15);
 
   --warning: var(--md-sys-color-warning);
-  --warning-muted: rgba(122, 89, 0, 0.08);
+  --warning-muted: rgba(255, 140, 0, 0.08);
 
   --error: var(--md-sys-color-error);
-  --error-hover: #9A1F19;
-  --error-muted: rgba(179, 38, 30, 0.08);
-  --error-strong: rgba(179, 38, 30, 0.15);
+  --error-hover: #C50F1F;
+  --error-muted: rgba(232, 17, 35, 0.08);
+  --error-strong: rgba(232, 17, 35, 0.15);
 
   --info: var(--md-sys-color-info);
-  --info-muted: rgba(27, 74, 138, 0.08);
+  --info-muted: rgba(76, 194, 255, 0.08);
 
-  --scrollbar-thumb: rgba(0, 0, 0, 0.10);
-  --scrollbar-thumb-hover: rgba(0, 0, 0, 0.18);
+  --scrollbar-thumb: rgba(0, 0, 0, 0.12);
+  --scrollbar-thumb-hover: rgba(0, 0, 0, 0.22);
 
   /* Shadows (light) */
-  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.05);
-  --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.08);
-  --shadow-lg: 0 8px 24px rgba(0, 0, 0, 0.12);
-  --shadow-glow: 0 0 20px rgba(103, 80, 164, 0.12);
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.04);
+  --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.06);
+  --shadow-lg: 0 8px 24px rgba(0, 0, 0, 0.10);
+  --shadow-glow: 0 0 20px rgba(76, 194, 255, 0.10);
 }
 
 /* ── Reset & Base ──────────────────────────────────────────── */
@@ -631,6 +603,197 @@ input, textarea, button, select {
 /* Page transition */
 .page-enter {
   animation: fade-in-up var(--duration-normal) var(--ease-out);
+}
+
+/* Settings tile — 设置项行块 */
+.settings-tile {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 16px;
+  border-radius: 4px;
+  background: var(--bg-surface-2);
+  transition: background var(--duration-fast) var(--ease-out);
+  cursor: default;
+  gap: 16px;
+}
+
+.settings-tile-left {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+}
+
+.settings-tile-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  flex-shrink: 0;
+  color: var(--text-secondary);
+  transform: translateY(-2px);
+}
+
+.settings-tile-info {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.settings-tile-title {
+  font-size: 16px;
+  font-weight: 500;
+  color: var(--text-primary);
+  letter-spacing: -0.01em;
+  line-height: 1.3;
+}
+
+.settings-tile-desc {
+  font-size: 13px;
+  color: var(--text-muted);
+  letter-spacing: -0.01em;
+  line-height: 1.4;
+}
+
+.settings-tile-right {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+}
+
+/* Settings section — 设置分组 */
+.settings-section-title {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-primary);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  margin-bottom: 16px;
+}
+
+.settings-card-body {
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+/* Settings about tile — 关于信息行块（无悬停背景） */
+.settings-about-tile {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 16px;
+  border-radius: var(--radius-md);
+  gap: 16px;
+}
+
+.settings-about-tile-left {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+/* Expandable settings tile — 可展开设置项行块 */
+.settings-expandable-tile {
+  border-radius: 4px;
+  background: var(--bg-surface-2);
+  transition: background var(--duration-fast) var(--ease-out);
+}
+
+.settings-expandable-tile:hover {
+  background: var(--bg-surface-3);
+}
+
+.settings-expandable-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 16px;
+  cursor: pointer;
+  gap: 16px;
+  user-select: none;
+}
+
+.settings-expandable-body {
+  display: grid;
+  grid-template-rows: 0fr;
+  transition: grid-template-rows 180ms ease;
+}
+
+.settings-expandable-tile.expanded .settings-expandable-body {
+  grid-template-rows: 1fr;
+}
+
+.settings-expandable-body-inner {
+  overflow: hidden;
+}
+
+/* 子项 */
+.settings-sub-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 16px 10px 52px;
+  min-height: 42px;
+  transition: background var(--duration-fast) var(--ease-out);
+}
+
+.settings-sub-item:hover {
+  background: var(--bg-surface-3);
+}
+
+.settings-sub-item-label {
+  font-size: 14px;
+  color: var(--text-secondary);
+  letter-spacing: -0.01em;
+}
+
+.settings-sub-item-value {
+  font-size: 13px;
+  color: var(--text-secondary);
+  font-weight: 500;
+  letter-spacing: -0.01em;
+}
+
+.settings-sub-item-right {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.settings-sub-item-divider {
+  height: 1px;
+  background: var(--border-subtle);
+  margin: 0 16px 0 36px;
+}
+
+/* 展开箭头 */
+.settings-expand-arrow {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  color: var(--text-muted);
+  transition: transform var(--duration-fast) var(--ease-out);
+  flex-shrink: 0;
+}
+
+.settings-expand-arrow.expanded {
+  transform: rotate(180deg);
+}
+
+/* 可展开头部右侧：状态文字 + 箭头 */
+.settings-expandable-header-right {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-shrink: 0;
 }
 
 /* Toast animation - kept for compatibility */
