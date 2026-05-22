@@ -1,4 +1,5 @@
 import type { Node } from 'reactflow';
+import { FolderAddIcon } from './FluentIcons';
 
 interface PropertyPanelProps {
   selectedNode: Node | null;
@@ -77,7 +78,8 @@ export default function PropertyPanel({ selectedNode, onChange }: PropertyPanelP
                 style={{ flex: 1 }}
               />
               {isElectron && (
-                <button onClick={() => handleSelectDirectory('watchPath')} className="btn btn-primary" style={{ padding: '6px 12px', fontSize: '12px' }}>
+                <button onClick={() => handleSelectDirectory('watchPath')} className="btn btn-primary" style={{ padding: '6px 12px', fontSize: '12px', display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
+                  <FolderAddIcon size={16} />
                   选择...
                 </button>
               )}
@@ -133,8 +135,9 @@ export default function PropertyPanel({ selectedNode, onChange }: PropertyPanelP
                 <button
                   onClick={() => handleSelectDirectory('targetPathTemplate')}
                   className="btn"
-                  style={{ padding: '6px 12px', fontSize: '12px', background: 'var(--warning)', color: 'var(--md-sys-color-on-warning)' }}
+                  style={{ padding: '6px 12px', fontSize: '12px', background: 'var(--warning)', color: 'var(--md-sys-color-on-warning)', display: 'inline-flex', alignItems: 'center', gap: '6px' }}
                 >
+                  <FolderAddIcon size={16} />
                   选择...
                 </button>
               )}

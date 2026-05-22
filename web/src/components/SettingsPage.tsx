@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useTheme } from '../contexts/ThemeContext';
 import SelectDropdown from './SelectDropdown';
 import InputNumber from './InputNumber';
+import { FolderLinkIcon } from './FluentIcons';
 import { setToastDuration } from './Toast';
 import { type ViewMode } from './FileList';
 
@@ -495,7 +496,10 @@ export default function SettingsPage({
                     style={{ width: '260px' }}
                   />
                   {window.electronAPI && (
-                    <button onClick={handleSelectWorkspaceSource} className="btn btn-outline" style={{ padding: '6px 14px', fontSize: '12px' }}>选择...</button>
+                    <button onClick={handleSelectWorkspaceSource} className="btn-folder-select">
+                      <FolderLinkIcon size={18} />
+                      连接文件夹
+                    </button>
                   )}
                 </div>
               </SettingsSubItem>
@@ -515,7 +519,10 @@ export default function SettingsPage({
                     style={{ width: '260px' }}
                   />
                   {window.electronAPI && (
-                    <button onClick={handleSelectScrapeSource} className="btn btn-outline" style={{ padding: '6px 14px', fontSize: '12px' }}>选择...</button>
+                    <button onClick={handleSelectScrapeSource} className="btn-folder-select">
+                      <FolderLinkIcon size={18} />
+                      连接文件夹
+                    </button>
                   )}
                 </div>
               </SettingsSubItem>
@@ -532,7 +539,10 @@ export default function SettingsPage({
                     style={{ width: '260px' }}
                   />
                   {window.electronAPI && (
-                    <button onClick={handleSelectScrapeExport} className="btn btn-outline" style={{ padding: '6px 14px', fontSize: '12px' }}>选择...</button>
+                    <button onClick={handleSelectScrapeExport} className="btn-folder-select">
+                      <FolderLinkIcon size={18} />
+                      连接文件夹
+                    </button>
                   )}
                 </div>
               </SettingsSubItem>
@@ -629,7 +639,10 @@ export default function SettingsPage({
                     style={{ width: '240px' }}
                   />
                   {window.electronAPI && (
-                    <button onClick={handleSelectFfmpegBin} className="btn btn-outline" style={{ padding: '6px 14px', fontSize: '12px' }}>选择...</button>
+                    <button onClick={handleSelectFfmpegBin} className="btn-folder-select">
+                      <FolderLinkIcon size={18} />
+                      连接文件夹
+                    </button>
                   )}
                   <button
                     onClick={handleDetectFfmpeg}

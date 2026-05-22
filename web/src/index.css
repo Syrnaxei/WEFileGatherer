@@ -121,6 +121,8 @@
   --settings-ctrl-hover-bg: #434343;
   --settings-ctrl-panel-bg: #2C2C2C;
   --settings-ctrl-knob-bg: #FFFFFF;
+  --btn-folder-bg: #404040;
+  --btn-folder-hover-bg: #494949;
 
   --border-default: var(--md-sys-color-outline-variant);
   --border-subtle: #333333;
@@ -248,6 +250,8 @@
   --settings-ctrl-hover-bg: #D0D0D0;
   --settings-ctrl-panel-bg: #FFFFFF;
   --settings-ctrl-knob-bg: #FFFFFF;
+  --btn-folder-bg: #D8D8D8;
+  --btn-folder-hover-bg: #CCCCCC;
 
   --border-default: var(--md-sys-color-outline-variant);
   --border-subtle: #EBEBEB;
@@ -526,6 +530,26 @@ input, textarea, button, select {
   color: var(--text-secondary);
 }
 .btn-outline:hover:not(:disabled) { border-color: var(--accent); color: var(--accent); background: var(--accent-muted); }
+
+/* 文件夹选择按钮 — 无边框填充色背景 */
+.btn-folder-select {
+  background: var(--btn-folder-bg);
+  border: none;
+  color: var(--text-primary);
+  padding: 8px 14px;
+  font-size: 13px;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  transition: background var(--duration-fast) var(--ease-out);
+  font-family: var(--font-ui);
+  font-weight: 500;
+  letter-spacing: -0.01em;
+}
+.btn-folder-select:hover:not(:disabled) { background: var(--btn-folder-hover-bg); }
+.btn-folder-select:active:not(:disabled) { background: var(--btn-folder-hover-bg); }
 
 /* Input base */
 .input {
