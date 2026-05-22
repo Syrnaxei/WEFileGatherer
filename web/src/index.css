@@ -111,6 +111,17 @@
   --bg-surface-3: var(--md-sys-color-surface-container-high);
   --bg-elevated: var(--md-sys-color-surface-container-low);
 
+  /* ── Settings page ───────────────────────────────────── */
+  --settings-page-bg: #272727;
+  --settings-header-bg: #272727;
+  --settings-tile-bg: #323232;
+  --settings-tile-hover-bg: #393939;
+  --btn-inactive-bg: #2d2d2d;
+  --settings-ctrl-bg: #3E3E3E;
+  --settings-ctrl-hover-bg: #434343;
+  --settings-ctrl-panel-bg: #2C2C2C;
+  --settings-ctrl-knob-bg: #FFFFFF;
+
   --border-default: var(--md-sys-color-outline-variant);
   --border-subtle: #333333;
   --border-accent: rgba(76, 194, 255, 0.30);
@@ -226,6 +237,17 @@
   --bg-surface-2: var(--md-sys-color-surface-container-low);
   --bg-surface-3: var(--md-sys-color-surface-container-high);
   --bg-elevated: var(--md-sys-color-surface-container-low);
+
+  /* ── Settings page ───────────────────────────────────── */
+  --settings-page-bg: #F2F2F2;
+  --settings-header-bg: #F2F2F2;
+  --settings-tile-bg: #FFFFFF;
+  --settings-tile-hover-bg: #EBEBEB;
+  --btn-inactive-bg: #DDDDDD;
+  --settings-ctrl-bg: #E0E0E0;
+  --settings-ctrl-hover-bg: #D0D0D0;
+  --settings-ctrl-panel-bg: #FFFFFF;
+  --settings-ctrl-knob-bg: #FFFFFF;
 
   --border-default: var(--md-sys-color-outline-variant);
   --border-subtle: #EBEBEB;
@@ -515,6 +537,7 @@ input, textarea, button, select {
   color: var(--text-primary);
   font-size: 13px;
   font-family: var(--font-ui);
+  user-select: text;
   transition: border-color var(--duration-fast) var(--ease-out), box-shadow var(--duration-fast) var(--ease-out);
 }
 .input:focus { border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-muted); }
@@ -666,7 +689,7 @@ input, textarea, button, select {
   justify-content: space-between;
   padding: 14px 16px;
   border-radius: 4px;
-  background: var(--bg-surface-2);
+  background: var(--settings-tile-bg);
   transition: background var(--duration-fast) var(--ease-out);
   cursor: default;
   gap: 16px;
@@ -754,12 +777,12 @@ input, textarea, button, select {
 /* Expandable settings tile — 可展开设置项行块 */
 .settings-expandable-tile {
   border-radius: 4px;
-  background: var(--bg-surface-2);
+  background: var(--settings-tile-bg);
   transition: background var(--duration-fast) var(--ease-out);
 }
 
 .settings-expandable-tile:hover {
-  background: var(--bg-surface-3);
+  background: var(--settings-tile-hover-bg);
 }
 
 .settings-expandable-header {
@@ -797,7 +820,7 @@ input, textarea, button, select {
 }
 
 .settings-sub-item:hover {
-  background: var(--bg-surface-3);
+  background: var(--settings-tile-hover-bg);
 }
 
 .settings-sub-item-label {

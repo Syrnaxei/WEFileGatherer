@@ -44,7 +44,7 @@ export default function InputNumber({
     justifyContent: 'center',
     border: 'none',
     borderRadius: 'var(--radius-sm)',
-    background: 'var(--bg-surface-3)',
+    background: 'var(--settings-ctrl-bg)',
     color: 'var(--text-secondary)',
     fontSize: '16px',
     fontWeight: 500,
@@ -84,12 +84,12 @@ export default function InputNumber({
         onClick={handleDecrement}
         onMouseEnter={(e) => {
           if (canDecrement && !disabled) {
-            e.currentTarget.style.background = 'var(--md-sys-color-surface-container-highest)';
+            e.currentTarget.style.background = 'var(--settings-ctrl-hover-bg)';
             e.currentTarget.style.color = 'var(--text-primary)';
           }
         }}
         onMouseLeave={(e) => {
-          e.currentTarget.style.background = 'var(--bg-surface-3)';
+          e.currentTarget.style.background = 'var(--settings-ctrl-bg)';
           e.currentTarget.style.color = 'var(--text-secondary)';
         }}
         onMouseDown={(e) => {
@@ -149,12 +149,12 @@ export default function InputNumber({
         onClick={handleIncrement}
         onMouseEnter={(e) => {
           if (canIncrement && !disabled) {
-            e.currentTarget.style.background = 'var(--md-sys-color-surface-container-highest)';
+            e.currentTarget.style.background = 'var(--settings-ctrl-hover-bg)';
             e.currentTarget.style.color = 'var(--text-primary)';
           }
         }}
         onMouseLeave={(e) => {
-          e.currentTarget.style.background = 'var(--bg-surface-3)';
+          e.currentTarget.style.background = 'var(--settings-ctrl-bg)';
           e.currentTarget.style.color = 'var(--text-secondary)';
         }}
         onMouseDown={(e) => {

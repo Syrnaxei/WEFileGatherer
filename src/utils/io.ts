@@ -5,14 +5,27 @@ import { IFileContext } from '../core/context';
 /**
  * 安全移动文件
  * 1. 自动递归创建目标目录
- * 2. 优先使用 fs.rename（原子操作）
- * 3. 若跨磁盘分区（EXDEV），降级为 fs.copyFile + fs.unlink
+ * 2. 若 overwrite 为 true 且目标文件已存在，先删除目标文件
+ * 3. 优先使用 fs.rename（原子操作）
+ * 4. 若跨磁盘分区（EXDEV），降级为 fs.copyFile + fs.unlink
  *
  * @param src 源文件路径
  * @param dest 目标文件路径
+ * @param options 可选配置，overwrite 为 true 时覆盖已存在的目标文件
  */
-export async function safeMoveFile(src: string, dest: string): Promise<void> {
+export async function safeMoveFile(src: string, dest: string, options?: { overwrite?: boolean }): Promise<void> {
   await fs.mkdir(path.dirname(dest), { recursive: true });
+
+  if (options?.overwrite) {
+    try {
+      await fs.unlink(dest);
+      console.log(`[IO] ${path.basename(dest)} existing file removed (overwrite)`);
+    } catch (err: any) {
+      if (err.code !== 'ENOENT') {
+        throw err;
+      }
+    }
+  }
 
   try {
     await fs.rename(src, dest);

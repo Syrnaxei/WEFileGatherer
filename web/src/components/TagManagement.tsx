@@ -520,10 +520,10 @@ export default function TagManagement({ isDark: _isDark }: TagManagementProps) {
                     <svg
                       width="16"
                       height="16"
-                      viewBox="0 0 1024 1024"
+                      viewBox="0 0 24 24"
                       style={{ fill: 'currentColor', pointerEvents: 'none' }}
                     >
-                      <path d="M64.1 194v89.6h896.1V194H64.1z m0 358.4h896.1v-89.6H64.1v89.6z m0 268.9h896.1v-89.6H64.1v89.6z" />
+                      <path d="M2.753 18h18.5a.75.75 0 0 1 .102 1.493l-.102.007h-18.5a.75.75 0 0 1-.102-1.493L2.753 18h18.5-18.5Zm0-6.497h18.5a.75.75 0 0 1 .102 1.493l-.102.007h-18.5a.75.75 0 0 1-.102-1.493l.102-.007h18.5-18.5Zm-.001-6.5h18.5a.75.75 0 0 1 .102 1.493l-.102.007h-18.5A.75.75 0 0 1 2.65 5.01l.102-.007h18.5-18.5Z" />
                     </svg>
                   </div>
                   <div style={{ fontSize: '14px', fontWeight: 500, color: 'var(--text-primary)', letterSpacing: '-0.01em', minHeight: '34px', display: 'flex', alignItems: 'center' }}>

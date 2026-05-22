@@ -61,16 +61,23 @@ export default function SelectDropdown({ options, value, onChange }: SelectDropd
           justifyContent: 'space-between',
           gap: '8px',
           minWidth: '140px',
-          padding: '6px 8px 6px 12px',
+          padding: '7px 8px 7px 12px',
           fontSize: '13px',
           fontFamily: 'var(--font-ui)',
           fontWeight: 500,
           color: 'var(--text-primary)',
-          background: 'var(--bg-surface-2)',
-          border: '1px solid var(--border-default)',
+          background: 'var(--settings-ctrl-bg)',
+          border: '1px solid transparent',
           borderRadius: 'var(--radius-sm)',
           cursor: 'pointer',
           outline: 'none',
+          transition: 'background 150ms ease',
+        }}
+        onMouseEnter={(e) => {
+          e.currentTarget.style.background = 'var(--settings-ctrl-hover-bg)';
+        }}
+        onMouseLeave={(e) => {
+          e.currentTarget.style.background = 'var(--settings-ctrl-bg)';
         }}
       >
         <span>{selectedLabel}</span>
@@ -112,7 +119,7 @@ export default function SelectDropdown({ options, value, onChange }: SelectDropd
           }}
         >
           <div style={{
-            background: 'var(--bg-surface-2)',
+            background: 'var(--settings-ctrl-panel-bg)',
             border: '1px solid var(--border-default)',
             borderRadius: 'var(--radius-sm)',
             overflow: 'hidden',
@@ -141,7 +148,7 @@ export default function SelectDropdown({ options, value, onChange }: SelectDropd
                   position: 'relative',
                 }}
                 onMouseEnter={(e) => {
-                  e.currentTarget.style.background = 'var(--bg-surface-3)';
+                  e.currentTarget.style.background = 'var(--settings-ctrl-bg)';
                 }}
                 onMouseLeave={(e) => {
                   e.currentTarget.style.background = 'transparent';

@@ -55,6 +55,7 @@ export default function App() {
   const [fileListViewMode, setFileListViewMode] = useState<ViewMode>('list');
   const [ffmpegAvailable, setFfmpegAvailable] = useState(true);
   const [showLogTerminal, setShowLogTerminal] = useState(true);
+  const [conflictResolution, setConflictResolution] = useState<'overwrite' | 'skip' | 'cancel'>('overwrite');
 
   const effectiveWorkspaceShowFullPath = workspaceShowFullPath;
   const effectiveScrapeShowFullPath = scrapeShowFullPath;
@@ -151,6 +152,18 @@ export default function App() {
       .then((data) => {
         if (data.success && data.value !== null) {
           setShowLogTerminal(data.value !== 'false');
+        }
+      })
+      .catch(() => {});
+
+    fetch(`${API_BASE}/settings/conflictResolution`)
+      .then((r) => r.json())
+      .then((data) => {
+        if (data.success && data.value) {
+          const v = data.value;
+          if (v === 'overwrite' || v === 'skip' || v === 'cancel') {
+            setConflictResolution(v);
+          }
         }
       })
       .catch(() => {});
@@ -334,7 +347,11 @@ export default function App() {
         clearLogs();
         showToast(`开始处理 ${filesToProcess.length} 个文件`, 'success');
       } else {
-        showToast(data.error || '启动失败', 'error');
+        if (res.status === 409 && data.conflicts) {
+          showToast(`文件冲突: ${data.conflicts.join(', ')} 已存在于目标路径`, 'error');
+        } else {
+          showToast(data.error || '启动失败', 'error');
+        }
       }
     } catch (err) {
       showToast('启动失败: ' + (err as Error).message, 'error');
@@ -430,7 +447,11 @@ export default function App() {
         scrapeSocket.clearLogs();
         showToast(`开始处理 ${scrapeFiles.length} 个文件`, 'success');
       } else {
-        showToast(data.error || '启动失败', 'error');
+        if (res.status === 409 && data.conflicts) {
+          showToast(`文件冲突: ${data.conflicts.join(', ')} 已存在于目标路径`, 'error');
+        } else {
+          showToast(data.error || '启动失败', 'error');
+        }
       }
     } catch (err) {
       showToast('启动失败: ' + (err as Error).message, 'error');
@@ -491,6 +512,15 @@ export default function App() {
     }).catch(() => {});
   };
 
+  const handleConflictResolutionChange = (value: 'overwrite' | 'skip' | 'cancel') => {
+    setConflictResolution(value);
+    fetch(`${API_BASE}/settings/conflictResolution`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ value }),
+    }).catch(() => {});
+  };
+
   const renderPage = () => {
     switch (activePage) {
       case 'tags':
@@ -509,6 +539,8 @@ export default function App() {
           onFfmpegAvailableChange={setFfmpegAvailable}
           showLogTerminal={showLogTerminal}
           onShowLogTerminalChange={handleShowLogTerminalChange}
+          conflictResolution={conflictResolution}
+          onConflictResolutionChange={handleConflictResolutionChange}
         />;
       case 'scrape':
         return (

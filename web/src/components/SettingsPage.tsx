@@ -35,6 +35,8 @@ interface SettingsPageProps {
   onFfmpegAvailableChange: (value: boolean) => void;
   showLogTerminal: boolean;
   onShowLogTerminalChange: (value: boolean) => void;
+  conflictResolution: 'overwrite' | 'skip' | 'cancel';
+  onConflictResolutionChange: (value: 'overwrite' | 'skip' | 'cancel') => void;
 }
 
 export default function SettingsPage({
@@ -50,6 +52,8 @@ export default function SettingsPage({
   onFfmpegAvailableChange,
   showLogTerminal,
   onShowLogTerminalChange,
+  conflictResolution,
+  onConflictResolutionChange,
 }: SettingsPageProps) {
   const { mode, setMode } = useTheme();
   const [version, setVersion] = useState<VersionInfo | null>(null);
@@ -391,13 +395,13 @@ export default function SettingsPage({
       flex: 1,
       display: 'flex',
       flexDirection: 'column',
-      background: 'var(--bg-base)',
+      background: 'var(--settings-page-bg)',
       overflow: 'hidden',
+      userSelect: 'none',
     }}>
       <div style={{
         padding: '20px 24px',
-        background: 'var(--bg-surface-1)',
-        borderBottom: '1px solid var(--border-default)',
+        background: 'var(--settings-header-bg)',
       }}>
         <h2 style={{
           margin: 0,
@@ -453,6 +457,17 @@ export default function SettingsPage({
           </SettingSection>
 
           <SettingSection title='通用设置'>
+            <SettingsTile icon={<ConflictIcon />} title="文件冲突处理" description="目标路径存在同名文件时的处理方式">
+              <SelectDropdown
+                options={[
+                  { value: 'overwrite', label: '覆盖' },
+                  { value: 'skip', label: '跳过' },
+                  { value: 'cancel', label: '取消' },
+                ]}
+                value={conflictResolution}
+                onChange={(v) => onConflictResolutionChange(v as 'overwrite' | 'skip' | 'cancel')}
+              />
+            </SettingsTile>
             <SettingsTile icon={<BellIcon />} title='通知持续时间' description='设置右下角通知持续显示时间（0-30s）'>
               <InputNumber
                 value={toastDuration}
@@ -739,11 +754,11 @@ function IconWrapper({ children, size = 24 }: { children: React.ReactNode; size?
 }
 
 function ThemeIcon() {
-  return <IconWrapper>
-    <circle cx="12" cy="12" r="10" />
-    <path d="M12 2a10 10 0 0 1 0 20" />
-    <path d="M12 2a10 10 0 0 0 0 20" />
-  </IconWrapper>;
+  return (
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24" fill="currentColor">
+      <path d="M5.75 2a.75.75 0 0 0-.75.75v11.5a2.25 2.25 0 0 0 2.25 2.25H9.5v3a2.5 2.5 0 1 0 5 0v-3h2.25A2.25 2.25 0 0 0 19 14.25V2.75a.75.75 0 0 0-.75-.75H5.75Zm.75 9V3.5h6v1.752a.75.75 0 1 0 1.5 0V3.5h1v2.751a.75.75 0 1 0 1.5 0V3.5h1V11h-11Zm0 3.25V12.5h11v1.75a.75.75 0 0 1-.75.75h-3a.75.75 0 0 0-.75.75v3.75a1 1 0 0 1-2 0v-3.75a.75.75 0 0 0-.75-.75h-3a.75.75 0 0 1-.75-.75Z" />
+    </svg>
+  );
 }
 
 function ViewIcon() {
@@ -752,6 +767,17 @@ function ViewIcon() {
     <rect x="14" y="3" width="7" height="7" rx="1" />
     <rect x="3" y="14" width="7" height="7" rx="1" />
     <rect x="14" y="14" width="7" height="7" rx="1" />
+  </IconWrapper>;
+}
+
+function ConflictIcon() {
+  return <IconWrapper>
+    <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+    <polyline points="14 2 14 8 20 8" />
+    <line x1="9" y1="13" x2="15" y2="13" />
+    <line x1="9" y1="17" x2="13" y2="17" />
+    <path d="M2 6l3 3-3 3" />
+    <path d="M2 9h5" />
   </IconWrapper>;
 }
 
@@ -770,9 +796,11 @@ function TagAutoIcon() {
 }
 
 function FolderIcon() {
-  return <IconWrapper>
-    <path d="M4 20h16a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-7.93a2 2 0 0 1-1.66-.9l-.82-1.2A2 2 0 0 0 7.93 3H4a2 2 0 0 0-2 2v13c0 1.1.9 2 2 2Z" />
-  </IconWrapper>;
+  return (
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24" fill="currentColor">
+      <path d="M8.207 4c.46 0 .908.141 1.284.402l.156.12L12.022 6.5h7.728a2.25 2.25 0 0 1 2.229 1.938l.016.158.005.154v9a2.25 2.25 0 0 1-2.096 2.245L19.75 20H4.25a2.25 2.25 0 0 1-2.245-2.096L2 17.75V6.25a2.25 2.25 0 0 1 2.096-2.245L4.25 4h3.957Zm1.44 5.979a2.25 2.25 0 0 1-1.244.512l-.196.009-4.707-.001v7.251c0 .38.282.694.648.743l.102.007h15.5a.75.75 0 0 0 .743-.648l.007-.102v-9a.75.75 0 0 0-.648-.743L19.75 8h-7.729L9.647 9.979ZM8.207 5.5H4.25a.75.75 0 0 0-.743.648L3.5 6.25v2.749L8.207 9a.75.75 0 0 0 .395-.113l.085-.06 1.891-1.578-1.89-1.575a.75.75 0 0 0-.377-.167L8.207 5.5Z" />
+    </svg>
+  );
 }
 
 function FolderSearchIcon() {
@@ -849,11 +877,11 @@ function EyeIcon() {
 }
 
 function ImageIcon() {
-  return <IconWrapper>
-    <rect x="3" y="3" width="18" height="18" rx="2" />
-    <circle cx="8.5" cy="8.5" r="1.5" />
-    <path d="m21 15-5-5L5 21" />
-  </IconWrapper>;
+  return (
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24" fill="currentColor">
+      <path d="M17.75 3A3.25 3.25 0 0 1 21 6.25v11.5A3.25 3.25 0 0 1 17.75 21H6.25A3.25 3.25 0 0 1 3 17.75V6.25A3.25 3.25 0 0 1 6.25 3h11.5Zm.58 16.401-5.805-5.686a.75.75 0 0 0-.966-.071l-.084.07-5.807 5.687c.182.064.378.099.582.099h11.5c.203 0 .399-.035.58-.099l-5.805-5.686L18.33 19.4ZM17.75 4.5H6.25A1.75 1.75 0 0 0 4.5 6.25v11.5c0 .208.036.408.103.594l5.823-5.701a2.25 2.25 0 0 1 3.02-.116l.128.116 5.822 5.702c.067-.186.104-.386.104-.595V6.25a1.75 1.75 0 0 0-1.75-1.75Zm-2.498 2a2.252 2.252 0 1 1 0 4.504 2.252 2.252 0 0 1 0-4.504Zm0 1.5a.752.752 0 1 0 0 1.504.752.752 0 0 0 0-1.504Z" />
+    </svg>
+  );
 }
 
 function GridIcon() {
@@ -986,7 +1014,7 @@ function ToggleSwitch({ checked, onChange }: { checked: boolean; onChange: (v: b
         borderRadius: '13px',
         border: 'none',
         cursor: 'pointer',
-        background: checked ? 'var(--accent)' : 'var(--bg-surface-3)',
+        background: checked ? 'var(--accent)' : 'var(--btn-inactive-bg)',
         position: 'relative',
         transition: 'background 200ms cubic-bezier(0.16, 1, 0.3, 1)',
         padding: 0,
@@ -997,7 +1025,7 @@ function ToggleSwitch({ checked, onChange }: { checked: boolean; onChange: (v: b
         width: '22px',
         height: '22px',
         borderRadius: '50%',
-        background: '#fff',
+        background: 'var(--settings-ctrl-knob-bg)',
         position: 'absolute',
         top: '2px',
         left: checked ? '22px' : '2px',

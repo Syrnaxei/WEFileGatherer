@@ -7,6 +7,7 @@ import { FlowRunner } from '../core/runner';
 import { SQLiteDb } from '../db/sqlite';
 import { findFfprobe, generateThumbnailsForVideo, getFfmpegInfo, computeVideoHash, getQualityDimensions } from '../utils/thumbnail';
 import { probeVideoFile, resolveFfprobeCmd } from '../utils/probe';
+import { MoverNode, type ConflictResolution } from '../nodes/mover';
 import type { Server as SocketIOServer } from 'socket.io';
 
 const router = express.Router();
@@ -239,6 +240,25 @@ router.post('/flows/:id/start', async (req, res) => {
     });
   }
 
+  // 读取冲突处理策略
+  const conflictResolution = (db.getSetting('conflictResolution') || 'overwrite') as ConflictResolution;
+
+  // "取消"模式下，启动前进行全量冲突预检
+  if (conflictResolution === 'cancel') {
+    const conflictFiles = filesToProcess.map((f: any) => ({
+      fileName: f.fileName,
+      targetPath: tagPathMap[(f.tag ?? '').trim()],
+    }));
+    const conflicts = await MoverNode.checkConflicts(conflictFiles);
+    if (conflicts.length > 0) {
+      return res.status(409).json({
+        success: false,
+        error: `检测到文件冲突，以下文件在目标路径已存在: ${conflicts.join(', ')}`,
+        conflicts,
+      });
+    }
+  }
+
   const flow: IFlow = {
     id: flowId,
     name: 'Batch Processing',
@@ -255,7 +275,7 @@ router.post('/flows/:id/start', async (req, res) => {
         type: 'mover',
         config: {
           targetPathTemplate: '{metadata.targetPath}/{filename}',
-          overwrite: false,
+          overwrite: conflictResolution === 'overwrite',
         },
       }),
     ],
@@ -295,6 +315,7 @@ router.post('/flows/:id/start', async (req, res) => {
           userTag: tagName,
           targetPath,
           detectedAt: new Date().toISOString(),
+          _conflictResolution: conflictResolution,
         },
       };
       runner.enqueue(ctx).catch((err) => {
@@ -420,6 +441,25 @@ router.post('/scrape/start', async (req, res) => {
     return res.status(400).json({ error: 'Export directory is required' });
   }
 
+  const db = SQLiteDb.getInstance();
+  const conflictResolution = (db.getSetting('conflictResolution') || 'overwrite') as ConflictResolution;
+
+  // "取消"模式下，启动前进行全量冲突预检
+  if (conflictResolution === 'cancel') {
+    const conflictFiles = files.map((f: any) => ({
+      fileName: f.fileName,
+      targetPath: exportDir,
+    }));
+    const conflicts = await MoverNode.checkConflicts(conflictFiles);
+    if (conflicts.length > 0) {
+      return res.status(409).json({
+        success: false,
+        error: `检测到文件冲突，以下文件在目标路径已存在: ${conflicts.join(', ')}`,
+        conflicts,
+      });
+    }
+  }
+
   const flowId = 'scrape-flow';
   const flow: IFlow = {
     id: flowId,
@@ -430,7 +470,7 @@ router.post('/scrape/start', async (req, res) => {
         type: 'mover',
         config: {
           targetPathTemplate: '{metadata.exportDir}/{filename}',
-          overwrite: false,
+          overwrite: conflictResolution === 'overwrite',
         },
       }),
     ],
@@ -441,7 +481,6 @@ router.post('/scrape/start', async (req, res) => {
     activeRunners.delete(flowId);
   }
 
-  const db = SQLiteDb.getInstance();
   db.ensureFlow(flowId, flow.name);
 
   const runner = new FlowRunner(flow, resolveConcurrency());
@@ -465,6 +504,7 @@ router.post('/scrape/start', async (req, res) => {
       metadata: {
         exportDir,
         detectedAt: new Date().toISOString(),
+        _conflictResolution: conflictResolution,
       },
     };
     runner.enqueue(ctx).catch((err) => {
