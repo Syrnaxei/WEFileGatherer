@@ -24,6 +24,9 @@ logs/
 .idea/
 *.swp
 *.swo
+.claude/
+.trae/
+claude.md
 
 # OS
 .DS_Store

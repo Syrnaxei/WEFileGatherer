@@ -18,6 +18,7 @@ Key rules for any UI change:
 - **Animations**: `transition: 150ms ease` for hover/color changes. Use `animate-fade-in-up` class for page enters.
 
 ### Reusable CSS classes (from `index.css`)
+
 `.btn` / `.btn-primary` / `.btn-success` / `.btn-danger` / `.btn-ghost` / `.btn-outline` — buttons  
 `.input` / `.input-mono` — text inputs  
 `.card` / `.card-header` / `.card-body` — card containers  
@@ -26,15 +27,41 @@ Key rules for any UI change:
 `.tag-chip` — small label chips
 
 ### Component patterns (reference implementations)
-| Pattern | Reference file |
-|---------|---------------|
-| Stat cards | `StatsDashboard.tsx` |
-| Grid file rows | `FileList.tsx` |
-| Terminal/log view | `LogTerminal.tsx` |
-| Toast notifications | `Toast.tsx` |
-| Sidebar navigation | `Sidebar.tsx` |
-| Card-based forms | `SettingsPage.tsx` |
-| Drag-to-reorder list | `TagManagement.tsx` |
+
+| Pattern                   | Reference file                               |
+| ------------------------- | -------------------------------------------- |
+| Stat cards                | `StatsDashboard.tsx`                         |
+| Grid file rows            | `FileList.tsx`                               |
+| Terminal/log view         | `LogTerminal.tsx`                            |
+| Toast notifications       | `Toast.tsx`                                  |
+| Sidebar navigation        | `Sidebar.tsx`                                |
+| Card-based forms          | `SettingsPage.tsx`                           |
+| Drag-to-reorder list      | `TagManagement.tsx`                          |
+| Thumbnail grid / lightbox | `ThumbnailImg.tsx` / `ThumbnailLightbox.tsx` |
+| Select dropdown           | `SelectDropdown.tsx`                         |
+| Number stepper            | `InputNumber.tsx`                            |
+| Fluent UI icons           | `FluentIcons.tsx`                            |
+
+### WinUI component library (`web/src/components/winui/`)
+
+A decoupled, reusable WinUI 3-inspired component kit. Always use these instead of hand-built equivalents.
+
+| Component                                    | Usage                                            |
+| -------------------------------------------- | ------------------------------------------------ |
+| `PageHeader`                                 | Page title + action bar                          |
+| `SectionTitle`                               | Section heading with optional icon               |
+| `SettingsSection`                            | Grouped settings card wrapper                    |
+| `SettingsTile`                               | Single-row settings item (label + control)       |
+| `ExpandableTile`                             | Expandable settings tile                         |
+| `SettingsSubItem` / `SettingsSubItemDivider` | Nested settings rows                             |
+| `ToggleSwitch`                               | Toggle switch control                            |
+| `DragHandle`                                 | Drag reorder handle                              |
+| `ActionButton`                               | Icon button (edit/delete)                        |
+| `FolderSelectButton`                         | Folder picker button                             |
+| `TagCard`                                    | Tag display card with actions                    |
+| `SettingsIcons`                              | Themed SVG icons set (ThemeIcon, ViewIcon, etc.) |
+
+Full API reference: `docs/WinUI组件框架文档.md`
 
 ---
 
@@ -117,22 +144,23 @@ FlowRunner supports two modes, persisted via `tbl_settings` key `processingMode`
 
 Beyond the basics in README (sourceDir, theme, scrapeSourceDir, etc.), these settings control additional behavior:
 
-| Key | Default | Description |
-|-----|---------|-------------|
-| `debugLog` | `false` | Show full processing logs vs. start/complete only |
-| `processingMode` | `parallel` | `parallel` or `fifo` |
-| `concurrency` | `5` | Max parallel files (1-5) |
-| `toastDuration` | `5` | Toast notification duration in seconds (0-30) |
-| `ffmpegBinPath` | — | User-configured ffmpeg directory path |
-| `ffmpegAvailable` | — | Persisted ffmpeg detection result |
-| `ffmpegVersion` | — | Persisted ffmpeg version string |
-| `ffmpegPath` | — | Persisted ffmpeg resolved path |
-| `thumbnailQuality` | `medium` | `low` / `medium` / `high` |
-| `thumbnailCount` | `3` | Number of thumbnails per video |
-| `showFullPathOptions` | — | Master toggle for full path display |
-| `workspaceShowFullPath` | — | Per-page full path toggle |
-| `scrapeShowFullPath` | — | Per-page full path toggle |
-| `fileListViewMode` | `list` | `list` or `thumbnail` |
+| Key                     | Default    | Description                                       |
+| ----------------------- | ---------- | ------------------------------------------------- |
+| `debugLog`              | `false`    | Show full processing logs vs. start/complete only |
+| `processingMode`        | `parallel` | `parallel` or `fifo`                              |
+| `concurrency`           | `5`        | Max parallel files (1-5)                          |
+| `toastDuration`         | `5`        | Toast notification duration in seconds (0-30)     |
+| `ffmpegBinPath`         | —          | User-configured ffmpeg directory path             |
+| `ffmpegAvailable`       | —          | Persisted ffmpeg detection result                 |
+| `ffmpegVersion`         | —          | Persisted ffmpeg version string                   |
+| `ffmpegPath`            | —          | Persisted ffmpeg resolved path                    |
+| `thumbnailQuality`      | `medium`   | `low` / `medium` / `high`                         |
+| `thumbnailCount`        | `3`        | Number of thumbnails per video                    |
+| `showFullPathOptions`   | —          | Master toggle for full path display               |
+| `workspaceShowFullPath` | —          | Per-page full path toggle                         |
+| `scrapeShowFullPath`    | —          | Per-page full path toggle                         |
+| `fileListViewMode`      | `list`     | `list` or `thumbnail`                             |
+| `showLog`               | `true`     | Log terminal visibility toggle                    |
 
 ## Legacy lowdb
 
@@ -211,6 +239,55 @@ PENDING → RUNNING → MOVED → COMPLETED
 
 - `.env` at project root controls CLI mode (`src/main.ts`) paths and concurrency.
 - Electron/GUI mode ignores `.env` — settings (like source directory) are persisted in SQLite's `tbl_settings` table and set via `POST /api/settings/:key`.
+
+# 
+
+## File list view modes
+
+Two display modes for file lists, persisted as `fileListViewMode`:
+
+- **list** (default) — traditional row-based list with metadata columns
+- **thumbnail** — grid of video thumbnails with overlay metadata; requires ffmpeg to be available
+
+The thumbnail view uses `ThumbnailImg` for individual thumbnails and `ThumbnailLightbox` for full-screen zoom/navigation (wheel zoom, keyboard nav, edge-swipe arrows).
+
+## Thumbnail system
+
+- `ThumbnailImg.tsx` — lazy-loading thumbnail with spinner, error fallback, and retry logic (up to 20 retries with exponential backoff)
+- `ThumbnailLightbox.tsx` — full-screen overlay with wheel zoom (1x–3x), keyboard navigation (←/→/Esc), per-image zoom memory, and zoom percentage display
+- Served at `GET /api/thumbnail-files/:videoHash/:filename` from `src/api/thumbnail.ts`
+- Generated via ffmpeg in `src/utils/thumbnail.ts` using `generateThumbnailsForVideo()`
+
+## Fluent Icons (`FluentIcons.tsx`)
+
+Custom SVG icon components using `fill="currentColor"` for theme compatibility:
+
+- `FolderAddIcon` — folder selection
+- `FolderLinkIcon` — folder linking
+- `FluentTagIcon` — tag management
+
+Additional Fluent UI SVG icons are in `web/public/fluenticons/` (Add, Delete, Edit, Folder, Settings, Tag, etc.).
+
+# 
+
+## Documentation index
+
+Key reference documents:
+
+| Document                    | Content                              |
+| --------------------------- | ------------------------------------ |
+| `docs/前端设计系统规范.md`          | Frontend design system spec          |
+| `docs/WinUI组件框架文档.md`       | WinUI component API reference        |
+| `docs/按钮设计标准.md`            | Button design standards              |
+| `docs/布局间距比例系统.md`          | Layout spacing / proportion system   |
+| `docs/设置界面下拉框样式规范.md`       | Settings dropdown style spec         |
+| `docs/workspace.md`         | Workspace (batch) page documentation |
+| `docs/scrape.md`            | Scrape page documentation            |
+| `docs/缩略图功能技术文档.md`         | Thumbnail technical docs             |
+| `docs/缩略图模块解耦.md`           | Thumbnail module decoupling          |
+| `docs/视频文件UID生成算法.md`       | Video UID generation algorithm       |
+| `docs/视频缩略图功能设计.md`         | Thumbnail feature design             |
+| `docs/Tag管理界面WinUI3风格重构.md` | Tag management WinUI refactor        |
 
 ## No tests
 
