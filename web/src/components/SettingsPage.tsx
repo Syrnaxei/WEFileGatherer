@@ -729,7 +729,7 @@ export default function SettingsPage({
           </SettingsSection>
 
           <SettingsSection title="关于">
-            <ExpandableTile icon={<InfoIcon />} title="SVFP文件处理" description="当前软件版本信息与项目仓库地址" badge={version?.version ?? '-'}>
+            <ExpandableTile icon={<InfoIcon />} title="WE File Gatherer" description="Made with love by Syrnaxei" badge={version?.version ?? '-'}>
               <SettingsSubItem label="版本号">
                 <span className="settings-sub-item-value">{version?.version ?? '-'}</span>
               </SettingsSubItem>

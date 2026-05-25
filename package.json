@@ -1,7 +1,7 @@
 {
-  "name": "svfp",
-  "version": "1.2.7",
-  "description": "SVFP - 视频文件流处理系统",
+  "name": "wefg",
+  "version": "1.2.8",
+  "description": "WE File Gatherer - 视频文件收集整理工具",
   "main": "dist/electron/electron/main.js",
   "scripts": {
     "build": "tsc",
@@ -40,8 +40,8 @@
     "node": ">>=18.0.0"
   },
   "build": {
-    "appId": "com.vfp.app",
-    "productName": "Syrnaxies Video File Processor V1",
+    "appId": "com.struct.top.wefg",
+    "productName": "WE File Gatherer",
     "icon": "build/icons/icon.png",
     "directories": {
       "output": "release"

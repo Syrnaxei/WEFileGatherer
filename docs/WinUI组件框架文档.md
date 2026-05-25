@@ -4,7 +4,7 @@
 
 ### 1.1 设计理念
 
-WinUI 组件框架的设计灵感来源于 Microsoft 的 WinUI3 / Fluent Design 设计语言，旨在为 SVFP（视频文件处理）项目的前端界面提供一套统一、可复用、可组合的组件体系。
+WinUI 组件框架的设计灵感来源于 Microsoft 的 WinUI3 / Fluent Design 设计语言，旨在为 WEFG（WE File Gatherer）项目的前端界面提供一套统一、可复用、可组合的组件体系。
 
 核心设计原则：
 
