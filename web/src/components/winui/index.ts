@@ -10,6 +10,7 @@ export { default as DragHandle } from './DragHandle';
 export { default as ActionButton, EditIcon, DeleteIcon } from './ActionButton';
 export { default as FolderSelectButton } from './FolderSelectButton';
 export { default as TagCard } from './TagCard';
+export { default as WorkspaceStatsBar } from './WorkspaceStatsBar';
 export {
   ThemeIcon,
   ViewIcon,
@@ -29,4 +30,8 @@ export {
   GridIcon,
   FolderCodeIcon,
   InfoIcon,
+  PlayIcon,
+  PauseIcon,
+  StopIcon,
+  FolderPlusIcon,
 } from './SettingsIcons';

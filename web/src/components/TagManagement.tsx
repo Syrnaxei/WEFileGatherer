@@ -476,7 +476,7 @@ export default function TagManagement({ isDark: _isDark }: TagManagementProps) {
                           />
                           {window.electronAPI && (
                             <FolderSelectButton
-                              text="选择..."
+                              text="链接文件夹"
                               icon={<FolderAddIcon size={18} />}
                               onClick={() => {
                                 (async () => {

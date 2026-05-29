@@ -1,6 +1,6 @@
 interface PageHeaderProps {
   title: string;
-  description?: string;
+  description?: React.ReactNode;
 }
 
 export default function PageHeader({ title, description }: PageHeaderProps) {

@@ -1,7 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
-import FileList, { type FileItem, type ViewMode } from './components/FileList';
-import LogTerminal from './components/LogTerminal';
-import StatsDashboard from './components/StatsDashboard';
+import { type FileItem } from './components/FileList';
+import WorkspacePage from './components/WorkspacePage';
 import Toast, { showToast } from './components/Toast';
 import Sidebar, { type PageKey } from './components/Sidebar';
 import TagManagement from './components/TagManagement';
@@ -52,7 +51,6 @@ export default function App() {
   const [workspaceShowFullPath, setWorkspaceShowFullPath] = useState(true);
   const [scrapeShowFullPath, setScrapeShowFullPath] = useState(true);
   const [thumbnailCount, setThumbnailCount] = useState(3);
-  const [fileListViewMode, setFileListViewMode] = useState<ViewMode>('list');
   const [ffmpegAvailable, setFfmpegAvailable] = useState(true);
   const [showLogTerminal, setShowLogTerminal] = useState(true);
   const [conflictResolution, setConflictResolution] = useState<'overwrite' | 'skip' | 'cancel'>('overwrite');
@@ -134,15 +132,6 @@ export default function App() {
         if (data.success && data.value !== null && data.value !== undefined) {
           const v = parseInt(data.value, 10);
           if (!isNaN(v) && v >= 1 && v <= 5) setThumbnailCount(v);
-        }
-      })
-      .catch(() => {});
-
-    fetch(`${API_BASE}/settings/fileListViewMode`)
-      .then((r) => r.json())
-      .then((data) => {
-        if (data.success && data.value) {
-          setFileListViewMode(data.value === 'list' ? 'list' : 'thumbnail');
         }
       })
       .catch(() => {});
@@ -264,7 +253,7 @@ export default function App() {
       const res = await fetch(`${API_BASE}/scan`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ directory: wfpPath, viewMode: fileListViewMode, existingHashes }),
+        body: JSON.stringify({ directory: wfpPath, viewMode: 'thumbnail', existingHashes }),
       });
       const data = await res.json();
       if (data.success) {
@@ -494,15 +483,6 @@ export default function App() {
     }).catch(() => {});
   };
 
-  const handleFileListViewModeChange = (mode: ViewMode) => {
-    setFileListViewMode(mode);
-    fetch(`${API_BASE}/settings/fileListViewMode`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ value: mode }),
-    }).catch(() => {});
-  };
-
   const handleShowLogTerminalChange = (value: boolean) => {
     setShowLogTerminal(value);
     fetch(`${API_BASE}/settings/showLog`, {
@@ -533,8 +513,6 @@ export default function App() {
           onScrapeShowFullPathChange={handleScrapeShowFullPathChange}
           thumbnailCount={thumbnailCount}
           onThumbnailCountChange={handleThumbnailCountChange}
-          fileListViewMode={fileListViewMode}
-          onFileListViewModeChange={handleFileListViewModeChange}
           ffmpegAvailable={ffmpegAvailable}
           onFfmpegAvailableChange={setFfmpegAvailable}
           showLogTerminal={showLogTerminal}
@@ -568,136 +546,28 @@ export default function App() {
       case 'workspace':
       default:
         return (
-          <>
-            <div style={{
-              padding: '20px 24px',
-              background: 'var(--bg-surface-1)',
-              borderBottom: '1px solid var(--border-default)',
-            }}>
-              <h2 style={{
-                margin: 0,
-                fontSize: '18px',
-                fontWeight: 700,
-                color: 'var(--text-primary)',
-                letterSpacing: '-0.02em',
-              }}>
-                工作台
-              </h2>
-              <p style={{
-                margin: '4px 0 0',
-                fontSize: '12px',
-                color: 'var(--text-muted)',
-                letterSpacing: '-0.01em',
-              }}>
-                批量处理视频文件，为文件设置 Tag 并移动到目标目录
-              </p>
-            </div>
-
-            <header style={{
-              height: '52px',
-              minHeight: '52px',
-              background: 'var(--bg-surface-1)',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'space-between',
-              padding: '0 20px',
-              borderBottom: '1px solid var(--border-default)',
-              gap: '16px',
-            }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flex: 1, minWidth: 0 }}>
-                <span style={{
-                  fontSize: '12px',
-                  fontFamily: 'var(--font-mono)',
-                  color: 'var(--text-muted)',
-                  overflow: 'hidden',
-                  textOverflow: 'ellipsis',
-                  whiteSpace: 'nowrap',
-                }}>
-                  源目录: {wfpPath || '未设置'}
-                </span>
-              </div>
-
-              <div style={{ display: 'flex', gap: '8px', flexShrink: 0 }}>
-                <button onClick={handleLoad} className="btn btn-primary">加载</button>
-                <button
-                  onClick={handleStart}
-                  disabled={isRunning || files.length === 0}
-                  className="btn btn-success"
-                >
-                  {isRunning ? '运行中' : '启动'}
-                </button>
-                <button
-                  onClick={handleStop}
-                  disabled={!isRunning}
-                  className="btn btn-danger"
-                >
-                  停止
-                </button>
-              </div>
-            </header>
-
-            <StatsDashboard
-              total={files.length}
-              tagged={files.filter((f) => f.tag.trim() !== '').length}
-              untagged={files.filter((f) => f.tag.trim() === '').length}
-              processed={processedCount}
-              invalid={0}
-              isDark={isDark}
-            />
-
-            <div style={{ display: 'flex', flex: 1, overflow: 'hidden' }}>
-              <div style={{ flex: 1, display: 'flex', flexDirection: 'column', minWidth: 0 }}>
-                <div style={{
-                  padding: '10px 20px',
-                  background: 'var(--bg-surface-1)',
-                  borderBottom: '1px solid var(--border-default)',
-                  fontSize: '12px',
-                  fontWeight: 600,
-                  color: 'var(--text-primary)',
-                  display: 'flex',
-                  justifyContent: 'space-between',
-                  alignItems: 'center',
-                }}>
-                  <span>待处理文件 ({files.length})</span>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                    {files.some((f) => f.tag.trim() !== '') && (
-                      <span style={{ fontSize: '11px', fontWeight: 400, color: 'var(--text-muted)' }}>
-                        目标路径由 tag 配置决定
-                      </span>
-                    )}
-                  </div>
-                </div>
-                <FileList
-                  files={files}
-                  onTagChange={handleTagChange}
-                  onRemove={handleRemove}
-                  savedTags={savedTags}
-                  getTargetPathForTag={getTargetPathForTag}
-                  isDark={isDark}
-                  isRunning={isRunning}
-                  showFullPath={effectiveWorkspaceShowFullPath}
-                  baseDir={wfpPath}
-                  thumbnailCount={thumbnailCount}
-                  viewMode={fileListViewMode}
-                  ffmpegAvailable={ffmpegAvailable}
-                />
-              </div>
-
-              {showLogTerminal && (
-              <div style={{
-                width: '420px',
-                minWidth: '320px',
-                display: 'flex',
-                flexDirection: 'column',
-                borderLeft: '1px solid var(--border-default)',
-                background: 'var(--bg-base)',
-                overflow: 'hidden',
-              }}>
-                <LogTerminal logs={logs} connected={connected} isDark={isDark} debugLogEnabled={debugLogEnabled} />
-              </div>
-            )}
-            </div>
-          </>
+          <WorkspacePage
+            files={files}
+            onLoad={handleLoad}
+            onStart={handleStart}
+            onStop={handleStop}
+            onTagChange={handleTagChange}
+            onRemove={handleRemove}
+            savedTags={savedTags}
+            getTargetPathForTag={getTargetPathForTag}
+            wfpPath={wfpPath}
+            isRunning={isRunning}
+            processedCount={processedCount}
+            failedCount={failedIds.size}
+            showFullPath={effectiveWorkspaceShowFullPath}
+            thumbnailCount={thumbnailCount}
+            showLogTerminal={showLogTerminal}
+            ffmpegAvailable={ffmpegAvailable}
+            isDark={isDark}
+            logs={logs}
+            connected={connected}
+            debugLogEnabled={debugLogEnabled}
+          />
         );
     }
   };

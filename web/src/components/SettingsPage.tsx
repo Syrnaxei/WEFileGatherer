@@ -3,7 +3,6 @@ import { useTheme } from '../contexts/ThemeContext';
 import SelectDropdown from './SelectDropdown';
 import InputNumber from './InputNumber';
 import { setToastDuration } from './Toast';
-import { type ViewMode } from './FileList';
 import { FolderLinkIcon } from './FluentIcons';
 import {
   PageHeader,
@@ -15,7 +14,6 @@ import {
   ToggleSwitch,
   FolderSelectButton,
   ThemeIcon,
-  ViewIcon,
   ConflictIcon,
   BellIcon,
   TagAutoIcon,
@@ -58,8 +56,6 @@ interface SettingsPageProps {
   onScrapeShowFullPathChange: (value: boolean) => void;
   thumbnailCount: number;
   onThumbnailCountChange: (value: number) => void;
-  fileListViewMode: ViewMode;
-  onFileListViewModeChange: (value: ViewMode) => void;
   ffmpegAvailable: boolean;
   onFfmpegAvailableChange: (value: boolean) => void;
   showLogTerminal: boolean;
@@ -75,8 +71,6 @@ export default function SettingsPage({
   onScrapeShowFullPathChange,
   thumbnailCount,
   onThumbnailCountChange,
-  fileListViewMode,
-  onFileListViewModeChange,
   //ffmpegAvailable,
   onFfmpegAvailableChange,
   showLogTerminal,
@@ -450,16 +444,6 @@ export default function SettingsPage({
                 ]}
                 value={mode}
                 onChange={(v) => setMode(v as 'light' | 'dark' | 'system')}
-              />
-            </SettingsTile>
-            <SettingsTile icon={<ViewIcon />} title="文件列表视图" description="选择文件列表的默认显示方式">
-              <SelectDropdown
-                options={[
-                  { value: 'list', label: '列表视图' },
-                  { value: 'thumbnail', label: '缩略图视图（beta）' },
-                ]}
-                value={fileListViewMode}
-                onChange={(v) => onFileListViewModeChange(v as ViewMode)}
               />
             </SettingsTile>
           </SettingsSection>
