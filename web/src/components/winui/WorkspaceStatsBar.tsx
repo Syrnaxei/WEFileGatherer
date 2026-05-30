@@ -63,9 +63,7 @@ export default function WorkspaceStatsBar({
       boxShadow: '0 8px 32px rgba(0,0,0,0.35)',
       WebkitBackdropFilter: 'blur(16px)',
       backdropFilter: 'blur(16px)',
-      position: 'sticky',
-      bottom: 0,
-      zIndex: 1,
+      flexShrink: 0,
       userSelect: 'none',
     }}>
       {/* 待处理主指标 */}

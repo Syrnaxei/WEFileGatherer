@@ -131,7 +131,7 @@ export default function ScrapePage({
         flex: 1,
         display: 'flex',
         overflow: 'hidden',
-        padding: '0 24px 24px',
+        padding: '0 24px 16px',
       }}>
         <div style={{ flex: 1, display: 'flex', flexDirection: 'column', minWidth: 0 }}>
           {/* 表头 */}
@@ -189,17 +189,18 @@ export default function ScrapePage({
                 ))}
               </div>
             )}
-
-            <WorkspaceStatsBar
-              total={total}
-              processed={processedCount}
-              failed={failed}
-              isRunning={isRunning}
-              onLoad={onLoad}
-              onStart={onStart}
-              onStop={onStop}
-            />
           </div>
+
+          {/* 底部浮动面板 — 固定在文件列表下方，不随滚动移动 */}
+          <WorkspaceStatsBar
+            total={total}
+            processed={processedCount}
+            failed={failed}
+            isRunning={isRunning}
+            onLoad={onLoad}
+            onStart={onStart}
+            onStop={onStop}
+          />
         </div>
 
         {showLogTerminal && (
