@@ -36,7 +36,7 @@ export default function WorkspaceStatsBar({
   onStart,
   onStop,
 }: WorkspaceStatsBarProps) {
-  const pending = total - processed - failed;
+  const pending = Math.max(0, total - processed - failed);
 
   const btnBase: React.CSSProperties = {
     width: '36px',
@@ -61,8 +61,8 @@ export default function WorkspaceStatsBar({
       borderRadius: '12px',
       border: '1px solid rgba(255,255,255,0.1)',
       boxShadow: '0 8px 32px rgba(0,0,0,0.35)',
-      backdropFilter: 'blur(16px)',
       WebkitBackdropFilter: 'blur(16px)',
+      backdropFilter: 'blur(16px)',
       position: 'sticky',
       bottom: 0,
       userSelect: 'none',
