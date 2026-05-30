@@ -1,6 +1,6 @@
 import { useRef, useEffect, useMemo } from 'react';
 
-interface LogEntry {
+export interface LogEntry {
   event: string;
   nodeId?: string;
   nodeType?: string;

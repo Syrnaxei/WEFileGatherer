@@ -62,6 +62,10 @@ interface SettingsPageProps {
   onShowLogTerminalChange: (value: boolean) => void;
   conflictResolution: 'overwrite' | 'skip' | 'cancel';
   onConflictResolutionChange: (value: 'overwrite' | 'skip' | 'cancel') => void;
+  statsBarGlassEnabled: boolean;
+  onStatsBarGlassEnabledChange: (value: boolean) => void;
+  statsBarGlassBlur: number;
+  onStatsBarGlassBlurChange: (value: number) => void;
 }
 
 export default function SettingsPage({
@@ -77,6 +81,10 @@ export default function SettingsPage({
   onShowLogTerminalChange,
   conflictResolution,
   onConflictResolutionChange,
+  statsBarGlassEnabled,
+  onStatsBarGlassEnabledChange,
+  statsBarGlassBlur,
+  onStatsBarGlassBlurChange,
 }: SettingsPageProps) {
   const { mode, setMode } = useTheme();
   const [version, setVersion] = useState<VersionInfo | null>(null);
@@ -446,6 +454,27 @@ export default function SettingsPage({
                 onChange={(v) => setMode(v as 'light' | 'dark' | 'system')}
               />
             </SettingsTile>
+            <ExpandableTile
+              icon={<LayersIcon />}
+              title="统计栏毛玻璃效果"
+              description={statsBarGlassEnabled ? `模糊值 ${statsBarGlassBlur}px` : '已关闭'}
+              defaultExpanded={false}
+              headerRightExtra={
+                <div onClick={(e) => e.stopPropagation()}>
+                  <ToggleSwitch checked={statsBarGlassEnabled} onChange={onStatsBarGlassEnabledChange} />
+                </div>
+              }
+            >
+              <SettingsSubItem label="模糊值">
+                <InputNumber
+                  value={statsBarGlassBlur}
+                  onChange={onStatsBarGlassBlurChange}
+                  min={4}
+                  max={40}
+                  unit="px"
+                />
+              </SettingsSubItem>
+            </ExpandableTile>
           </SettingsSection>
 
           <SettingsSection title='通用设置'>

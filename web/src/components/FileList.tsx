@@ -81,84 +81,93 @@ export default function FileList({
     <div style={{
       flex: 1,
       position: 'relative',
+      display: 'flex',
+      flexDirection: 'column',
     }}>
+      {/* 表头 — 固定在顶部，不随列表滚动 */}
       <div style={{
-        position: 'absolute',
-        top: 0,
-        left: 0,
-        right: 0,
-        bottom: 0,
-        overflowY: 'auto',
+        display: 'flex',
+        alignItems: 'center',
+        gap: '14px',
+        padding: '8px 16px',
         background: 'var(--settings-page-bg)',
+        borderBottom: '1px solid var(--border-subtle)',
+        fontSize: '11px',
+        fontWeight: 600,
+        color: 'var(--text-muted)',
+        textTransform: 'uppercase' as const,
+        letterSpacing: '0.04em',
+        userSelect: 'none',
+        flexShrink: 0,
       }}>
-        {/* 表头 */}
-        <div style={{
-          display: 'flex',
-          alignItems: 'center',
-          gap: '14px',
-          padding: '8px 16px',
-          background: 'transparent',
-          borderBottom: '1px solid var(--border-subtle)',
-          fontSize: '11px',
-          fontWeight: 600,
-          color: 'var(--text-muted)',
-          textTransform: 'uppercase' as const,
-          letterSpacing: '0.04em',
-          userSelect: 'none',
-        }}>
-          <span style={{ width: THUMB_COL_WIDTH, flexShrink: 0 }}>预览</span>
-          <span style={{ flex: 1 }}>文件名</span>
-          <span style={{ width: TAG_COL_WIDTH, flexShrink: 0 }}>Tag</span>
-          <span style={{ width: TAG_PATH_SPACER, flexShrink: 0 }} />
-          <span style={{ width: PATH_COL_WIDTH, flexShrink: 0 }}>目标路径</span>
-          <span style={{ width: STATUS_COL_WIDTH, flexShrink: 0, textAlign: 'right' }}>状态</span>
-          <span style={{ width: ACTION_COL_WIDTH, flexShrink: 0 }} />
-        </div>
-
-        {/* 空状态 */}
-        {files.length === 0 && (
-          <div style={{
-            padding: '60px 20px',
-            textAlign: 'center',
-            color: 'var(--text-muted)',
-            fontSize: '13px',
-            fontFamily: 'var(--font-ui)',
-          }}>
-            <div style={{ fontSize: '32px', marginBottom: '12px', opacity: 0.3 }}>+</div>
-            暂无文件，点击 FolderPlus 按钮加载文件
-          </div>
-        )}
-
-        {/* 文件卡片列表 */}
-        {files.length > 0 && (
-          <div style={{ padding: '0 0 72px', display: 'flex', flexDirection: 'column', gap: '8px' }}>
-            {files.map((file, index) => (
-              <FileCard
-                key={file.id}
-                file={file}
-                index={index}
-                onTagChange={(tag) => onTagChange(index, tag)}
-                onRemove={() => onRemove(index)}
-                savedTags={savedTags}
-                getTargetPathForTag={getTargetPathForTag}
-                isRunning={isRunning}
-                thumbnailCount={thumbnailCount}
-                onThumbnailClick={thumbnailCount > 1 ? (thumbIdx) => openLightbox(index, thumbIdx) : undefined}
-              />
-            ))}
-          </div>
-        )}
+        <span style={{ width: THUMB_COL_WIDTH, flexShrink: 0 }}>预览</span>
+        <span style={{ flex: 1 }}>文件名</span>
+        <span style={{ width: TAG_COL_WIDTH, flexShrink: 0 }}>Tag</span>
+        <span style={{ width: TAG_PATH_SPACER, flexShrink: 0 }} />
+        <span style={{ width: PATH_COL_WIDTH, flexShrink: 0 }}>目标路径</span>
+        <span style={{ width: STATUS_COL_WIDTH, flexShrink: 0, textAlign: 'right' }}>状态</span>
+        <span style={{ width: ACTION_COL_WIDTH, flexShrink: 0 }} />
       </div>
 
-      {/* 底部统计栏 — absolute 叠加层，文件从玻璃后方穿过 */}
+      {/* 可滚动区域 */}
       <div style={{
-        position: 'absolute',
-        bottom: 0,
-        left: 0,
-        right: 0,
-        zIndex: 1,
+        flex: 1,
+        position: 'relative',
       }}>
-        {statsBar}
+        <div style={{
+          position: 'absolute',
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          overflowY: 'auto',
+          background: 'var(--settings-page-bg)',
+        }}>
+          {/* 空状态 */}
+          {files.length === 0 && (
+            <div style={{
+              padding: '60px 20px',
+              textAlign: 'center',
+              color: 'var(--text-muted)',
+              fontSize: '13px',
+              fontFamily: 'var(--font-ui)',
+            }}>
+              <div style={{ fontSize: '32px', marginBottom: '12px', opacity: 0.3 }}>+</div>
+              暂无文件，点击 FolderPlus 按钮加载文件
+            </div>
+          )}
+
+          {/* 文件卡片列表 */}
+          {files.length > 0 && (
+            <div style={{ padding: '0 0 92px', display: 'flex', flexDirection: 'column', gap: '8px' }}>
+              {files.map((file, index) => (
+                <FileCard
+                  key={file.id}
+                  file={file}
+                  index={index}
+                  onTagChange={(tag) => onTagChange(index, tag)}
+                  onRemove={() => onRemove(index)}
+                  savedTags={savedTags}
+                  getTargetPathForTag={getTargetPathForTag}
+                  isRunning={isRunning}
+                  thumbnailCount={thumbnailCount}
+                  onThumbnailClick={thumbnailCount > 1 ? (thumbIdx) => openLightbox(index, thumbIdx) : undefined}
+                />
+              ))}
+            </div>
+          )}
+        </div>
+
+        {/* 底部统计栏 — absolute 叠加层，文件从玻璃后方穿过 */}
+        <div style={{
+          position: 'absolute',
+          bottom: 24,
+          left: 0,
+          right: 0,
+          zIndex: 1,
+        }}>
+          {statsBar}
+        </div>
       </div>
 
       {/* 缩略图灯箱 */}

@@ -38,3 +38,7 @@ Thumbs.db
 
 # Generated icons (source is assets/icon.png)
 build/icons/
+
+# Superpowers
+.superpowers/
+docs/superpowers/

@@ -20,6 +20,8 @@ interface ScrapePageProps {
   scrapeShowFullPath: boolean;
   thumbnailCount: number;
   showLogTerminal: boolean;
+  statsBarGlassEnabled?: boolean;
+  statsBarGlassBlur?: number;
   onLoad: () => void;
   onStart: () => void;
   onStop: () => void;
@@ -51,6 +53,8 @@ export default function ScrapePage({
   scrapeShowFullPath,
   thumbnailCount,
   showLogTerminal,
+  statsBarGlassEnabled,
+  statsBarGlassBlur,
   onLoad,
   onStart,
   onStop,
@@ -131,16 +135,16 @@ export default function ScrapePage({
         flex: 1,
         display: 'flex',
         overflow: 'hidden',
-        padding: '0 24px 16px',
+        padding: '0 24px',
       }}>
         <div style={{ flex: 1, display: 'flex', flexDirection: 'column', minWidth: 0 }}>
-          {/* 表头 */}
+          {/* 表头 — 固定在顶部，不随列表滚动 */}
           <div style={{
             display: 'flex',
             alignItems: 'center',
             gap: '14px',
             padding: '8px 16px',
-            background: 'transparent',
+            background: 'var(--settings-page-bg)',
             borderBottom: '1px solid var(--border-subtle)',
             fontSize: '11px',
             fontWeight: 600,
@@ -148,6 +152,7 @@ export default function ScrapePage({
             textTransform: 'uppercase' as const,
             letterSpacing: '0.04em',
             userSelect: 'none',
+            flexShrink: 0,
           }}>
             <span style={{ width: THUMB_COL_WIDTH, flexShrink: 0 }}>预览</span>
             <span style={{ flex: 1 }}>文件名</span>
@@ -156,7 +161,7 @@ export default function ScrapePage({
             <span style={{ width: ACTION_COL_WIDTH, flexShrink: 0 }} />
           </div>
 
-          {/* 文件卡片列表 */}
+          {/* 可滚动区域 */}
           <div style={{
             flex: 1,
             position: 'relative',
@@ -179,10 +184,10 @@ export default function ScrapePage({
                   fontFamily: 'var(--font-ui)',
                 }}>
                   <div style={{ fontSize: '32px', marginBottom: '12px', opacity: 0.3 }}>+</div>
-                  暂无文件，请点击加载按钮扫描目录
+                  暂无文件，点击FolderPlus按钮加载文件
                 </div>
               ) : (
-                <div style={{ padding: '0 0 72px', display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                <div style={{ padding: '0 0 92px', display: 'flex', flexDirection: 'column', gap: '8px' }}>
                   {files.map((file, index) => (
                     <ScrapeFileCard
                       key={file.id}
@@ -202,7 +207,7 @@ export default function ScrapePage({
             {/* 底部浮动面板 — absolute 叠加层，文件从玻璃后方穿过 */}
             <div style={{
               position: 'absolute',
-              bottom: 0,
+              bottom: 24,
               left: 0,
               right: 0,
               zIndex: 1,
@@ -215,6 +220,8 @@ export default function ScrapePage({
                 onLoad={onLoad}
                 onStart={onStart}
                 onStop={onStop}
+                glassEnabled={statsBarGlassEnabled}
+                glassBlur={statsBarGlassBlur}
               />
             </div>
           </div>

@@ -1,0 +1,83 @@
+<h2>WorkspacePage — 移除工具栏，按钮图标化并入 StatsBar</h2>
+<p class="subtitle">工具栏完全移除，三个操作按钮转为图标按钮置于统计栏右侧</p>
+
+<div class="section">
+  <h3>完整体效果</h3>
+  <div class="mockup">
+    <div class="mockup-header">WorkspacePage — 精简版</div>
+    <div class="mockup-body" style="padding:0;font-size:13px;color:#fff">
+      <!-- PageHeader -->
+      <div style="padding:20px 24px;background:#272727">
+        <div style="font-size:18px;font-weight:700;margin-bottom:4px">工作台</div>
+        <div style="font-size:12px;color:#999">批量处理视频文件 · 源目录 <span style="font-family:monospace;color:#4CC2FF">./wfp</span></div>
+      </div>
+      <!-- WorkspaceStatsBar 融合操作栏 -->
+      <div style="display:flex;align-items:center;gap:20px;padding:12px 20px;background:#323232;border-bottom:1px solid #404040">
+        <div style="display:flex;align-items:baseline;gap:8px;flex:1;min-width:0">
+          <span style="font-size:24px;font-weight:700;color:#4CC2FF;font-family:monospace">20</span>
+          <span style="font-size:12px;color:#999">个文件待处理</span>
+        </div>
+        <div style="width:1px;height:24px;background:#404040;flex-shrink:0"></div>
+        <div style="display:flex;gap:18px;font-size:12px;font-family:monospace;flex-shrink:0">
+          <span style="color:#999">已标记 <b style="color:#60CDFF;font-weight:600">8</b></span>
+          <span style="color:#999">已处理 <b style="color:#6BBF6E;font-weight:600">3</b></span>
+          <span style="color:#999">失败 <b style="color:#F1707B;font-weight:600">0</b></span>
+          <span style="color:#999">总计 <b style="color:#FFA940;font-weight:600">20</b></span>
+        </div>
+        <div style="width:1px;height:24px;background:#404040;flex-shrink:0"></div>
+        <!-- 图标按钮组 -->
+        <div style="display:flex;gap:4px;flex-shrink:0">
+          <button title="加载" style="width:36px;height:36px;border-radius:6px;border:none;background:transparent;color:#4CC2FF;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all 150ms ease">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M19.35 10.04C18.67 6.59 15.64 4 12 4 9.11 4 6.6 5.64 5.35 8.04 2.34 8.36 0 10.91 0 14c0 3.31 2.69 6 6 6h13c2.76 0 5-2.24 5-5 0-2.64-2.05-4.78-4.65-4.96zM17 13l-5 5-5-5h3V9h4v4h3z"/></svg>
+          </button>
+          <button title="启动" style="width:36px;height:36px;border-radius:6px;border:none;background:transparent;color:#6BBF6E;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all 150ms ease">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><polygon points="6,3 20,12 6,21"/></svg>
+          </button>
+          <button title="停止" style="width:36px;height:36px;border-radius:6px;border:none;background:transparent;color:#F1707B;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all 150ms ease">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><rect x="4" y="4" width="16" height="16" rx="2"/></svg>
+          </button>
+        </div>
+      </div>
+      <!-- 缩略图模式表头 -->
+      <div style="padding:8px 20px;background:#252525;display:grid;grid-template-columns:72px 1fr 160px 2fr 120px 40px;gap:12px;font-size:11px;font-weight:600;color:#999;text-transform:uppercase;letter-spacing:0.04em;border-bottom:1px solid #404040;align-items:center">
+        <span>预览</span><span>文件名</span><span>Tag</span><span>目标路径</span><span style="text-align:center">进度</span><span style="text-align:center">操作</span>
+      </div>
+      <!-- 行示例 -->
+      <div style="padding:10px 20px;display:grid;grid-template-columns:72px 1fr 160px 2fr 120px 40px;gap:12px;align-items:center;background:#1A1A1A;border-bottom:1px solid #333;font-size:13px">
+        <div style="width:72px;height:40px;background:#333;border-radius:4px;display:flex;align-items:center;justify-content:center;color:#666;font-size:10px">thumb</div>
+        <div>
+          <span style="font-weight:500">video_001.mp4</span>
+          <div style="font-size:11px;font-family:monospace;color:#999;margin-top:3px;display:flex;gap:8px"><span>1.2 GB</span><span>15.4 Mbps</span><span>42:18</span></div>
+        </div>
+        <div><input style="padding:5px 8px;border-radius:4px;border:1px solid #404040;background:#252525;color:#fff;font-size:12px;width:100%" value="movie" placeholder="选择 tag..."></div>
+        <div style="font-family:monospace;font-size:12px;color:#4CC2FF;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">D:/Videos/Movies/</div>
+        <div style="text-align:center;font-size:12px;color:#999">-</div>
+        <div style="text-align:center"></div>
+      </div>
+      <div style="padding:10px 20px;display:grid;grid-template-columns:72px 1fr 160px 2fr 120px 40px;gap:12px;align-items:center;background:#202020;border-bottom:1px solid #333;font-size:13px">
+        <div style="width:72px;height:40px;background:#333;border-radius:4px;display:flex;align-items:center;justify-content:center;color:#666;font-size:10px">thumb</div>
+        <div>
+          <span style="font-weight:500">video_002.mp4</span>
+          <div style="font-size:11px;font-family:monospace;color:#999;margin-top:3px;display:flex;gap:8px"><span>856 MB</span><span>8.2 Mbps</span><span>14:55</span></div>
+        </div>
+        <div><input style="padding:5px 8px;border-radius:4px;border:1px solid #404040;background:#252525;color:#fff;font-size:12px;width:100%" value="anime" placeholder="选择 tag..."></div>
+        <div style="font-family:monospace;font-size:12px;color:#4CC2FF;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">D:/Videos/Anime/</div>
+        <div style="text-align:center;font-size:12px;color:#999">-</div>
+        <div style="text-align:center"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="section">
+  <h3>变更总结</h3>
+  <ul>
+    <li><b>移除 WorkspaceToolbar</b> — 不再作为独立组件存在</li>
+    <li><b>源目录路径</b> 移入 PageHeader 描述行，以 accent mono 字体内联显示</li>
+    <li><b>三个操作按钮</b>（加载/启动/停止）以 36x36 图标按钮形态置于 StatsBar 最右侧</li>
+    <li><b>按钮交互</b> — 默认透明底 + 语义色图标，hover 时显示对应 muted 背景</li>
+    <li><b>分隔线</b> — 用竖线分隔"统计指标"和"操作按钮"两个区域</li>
+    <li><b>头部总高度</b>：PageHeader(68px) + StatsBar(60px) = 128px，比之前少了约 64px</li>
+    <li><b>FileList 表头</b> 最后一列"操作"可简化 — 因为删除按钮现在是 WinUI ActionButton 样式</li>
+  </ul>
+</div>

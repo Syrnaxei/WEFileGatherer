@@ -1,0 +1,134 @@
+<h2>FileList 缩略图行 — WinUI3 风格重构</h2>
+<p class="subtitle">当前 vs 重构后的文件行设计对比</p>
+
+<div class="split">
+  <!-- 当前样式 -->
+  <div class="mockup">
+    <div class="mockup-header">当前 — 紧凑 Grid 行</div>
+    <div class="mockup-body" style="padding:0;font-size:13px;color:#fff">
+      <div style="padding:10px 20px;display:grid;grid-template-columns:72px 1fr 160px 2fr 120px 40px;gap:12px;align-items:center;border-bottom:1px solid #333;font-size:13px">
+        <div style="width:72px;height:40px;background:#333;border-radius:4px"></div>
+        <div><span style="font-weight:500">video_001.mp4</span><div style="font-size:11px;font-family:monospace;color:#999;margin-top:2px">1.2 GB · 15.4 Mbps · 42:18</div></div>
+        <div><input style="padding:5px 8px;border-radius:4px;border:1px solid #404040;background:#252525;color:#fff;font-size:12px;width:100%" value="movie"></div>
+        <div style="font-family:monospace;font-size:12px;color:#4CC2FF;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">D:/Videos/Movies/</div>
+        <div style="text-align:center;font-size:12px;color:#999">-</div>
+        <div style="text-align:center"><span style="color:#999;cursor:pointer">✕</span></div>
+      </div>
+      <div style="padding:10px 20px;display:grid;grid-template-columns:72px 1fr 160px 2fr 120px 40px;gap:12px;align-items:center;border-bottom:1px solid #333;font-size:13px;background:rgba(76,194,255,0.04)">
+        <div style="width:72px;height:40px;background:#2a3a44;border-radius:4px"></div>
+        <div><span style="font-weight:500">video_003.mp4</span><div style="font-size:11px;font-family:monospace;color:#999;margin-top:2px">2.1 GB · 22.1 Mbps · 1:02:30</div></div>
+        <div><input style="padding:5px 8px;border-radius:4px;border:1px solid #404040;background:#252525;color:#fff;font-size:12px;width:100%" value="movie"></div>
+        <div style="font-family:monospace;font-size:12px;color:#4CC2FF;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">D:/Videos/Movies/</div>
+        <div>
+          <span style="font-size:11px;font-family:monospace;color:#999">处理中</span>
+          <div style="height:4px;border-radius:2px;background:#333;margin-top:2px"><div style="height:4px;width:40%;background:#4CC2FF;border-radius:2px"></div></div>
+        </div>
+        <div style="text-align:center"><span style="color:#999;cursor:pointer">✕</span></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- WinUI3 风格 -->
+  <div class="mockup">
+    <div class="mockup-header">WinUI3 — 卡片式行块</div>
+    <div class="mockup-body" style="padding:12px;font-size:13px;color:#fff;display:flex;flex-direction:column;gap:8px">
+      <!-- 行1 -->
+      <div style="display:flex;align-items:center;gap:14px;padding:12px 16px;background:#202020;border:1px solid #333;border-radius:8px;transition:all 150ms ease">
+        <div style="width:72px;height:44px;background:#2a2a2a;border-radius:6px;flex-shrink:0;display:flex;align-items:center;justify-content:center;color:#666;font-size:10px">thumb</div>
+        <div style="flex:1;min-width:0">
+          <div style="font-size:14px;font-weight:500;color:#fff;margin-bottom:3px">video_001.mp4</div>
+          <div style="font-size:11px;font-family:monospace;color:#999;display:flex;gap:10px">
+            <span style="color:#4CC2FF">1.2 GB</span>
+            <span>15.4 Mbps</span>
+            <span>42:18</span>
+          </div>
+        </div>
+        <div style="width:140px;flex-shrink:0">
+          <div style="display:flex;align-items:center;gap:6px;padding:5px 10px;border-radius:4px;border:1px solid #404040;background:#252525">
+            <span style="font-size:12px;color:#4CC2FF">movie</span>
+            <span style="font-size:10px;color:#999;font-family:monospace">→ D:/Videos/...</span>
+          </div>
+        </div>
+        <div style="width:100px;flex-shrink:0;text-align:right;font-size:11px;color:#999">待处理</div>
+        <button style="width:32px;height:32px;border-radius:4px;border:none;background:transparent;color:#999;cursor:pointer;flex-shrink:0;transition:all 150ms ease">✕</button>
+      </div>
+      <!-- 行2 -->
+      <div style="display:flex;align-items:center;gap:14px;padding:12px 16px;background:#202020;border:1px solid #333;border-radius:8px;transition:all 150ms ease">
+        <div style="width:72px;height:44px;background:#2a2a2a;border-radius:6px;flex-shrink:0;display:flex;align-items:center;justify-content:center;color:#666;font-size:10px">thumb</div>
+        <div style="flex:1;min-width:0">
+          <div style="font-size:14px;font-weight:500;color:#fff;margin-bottom:3px">video_002.mp4</div>
+          <div style="font-size:11px;font-family:monospace;color:#999;display:flex;gap:10px">
+            <span style="color:#4CC2FF">856 MB</span>
+            <span>8.2 Mbps</span>
+            <span>14:55</span>
+          </div>
+        </div>
+        <div style="width:140px;flex-shrink:0">
+          <div style="display:flex;align-items:center;gap:6px;padding:5px 10px;border-radius:4px;border:1px solid #404040;background:#252525">
+            <span style="font-size:12px;color:#4CC2FF">anime</span>
+            <span style="font-size:10px;color:#999;font-family:monospace">→ D:/Videos/...</span>
+          </div>
+        </div>
+        <div style="width:100px;flex-shrink:0;text-align:right;font-size:11px;color:#999">待处理</div>
+        <button style="width:32px;height:32px;border-radius:4px;border:none;background:transparent;color:#999;cursor:pointer;flex-shrink:0;transition:all 150ms ease">✕</button>
+      </div>
+      <!-- 行3 - 处理中 -->
+      <div style="display:flex;align-items:center;gap:14px;padding:12px 16px;background:rgba(76,194,255,0.05);border:1px solid rgba(76,194,255,0.15);border-radius:8px">
+        <div style="width:72px;height:44px;background:#2a3a44;border-radius:6px;flex-shrink:0;display:flex;align-items:center;justify-content:center;color:#4CC2FF;font-size:10px">thumb</div>
+        <div style="flex:1;min-width:0">
+          <div style="font-size:14px;font-weight:500;color:#fff;margin-bottom:3px">video_003.mp4</div>
+          <div style="font-size:11px;font-family:monospace;color:#999;display:flex;gap:10px">
+            <span style="color:#4CC2FF">2.1 GB</span>
+            <span>22.1 Mbps</span>
+            <span>1:02:30</span>
+          </div>
+        </div>
+        <div style="width:140px;flex-shrink:0">
+          <div style="display:flex;align-items:center;gap:6px;padding:5px 10px;border-radius:4px;border:1px solid rgba(76,194,255,0.2);background:rgba(76,194,255,0.06)">
+            <span style="font-size:12px;color:#4CC2FF">movie</span>
+            <span style="font-size:10px;color:#999;font-family:monospace">→ D:/Videos/...</span>
+          </div>
+        </div>
+        <div style="width:100px;flex-shrink:0">
+          <span style="font-size:11px;font-family:monospace;color:#4CC2FF">处理中</span>
+          <div style="height:3px;border-radius:2px;background:#333;margin-top:4px"><div style="height:3px;width:45%;background:#4CC2FF;border-radius:2px"></div></div>
+        </div>
+        <button style="width:32px;height:32px;border-radius:4px;border:none;background:transparent;color:#999;cursor:pointer;flex-shrink:0;transition:all 150ms ease;opacity:0.4">✕</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="section">
+  <h3>WinUI3 风格要点</h3>
+  <ul>
+    <li><b>卡片式行块</b> — 每行独立卡片（rounded 8px + 1px border），行间距 8px，替代紧凑 grid 紧密排列</li>
+    <li><b>文件信息聚合</b> — 文件名(14px 500) + 元数据行(大小高亮accent · 码率 · 时长)，移除冗余路径行</li>
+    <li><b>Tag + 目标路径融合</b> — Tag 名称 + 目标路径缩写在同一 chip 内显示，减少列宽碎片</li>
+    <li><b>状态徽章</b> — 待处理/处理中/完成/失败 以文字标签呈现，行卡片背景跟随状态变化</li>
+    <li><b>删除按钮</b> — 使用 WinUI ActionButton + DeleteIcon，hover 时变 error 色</li>
+    <li><b>Flex 布局</b> — 替代 Grid 布局，列宽自然适配内容，减少硬编码宽度</li>
+    <li><b>悬停效果</b> — 行卡片 hover 时 border 变亮，背景微亮</li>
+  </ul>
+</div>
+
+<div class="section">
+  <h3>⚠️ 需要确认</h3>
+  <p>当前设计中 Tag 和目标路径合并为一个 chip 展示。但如果用户需要经常在文件行中<strong>直接输入/选择 tag</strong>（当前是 input 下拉），这个合并 chip 的交互方式需要调整。你倾向于哪种？</p>
+  <div class="options">
+    <div class="option" data-choice="a" onclick="toggleSelect(this)">
+      <div class="letter">A</div>
+      <div class="content">
+        <h3>保持 Tag Input 交互不变</h3>
+        <p>Tag 列保持现有的 input 下拉选择器，仅样式 WinUI3 化。目标路径在 Tag 下方以小字 mono 展示。牺牲一点视觉简洁度，保证操作效率。</p>
+      </div>
+    </div>
+    <div class="option" data-choice="b" onclick="toggleSelect(this)">
+      <div class="letter">B</div>
+      <div class="content">
+        <h3>Chip 点击弹出选择</h3>
+        <p>Tag 显示为 chip（含目标路径缩写），点击 chip 弹出下拉选择器。未设置 tag 时显示 "+ 选择 tag" 占位 chip。视觉更干净。</p>
+      </div>
+    </div>
+  </div>
+</div>

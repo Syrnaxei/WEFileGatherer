@@ -2,7 +2,13 @@
   "permissions": {
     "allow": [
       "Bash(npm run *)",
-      "Bash(npx tsc *)"
+      "Bash(npx tsc *)",
+      "Read(//c/Users/m1387/.claude/plugins/cache/claude-plugins-official/superpowers/5.0.7/scripts/**)",
+      "Read(//mnt/c/Users/m1387/.claude/plugins/cache/claude-plugins-official/superpowers/5.0.7/scripts/**)",
+      "Bash(git add *)",
+      "Bash(git commit -m ' *)",
+      "Bash(git commit -m 'fix: 恢复 StatsBar sticky 定位 + flex 占位实现毛玻璃穿透效果 *)",
+      "Bash(git commit -m 'fix: sticky 改为 absolute 叠加层，实现真正的毛玻璃穿透效果 *)"
     ]
   }
 }

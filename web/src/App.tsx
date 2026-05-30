@@ -54,6 +54,8 @@ export default function App() {
   const [ffmpegAvailable, setFfmpegAvailable] = useState(true);
   const [showLogTerminal, setShowLogTerminal] = useState(true);
   const [conflictResolution, setConflictResolution] = useState<'overwrite' | 'skip' | 'cancel'>('overwrite');
+  const [statsBarGlassEnabled, setStatsBarGlassEnabled] = useState(true);
+  const [statsBarGlassBlur, setStatsBarGlassBlur] = useState(16);
 
   const effectiveWorkspaceShowFullPath = workspaceShowFullPath;
   const effectiveScrapeShowFullPath = scrapeShowFullPath;
@@ -162,6 +164,25 @@ export default function App() {
       .then((data) => {
         if (data.success) {
           setFfmpegAvailable(data.available);
+        }
+      })
+      .catch(() => {});
+
+    fetch(`${API_BASE}/settings/statsBarGlassEnabled`)
+      .then((r) => r.json())
+      .then((data) => {
+        if (data.success && data.value !== null) {
+          setStatsBarGlassEnabled(data.value !== 'false');
+        }
+      })
+      .catch(() => {});
+
+    fetch(`${API_BASE}/settings/statsBarGlassBlur`)
+      .then((r) => r.json())
+      .then((data) => {
+        if (data.success && data.value !== null && data.value !== undefined) {
+          const v = parseInt(data.value, 10);
+          if (!isNaN(v) && v >= 4 && v <= 40) setStatsBarGlassBlur(v);
         }
       })
       .catch(() => {});
@@ -501,6 +522,24 @@ export default function App() {
     }).catch(() => {});
   };
 
+  const handleStatsBarGlassEnabledChange = (value: boolean) => {
+    setStatsBarGlassEnabled(value);
+    fetch(`${API_BASE}/settings/statsBarGlassEnabled`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ value: String(value) }),
+    }).catch(() => {});
+  };
+
+  const handleStatsBarGlassBlurChange = (value: number) => {
+    setStatsBarGlassBlur(value);
+    fetch(`${API_BASE}/settings/statsBarGlassBlur`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ value: String(value) }),
+    }).catch(() => {});
+  };
+
   const renderPage = () => {
     switch (activePage) {
       case 'tags':
@@ -519,11 +558,14 @@ export default function App() {
           onShowLogTerminalChange={handleShowLogTerminalChange}
           conflictResolution={conflictResolution}
           onConflictResolutionChange={handleConflictResolutionChange}
+          statsBarGlassEnabled={statsBarGlassEnabled}
+          onStatsBarGlassEnabledChange={handleStatsBarGlassEnabledChange}
+          statsBarGlassBlur={statsBarGlassBlur}
+          onStatsBarGlassBlurChange={handleStatsBarGlassBlurChange}
         />;
       case 'scrape':
         return (
           <ScrapePage
-            isDark={isDark}
             files={scrapeFiles}
             isRunning={scrapeIsRunning}
             scrapeSourceDir={scrapeSourceDir}
@@ -537,6 +579,8 @@ export default function App() {
             scrapeShowFullPath={effectiveScrapeShowFullPath}
             thumbnailCount={thumbnailCount}
             showLogTerminal={showLogTerminal}
+            statsBarGlassEnabled={statsBarGlassEnabled}
+            statsBarGlassBlur={statsBarGlassBlur}
             onLoad={handleScrapeLoad}
             onStart={handleScrapeStart}
             onStop={handleScrapeStop}
@@ -567,6 +611,8 @@ export default function App() {
             logs={logs}
             connected={connected}
             debugLogEnabled={debugLogEnabled}
+            statsBarGlassEnabled={statsBarGlassEnabled}
+            statsBarGlassBlur={statsBarGlassBlur}
           />
         );
     }

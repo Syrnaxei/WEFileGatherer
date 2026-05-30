@@ -1,0 +1,102 @@
+<h2>WorkspacePage — 缩略图模式设计稿（修正）</h2>
+<p class="subtitle">列表模式已弃用，以缩略图视图为唯一呈现模式</p>
+
+<div class="section">
+  <h3>完整页面效果</h3>
+  <div class="mockup">
+    <div class="mockup-header">WorkspacePage — 缩略图视图</div>
+    <div class="mockup-body" style="padding:0;font-size:13px;color:#fff">
+      <!-- PageHeader -->
+      <div style="padding:20px 24px;background:#272727">
+        <div style="font-size:18px;font-weight:700;margin-bottom:4px">工作台</div>
+        <div style="font-size:12px;color:#999">批量处理视频文件，为文件设置 Tag 并移动到目标目录</div>
+      </div>
+      <!-- WorkspaceToolbar -->
+      <div style="height:48px;display:flex;align-items:center;justify-content:space-between;padding:0 20px;background:#323232;border-bottom:1px solid #404040">
+        <div style="display:flex;align-items:center;gap:10px">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="#999"><rect x="2" y="3" width="20" height="18" rx="2" fill="none" stroke="#999" stroke-width="1.5"/><path d="M2 8h20" stroke="#999" stroke-width="1.5"/></svg>
+          <span style="font-size:12px;font-family:monospace;color:#4CC2FF">./wfp</span>
+        </div>
+        <div style="display:flex;gap:8px">
+          <button style="padding:6px 16px;border-radius:6px;border:none;background:#4CC2FF;color:#003344;font-size:13px;font-weight:500;cursor:pointer">加载</button>
+          <button style="padding:6px 16px;border-radius:6px;border:none;background:#6BBF6E;color:#fff;font-size:13px;font-weight:500;cursor:pointer">启动</button>
+          <button style="padding:6px 16px;border-radius:6px;border:none;background:#F1707B;color:#fff;font-size:13px;font-weight:500;cursor:pointer">停止</button>
+        </div>
+      </div>
+      <!-- WorkspaceStatsBar -->
+      <div style="display:flex;align-items:center;gap:20px;padding:12px 20px;background:#202020;border-bottom:1px solid #404040">
+        <div style="display:flex;align-items:baseline;gap:8px">
+          <span style="font-size:24px;font-weight:700;color:#4CC2FF;font-family:monospace">20</span>
+          <span style="font-size:12px;color:#999">个文件待处理</span>
+        </div>
+        <div style="width:1px;height:24px;background:#404040"></div>
+        <div style="display:flex;gap:18px;font-size:12px;font-family:monospace">
+          <span style="color:#999">已标记 <b style="color:#60CDFF;font-weight:600">8</b></span>
+          <span style="color:#999">已处理 <b style="color:#6BBF6E;font-weight:600">3</b></span>
+          <span style="color:#999">失败 <b style="color:#F1707B;font-weight:600">0</b></span>
+          <span style="color:#999">总计 <b style="color:#FFA940;font-weight:600">20</b></span>
+        </div>
+      </div>
+      <!-- 缩略图模式表头 -->
+      <div style="padding:8px 20px;background:#252525;display:grid;grid-template-columns:72px 1fr 160px 2fr 120px 40px;gap:12px;font-size:11px;font-weight:600;color:#999;text-transform:uppercase;letter-spacing:0.04em;border-bottom:1px solid #404040;align-items:center">
+        <span>预览</span><span>文件名</span><span>Tag</span><span>目标路径</span><span style="text-align:center">进度</span><span style="text-align:center">操作</span>
+      </div>
+      <!-- 缩略图模式行 -->
+      <div style="padding:10px 20px;display:grid;grid-template-columns:72px 1fr 160px 2fr 120px 40px;gap:12px;align-items:center;background:#1A1A1A;border-bottom:1px solid #333;font-size:13px">
+        <div style="width:72px;height:40px;background:#333;border-radius:4px;display:flex;align-items:center;justify-content:center;color:#666;font-size:10px">thumb</div>
+        <div>
+          <span style="font-weight:500">video_001.mp4</span>
+          <div style="font-size:11px;font-family:monospace;color:#999;margin-top:3px;display:flex;gap:8px">
+            <span>1.2 GB</span><span>15.4 Mbps</span><span>42:18</span>
+          </div>
+        </div>
+        <div><input style="padding:5px 8px;border-radius:4px;border:1px solid #404040;background:#252525;color:#fff;font-size:12px;width:100%" value="movie" placeholder="选择 tag..."></div>
+        <div style="font-family:monospace;font-size:12px;color:#4CC2FF;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">D:/Videos/Movies/</div>
+        <div style="text-align:center;font-size:12px;color:#999">-</div>
+        <div style="text-align:center;font-size:12px;color:#999">⋮</div>
+      </div>
+      <div style="padding:10px 20px;display:grid;grid-template-columns:72px 1fr 160px 2fr 120px 40px;gap:12px;align-items:center;background:#202020;border-bottom:1px solid #333;font-size:13px">
+        <div style="width:72px;height:40px;background:#333;border-radius:4px;display:flex;align-items:center;justify-content:center;color:#666;font-size:10px">thumb</div>
+        <div>
+          <span style="font-weight:500">video_002.mp4</span>
+          <div style="font-size:11px;font-family:monospace;color:#999;margin-top:3px;display:flex;gap:8px">
+            <span>856 MB</span><span>8.2 Mbps</span><span>14:55</span>
+          </div>
+        </div>
+        <div><input style="padding:5px 8px;border-radius:4px;border:1px solid #404040;background:#252525;color:#fff;font-size:12px;width:100%" value="anime" placeholder="选择 tag..."></div>
+        <div style="font-family:monospace;font-size:12px;color:#4CC2FF;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">D:/Videos/Anime/</div>
+        <div style="text-align:center;font-size:12px;color:#999">-</div>
+        <div style="text-align:center;font-size:12px;color:#999">⋮</div>
+      </div>
+      <!-- 处理中行 -->
+      <div style="padding:10px 20px;display:grid;grid-template-columns:72px 1fr 160px 2fr 120px 40px;gap:12px;align-items:center;background:rgba(76,194,255,.06);border-bottom:1px solid #333;font-size:13px">
+        <div style="width:72px;height:40px;background:#333;border-radius:4px;display:flex;align-items:center;justify-content:center;color:#666;font-size:10px">thumb</div>
+        <div>
+          <span style="font-weight:500">video_003.mp4</span>
+          <div style="font-size:11px;font-family:monospace;color:#999;margin-top:3px;display:flex;gap:8px">
+            <span>2.1 GB</span><span>22.1 Mbps</span><span>1:02:30</span>
+          </div>
+        </div>
+        <div><input style="padding:5px 8px;border-radius:4px;border:1px solid #404040;background:#252525;color:#fff;font-size:12px;width:100%" value="movie" placeholder="选择 tag..."></div>
+        <div style="font-family:monospace;font-size:12px;color:#4CC2FF;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">D:/Videos/Movies/</div>
+        <div class="file-progress-cell">
+          <span style="font-size:11px;font-family:monospace;color:#999">处理中</span>
+          <div style="height:4px;border-radius:2px;background:#333;margin-top:2px"><div style="height:4px;width:40%;background:#4CC2FF;border-radius:2px;animation:move 1.5s infinite"></div></div>
+        </div>
+        <div style="text-align:center;font-size:12px;color:#999">⋮</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="section">
+  <h3>缩略图模式要点</h3>
+  <ul>
+    <li><b>列宽</b>：预览 72px (多缩略图) / 80px (单缩略图) | 文件名 1fr | Tag 160px | 目标路径 2fr | 进度 120px | 操作 40px</li>
+    <li><b>文件名下方</b> 显示文件大小 + 码率 + 时长 (mono 字体 11px)</li>
+    <li><b>预览列</b> 多缩略图时显示堆叠效果 + 左下角 +N 角标</li>
+    <li><b>行背景</b> 保持现有交替逻辑（偶行 Bg-Surface-1，奇行 Bg-Base）</li>
+    <li><b>处理中行</b> 使用 accent-muted 浅底 + 不确定进度条动画</li>
+    <li><b>FileList.tsx 不改</b> — 仅外层 PageHeader / Toolbar / StatsBar 是新组件</li>
+  </ul>
+</div>

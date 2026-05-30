@@ -22,11 +22,17 @@ npm run electron:dev
 # Frontend dev server only (no Electron)
 cd web && npm run dev
 
-# Production build
-npm run electron:build                               # full: tsc + vite build + electron-builder
+# Build Electron backend only (no packaging)
+npm run build:electron                               # tsc -p tsconfig.electron.json
+
+# Production build (full: tsc + vite build + electron-builder)
+npm run electron:build
 
 # Web lint
 cd web && npm run lint
+
+# Quick verification (run after any backend/frontend changes)
+npx tsc --noEmit && npx tsc -p tsconfig.electron.json --noEmit && cd web && npx tsc --noEmit && npm run build
 ```
 
 ## Three entry points
@@ -46,6 +52,15 @@ cd web && npm run lint
 ### Scrape mode
 Recursive directory scrape + unified export. Single `MoverNode`, no tagging. Flow ID hardcoded as `'scrape-flow'`.
 
+### Processing modes
+
+FlowRunner supports two modes, persisted in `tbl_settings` key `processingMode`:
+
+- **parallel** (default) — `PromiseQueue` with configurable concurrency (1–5, default 5)
+- **fifo** — sequential, one file at a time (concurrency forced to 1)
+
+`resolveConcurrency()` in `src/api/flows.ts` reads these settings at flow start.
+
 ### State machine
 `PENDING → RUNNING → MOVED → COMPLETED` (or `→ ERROR → DISCARDED`). FlowRunner writes SQLite checkpoints at every transition. `RecoveryManager` checks for `RUNNING` records on startup.
 
@@ -54,6 +69,42 @@ Recursive directory scrape + unified export. Single `MoverNode`, no tagging. Flo
 - **PromiseQueue** (`src/utils/queue.ts`): hand-written concurrency limiter (default 5, configurable 1–5).
 - **withRetry** (`src/utils/retry.ts`): exponential backoff (3 retries, 1s base), only transient errors (EBUSY, EAGAIN, ETIMEDOUT). Fatal errors (EACCES, ENOSPC) fail immediately.
 - **Path templates** (`src/utils/io.ts`): `{filename}`, `{ext}`, `{tag}`, `{tag[0]}`, `{metadata.xxx}`, `{YYYY}`, `{MM}`, `{DD}`.
+- **Version** (`src/version.ts`): single source of truth — `APP_NAME`, `APP_SHORT_NAME`, `APP_VERSION`, `BUILD_DATE`, `GITHUB_URL`.
+
+### Thumbnail generation (ffmpeg-based)
+
+`src/utils/thumbnail.ts` — extracts N frames at evenly-spaced timestamps, caches as JPEG under `SVFPcache/{videoHash}/`. SHA256 hash of file path used as cache key. Cached thumbnails reused on subsequent calls. `cleanupOldThumbnails()` runs on server startup.
+
+Quality levels (`thumbnailQuality` setting): low/medium/high → JPEG quality 12/6/3, resolution 480×270 / 640×360 / 960×540.
+
+Served at `GET /api/thumbnail-files/:videoHash/:filename` via `src/api/thumbnail.ts`. Frontend: `ThumbnailImg` (lazy-load with retry) + `ThumbnailLightbox` (full-screen zoom 1×–3×, keyboard nav).
+
+### API routes
+
+| Method | Path | Purpose |
+|--------|------|---------|
+| POST | `/api/scan` | Scan workspace source directory |
+| POST | `/api/flows/:id/start` / `stop` | Start/stop batch flow |
+| POST | `/api/scrape/scan` | Recursive scrape scan |
+| POST | `/api/scrape/start` / `stop` | Start/stop scrape flow |
+| GET/POST/PUT/DELETE | `/api/tags[/:id]` | Tag CRUD |
+| PUT | `/api/tags/reorder` | Drag-to-reorder tags |
+| GET/POST | `/api/settings/:key` | Settings read/write |
+| GET | `/api/version` | App version info |
+| GET | `/api/thumbnail-files/...` | Serve cached thumbnails |
+
+### Real-time communication
+
+Socket.io rooms isolate log streams between modes:
+
+- `flow:flow-batch` — workspace/batch logs
+- `flow:scrape-flow` — scrape logs
+
+Events: `enqueue`, `node_start`, `node_complete`, `flow_complete`, `error`.
+
+### Settings persistence
+
+All settings stored in SQLite `tbl_settings` (key-value table), read/written via `GET/POST /api/settings/:key`. The `.env` file is **CLI-mode only** — Electron/GUI mode ignores it entirely. Key keys: `sourceDir`, `theme`, `scrapeSourceDir`, `scrapeExportDir`, `scrapeDepth`, `processingMode`, `concurrency`, `autoFillTagName`, `debugLog`, `thumbnailQuality`, `thumbnailCount`, `fileListViewMode`.
 
 ## Design system (frontend)
 

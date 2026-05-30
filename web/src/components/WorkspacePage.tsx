@@ -30,6 +30,8 @@ interface WorkspacePageProps {
   logs: LogEntry[];
   connected: boolean;
   debugLogEnabled: boolean;
+  statsBarGlassEnabled?: boolean;
+  statsBarGlassBlur?: number;
 }
 
 export default function WorkspacePage({
@@ -53,6 +55,8 @@ export default function WorkspacePage({
   logs,
   connected,
   debugLogEnabled,
+  statsBarGlassEnabled,
+  statsBarGlassBlur,
 }: WorkspacePageProps) {
   const tagged = files.filter((f) => f.tag.trim() !== '').length;
   const total = files.length;
@@ -87,7 +91,7 @@ export default function WorkspacePage({
         flex: 1,
         display: 'flex',
         overflow: 'hidden',
-        padding: '0 24px 16px',
+        padding: '0 24px',
       }}>
         <div style={{ flex: 1, display: 'flex', flexDirection: 'column', minWidth: 0 }}>
           <FileList
@@ -113,6 +117,8 @@ export default function WorkspacePage({
                 onLoad={onLoad}
                 onStart={onStart}
                 onStop={onStop}
+                glassEnabled={statsBarGlassEnabled}
+                glassBlur={statsBarGlassBlur}
               />
             }
           />

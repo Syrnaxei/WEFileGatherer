@@ -1,0 +1,31 @@
+<h2>面板视觉质感</h2>
+<p class="subtitle">阴影深度 &amp; 毛玻璃效果 — 影响面板与背景的层次关系</p>
+
+<div class="cards">
+  <div class="card" data-choice="solid" onclick="toggleSelect(this)">
+    <div class="card-image">
+      <div style="margin:16px;position:relative;background:linear-gradient(135deg,#1a1a2e 0%,#16213e 50%,#0f3460 100%);height:100px;border-radius:8px;display:flex;align-items:flex-end;justify-content:center;padding-bottom:12px">
+        <div style="width:85%;height:42px;background:#252536;border-radius:12px;border:1px solid rgba(255,255,255,0.1);box-shadow:0 4px 20px rgba(0,0,0,0.5);display:flex;align-items:center;justify-content:center;font-size:10px;color:#ccc;gap:8px">
+          <span style="color:#4CC2FF;font-weight:700">42</span> 文件 · ↻ ▶ ⏸
+        </div>
+      </div>
+    </div>
+    <div class="card-body">
+      <h3>实色 + 深阴影</h3>
+      <p>不透明背景 <code>#252536</code> + 明显阴影，层次清晰，与深色主题搭配沉稳。无毛玻璃效果。</p>
+    </div>
+  </div>
+  <div class="card" data-choice="glass" onclick="toggleSelect(this)">
+    <div class="card-image">
+      <div style="margin:16px;position:relative;background:linear-gradient(135deg,#1a1a2e 0%,#16213e 50%,#0f3460 100%);height:100px;border-radius:8px;display:flex;align-items:flex-end;justify-content:center;padding-bottom:12px">
+        <div style="width:85%;height:42px;background:rgba(37,37,54,0.85);border-radius:12px;border:1px solid rgba(255,255,255,0.12);box-shadow:0 8px 32px rgba(0,0,0,0.3);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);display:flex;align-items:center;justify-content:center;font-size:10px;color:#ccc;gap:8px">
+          <span style="color:#4CC2FF;font-weight:700">42</span> 文件 · ↻ ▶ ⏸
+        </div>
+      </div>
+    </div>
+    <div class="card-body">
+      <h3>毛玻璃 + 柔和阴影（推荐）</h3>
+      <p>半透明背景 + <code>backdrop-filter: blur</code>，现代感强，透过面板隐约可见内容。阴影更柔和分散。</p>
+    </div>
+  </div>
+</div>

@@ -8,22 +8,18 @@ import { ArrowSyncIcon } from '../FluentIcons';
  */
 
 interface WorkspaceStatsBarProps {
-  /** 文件总数 */
   total: number;
-  /** 已标记数量（可选，不传则不显示） */
   tagged?: number;
-  /** 已处理数量 */
   processed: number;
-  /** 失败数量 */
   failed: number;
-  /** 是否正在运行 */
   isRunning: boolean;
-  /** 加载按钮回调 */
   onLoad: () => void;
-  /** 启动按钮回调 */
   onStart: () => void;
-  /** 停止按钮回调 */
   onStop: () => void;
+  /** 是否启用毛玻璃效果 */
+  glassEnabled?: boolean;
+  /** 毛玻璃模糊值（px），默认 16 */
+  glassBlur?: number;
 }
 
 export default function WorkspaceStatsBar({
@@ -35,6 +31,8 @@ export default function WorkspaceStatsBar({
   onLoad,
   onStart,
   onStop,
+  glassEnabled = true,
+  glassBlur = 16,
 }: WorkspaceStatsBarProps) {
   const pending = Math.max(0, total - processed - failed);
 
@@ -57,12 +55,12 @@ export default function WorkspaceStatsBar({
       alignItems: 'center',
       gap: '20px',
       padding: '10px 20px',
-      background: 'rgba(37,37,54,0.42)',
+      background: glassEnabled ? 'rgba(37,37,54,0.42)' : 'var(--bg-surface-1)',
       borderRadius: 'var(--radius-lg)',
-      border: '1px solid rgba(255,255,255,0.1)',
-      boxShadow: '0 8px 32px rgba(0,0,0,0.35)',
-      WebkitBackdropFilter: 'blur(16px)',
-      backdropFilter: 'blur(16px)',
+      border: glassEnabled ? '1px solid rgba(255,255,255,0.1)' : '1px solid var(--border-default)',
+      boxShadow: glassEnabled ? '0 8px 32px rgba(0,0,0,0.35)' : 'var(--shadow-md)',
+      WebkitBackdropFilter: glassEnabled ? `blur(${glassBlur}px)` : undefined,
+      backdropFilter: glassEnabled ? `blur(${glassBlur}px)` : undefined,
       userSelect: 'none',
     }}>
       {/* 待处理主指标 */}

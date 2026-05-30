@@ -904,12 +904,12 @@ input, textarea, button, select {
 /* Toast 容器 — 固定右下角，纵向堆叠 */
 .toast-container {
   position: fixed;
-  bottom: 20px;
-  right: 20px;
+  bottom: 95px;
+  right: 24px;
   z-index: 9999;
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 12px;
   pointer-events: none;
 }
 
