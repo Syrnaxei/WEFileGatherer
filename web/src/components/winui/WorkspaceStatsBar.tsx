@@ -1,5 +1,6 @@
 import React from 'react';
-import { PlayIcon, PauseIcon, FolderPlusIcon } from './SettingsIcons';
+import { PlayIcon, PauseIcon } from './SettingsIcons';
+import { ArrowSyncIcon } from '../FluentIcons';
 
 /**
  * WorkspaceStatsBar — 工作台融合统计摘要栏
@@ -9,8 +10,8 @@ import { PlayIcon, PauseIcon, FolderPlusIcon } from './SettingsIcons';
 interface WorkspaceStatsBarProps {
   /** 文件总数 */
   total: number;
-  /** 已标记数量 */
-  tagged: number;
+  /** 已标记数量（可选，不传则不显示） */
+  tagged?: number;
   /** 已处理数量 */
   processed: number;
   /** 失败数量 */
@@ -56,8 +57,14 @@ export default function WorkspaceStatsBar({
       alignItems: 'center',
       gap: '20px',
       padding: '10px 20px',
-      background: 'var(--settings-tile-bg)',
-      borderBottom: '1px solid var(--border-default)',
+      background: 'rgba(37,37,54,0.88)',
+      borderRadius: '12px',
+      border: '1px solid rgba(255,255,255,0.1)',
+      boxShadow: '0 8px 32px rgba(0,0,0,0.35)',
+      backdropFilter: 'blur(16px)',
+      WebkitBackdropFilter: 'blur(16px)',
+      position: 'sticky',
+      bottom: 0,
       userSelect: 'none',
     }}>
       {/* 待处理主指标 */}
@@ -86,9 +93,11 @@ export default function WorkspaceStatsBar({
 
       {/* 统计指标 */}
       <div style={{ display: 'flex', gap: '18px', fontSize: '12px', fontFamily: 'var(--font-mono)' }}>
-        <span style={{ color: 'var(--text-muted)' }}>
-          已标记 <b style={{ color: 'var(--info)', fontWeight: 600 }}>{tagged}</b>
-        </span>
+        {tagged !== undefined && (
+          <span style={{ color: 'var(--text-muted)' }}>
+            已标记 <b style={{ color: 'var(--info)', fontWeight: 600 }}>{tagged}</b>
+          </span>
+        )}
         <span style={{ color: 'var(--text-muted)' }}>
           已处理 <b style={{ color: 'var(--success)', fontWeight: 600 }}>{processed}</b>
         </span>
@@ -119,7 +128,7 @@ export default function WorkspaceStatsBar({
             e.currentTarget.style.background = 'transparent';
           }}
         >
-          <FolderPlusIcon size={20} />
+          <ArrowSyncIcon size={20} />
         </button>
 
         <button
