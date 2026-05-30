@@ -60,18 +60,8 @@ export default function ScrapePage({
   onStop,
   onRemove,
 }: ScrapePageProps) {
-  const foldersReady = scrapeSourceDir.trim() !== '' && scrapeExportDir.trim() !== '';
   const total = files.length;
   const failed = failedCount;
-
-  const shortenPath = (filePath: string, baseDir: string): string => {
-    const normalizedPath = filePath.replace(/\\/g, '/');
-    const normalizedBase = baseDir.replace(/\\/g, '/').replace(/\/$/, '');
-    if (normalizedPath.toLowerCase().startsWith(normalizedBase.toLowerCase())) {
-      return '~' + normalizedPath.slice(normalizedBase.length);
-    }
-    return filePath;
-  };
 
   const [lightbox, setLightbox] = useState<{ fileIndex: number; thumbIndex: number } | null>(null);
 
