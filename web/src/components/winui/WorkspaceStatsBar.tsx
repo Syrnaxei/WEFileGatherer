@@ -58,13 +58,14 @@ export default function WorkspaceStatsBar({
       gap: '20px',
       padding: '10px 20px',
       background: 'rgba(37,37,54,0.88)',
-      borderRadius: '12px',
+      borderRadius: 'var(--radius-lg)',
       border: '1px solid rgba(255,255,255,0.1)',
       boxShadow: '0 8px 32px rgba(0,0,0,0.35)',
       WebkitBackdropFilter: 'blur(16px)',
       backdropFilter: 'blur(16px)',
       position: 'sticky',
       bottom: 0,
+      zIndex: 1,
       userSelect: 'none',
     }}>
       {/* 待处理主指标 */}
@@ -116,6 +117,7 @@ export default function WorkspaceStatsBar({
       <div style={{ display: 'flex', gap: '2px', flexShrink: 0 }}>
         <button
           title="加载文件"
+          aria-label="加载文件"
           style={{
             ...btnBase,
             color: 'var(--accent)',
@@ -133,6 +135,7 @@ export default function WorkspaceStatsBar({
 
         <button
           title="启动处理"
+          aria-label="启动处理"
           disabled={isRunning || total === 0}
           style={{
             ...btnBase,
@@ -155,6 +158,7 @@ export default function WorkspaceStatsBar({
 
         <button
           title="暂停处理"
+          aria-label="暂停处理"
           disabled={!isRunning}
           style={{
             ...btnBase,
