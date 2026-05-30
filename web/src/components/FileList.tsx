@@ -34,6 +34,7 @@ interface FileListProps {
   thumbnailCount?: number;
   viewMode?: ViewMode;
   ffmpegAvailable?: boolean;
+  statsBar?: React.ReactNode;
 }
 
 export { formatFileSize, formatBitrate, formatDuration };
@@ -61,6 +62,7 @@ export default function FileList({
   getTargetPathForTag,
   isRunning,
   thumbnailCount = 1,
+  statsBar,
 }: FileListProps) {
   const [lightbox, setLightbox] = useState<{ fileIndex: number; thumbIndex: number } | null>(null);
 
@@ -138,6 +140,9 @@ export default function FileList({
           ))}
         </div>
       )}
+
+      {/* 底部统计栏 (sticky) */}
+      {statsBar}
 
       {/* 缩略图灯箱 */}
       {lightbox && files[lightbox.fileIndex]?.videoHash && (
