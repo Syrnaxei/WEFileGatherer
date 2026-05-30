@@ -103,18 +103,18 @@ export default function WorkspacePage({
             thumbnailCount={thumbnailCount}
             viewMode="thumbnail"
             ffmpegAvailable={ffmpegAvailable}
-          />
-
-          {/* 底部浮动面板 — 固定在文件列表下方，不随滚动移动 */}
-          <WorkspaceStatsBar
-            total={total}
-            tagged={tagged}
-            processed={processedCount}
-            failed={failed}
-            isRunning={isRunning}
-            onLoad={onLoad}
-            onStart={onStart}
-            onStop={onStop}
+            statsBar={
+              <WorkspaceStatsBar
+                total={total}
+                tagged={tagged}
+                processed={processedCount}
+                failed={failed}
+                isRunning={isRunning}
+                onLoad={onLoad}
+                onStart={onStart}
+                onStop={onStop}
+              />
+            }
           />
         </div>
 

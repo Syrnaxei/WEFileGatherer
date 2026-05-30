@@ -57,13 +57,15 @@ export default function WorkspaceStatsBar({
       alignItems: 'center',
       gap: '20px',
       padding: '10px 20px',
-      background: 'rgba(37,37,54,0.88)',
+      background: 'rgba(37,37,54,0.40)',
       borderRadius: 'var(--radius-lg)',
       border: '1px solid rgba(255,255,255,0.1)',
       boxShadow: '0 8px 32px rgba(0,0,0,0.35)',
       WebkitBackdropFilter: 'blur(16px)',
       backdropFilter: 'blur(16px)',
-      flexShrink: 0,
+      position: 'sticky',
+      bottom: 0,
+      zIndex: 1,
       userSelect: 'none',
     }}>
       {/* 待处理主指标 */}

@@ -162,45 +162,50 @@ export default function ScrapePage({
             overflowY: 'auto',
             background: 'var(--settings-page-bg)',
           }}>
-            {files.length === 0 ? (
-              <div style={{
-                padding: '60px 20px',
-                textAlign: 'center',
-                color: 'var(--text-muted)',
-                fontSize: '13px',
-                fontFamily: 'var(--font-ui)',
-              }}>
-                <div style={{ fontSize: '32px', marginBottom: '12px', opacity: 0.3 }}>+</div>
-                暂无文件，请点击加载按钮扫描目录
-              </div>
-            ) : (
-              <div style={{ padding: '0 0 16px', display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                {files.map((file, index) => (
-                  <ScrapeFileCard
-                    key={file.id}
-                    file={file}
-                    onRemove={() => onRemove(index)}
-                    isRunning={isRunning}
-                    scrapeSourceDir={scrapeSourceDir}
-                    scrapeShowFullPath={scrapeShowFullPath}
-                    thumbnailCount={thumbnailCount}
-                    onThumbnailClick={thumbnailCount > 1 ? (thumbIdx) => openLightbox(index, thumbIdx) : undefined}
-                  />
-                ))}
-              </div>
-            )}
-          </div>
+            <div style={{ minHeight: '100%', display: 'flex', flexDirection: 'column' }}>
+              {files.length === 0 ? (
+                <div style={{
+                  padding: '60px 20px',
+                  textAlign: 'center',
+                  color: 'var(--text-muted)',
+                  fontSize: '13px',
+                  fontFamily: 'var(--font-ui)',
+                }}>
+                  <div style={{ fontSize: '32px', marginBottom: '12px', opacity: 0.3 }}>+</div>
+                  暂无文件，请点击加载按钮扫描目录
+                </div>
+              ) : (
+                <div style={{ padding: '0 0 16px', display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                  {files.map((file, index) => (
+                    <ScrapeFileCard
+                      key={file.id}
+                      file={file}
+                      onRemove={() => onRemove(index)}
+                      isRunning={isRunning}
+                      scrapeSourceDir={scrapeSourceDir}
+                      scrapeShowFullPath={scrapeShowFullPath}
+                      thumbnailCount={thumbnailCount}
+                      onThumbnailClick={thumbnailCount > 1 ? (thumbIdx) => openLightbox(index, thumbIdx) : undefined}
+                    />
+                  ))}
+                </div>
+              )}
 
-          {/* 底部浮动面板 — 固定在文件列表下方，不随滚动移动 */}
-          <WorkspaceStatsBar
-            total={total}
-            processed={processedCount}
-            failed={failed}
-            isRunning={isRunning}
-            onLoad={onLoad}
-            onStart={onStart}
-            onStop={onStop}
-          />
+              {/* 弹性占位：确保文件少时面板仍吸附底部 */}
+              <div style={{ flex: 1 }} />
+
+              {/* 底部浮动面板 — sticky 吸附，毛玻璃穿透效果 */}
+              <WorkspaceStatsBar
+                total={total}
+                processed={processedCount}
+                failed={failed}
+                isRunning={isRunning}
+                onLoad={onLoad}
+                onStart={onStart}
+                onStop={onStop}
+              />
+            </div>
+          </div>
         </div>
 
         {showLogTerminal && (
