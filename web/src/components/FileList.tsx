@@ -124,7 +124,7 @@ export default function FileList({
 
         {/* 文件卡片列表 */}
         {files.length > 0 && (
-          <div style={{ padding: '0 0 16px', display: 'flex', flexDirection: 'column', gap: '8px' }}>
+          <div style={{ padding: '0 0 72px', display: 'flex', flexDirection: 'column', gap: '8px' }}>
             {files.map((file, index) => (
               <FileCard
                 key={file.id}

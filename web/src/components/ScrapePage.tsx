@@ -175,7 +175,7 @@ export default function ScrapePage({
                   暂无文件，请点击加载按钮扫描目录
                 </div>
               ) : (
-                <div style={{ padding: '0 0 16px', display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                <div style={{ padding: '0 0 72px', display: 'flex', flexDirection: 'column', gap: '8px' }}>
                   {files.map((file, index) => (
                     <ScrapeFileCard
                       key={file.id}
