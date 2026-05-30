@@ -1,7 +1,6 @@
-import React from 'react';
 import { PageHeader, WorkspaceStatsBar } from './winui';
 import FileList, { type FileItem } from './FileList';
-import LogTerminal from './LogTerminal';
+import LogTerminal, { type LogEntry } from './LogTerminal';
 import { type SavedTag } from '../App';
 
 /**
@@ -28,7 +27,7 @@ interface WorkspacePageProps {
   showLogTerminal: boolean;
   ffmpegAvailable: boolean;
   isDark: boolean;
-  logs: string[];
+  logs: LogEntry[];
   connected: boolean;
   debugLogEnabled: boolean;
 }
@@ -84,17 +83,6 @@ export default function WorkspacePage({
         }
       />
 
-      <WorkspaceStatsBar
-        total={total}
-        tagged={tagged}
-        processed={processedCount}
-        failed={failed}
-        isRunning={isRunning}
-        onLoad={onLoad}
-        onStart={onStart}
-        onStop={onStop}
-      />
-
       <div style={{
         flex: 1,
         display: 'flex',
@@ -115,6 +103,18 @@ export default function WorkspacePage({
             thumbnailCount={thumbnailCount}
             viewMode="thumbnail"
             ffmpegAvailable={ffmpegAvailable}
+            statsBar={
+              <WorkspaceStatsBar
+                total={total}
+                tagged={tagged}
+                processed={processedCount}
+                failed={failed}
+                isRunning={isRunning}
+                onLoad={onLoad}
+                onStart={onStart}
+                onStop={onStop}
+              />
+            }
           />
         </div>
 
