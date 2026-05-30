@@ -80,10 +80,17 @@ export default function FileList({
   return (
     <div style={{
       flex: 1,
-      overflowY: 'auto',
-      background: 'var(--settings-page-bg)',
+      position: 'relative',
     }}>
-      <div style={{ minHeight: '100%', display: 'flex', flexDirection: 'column' }}>
+      <div style={{
+        position: 'absolute',
+        top: 0,
+        left: 0,
+        right: 0,
+        bottom: 0,
+        overflowY: 'auto',
+        background: 'var(--settings-page-bg)',
+      }}>
         {/* 表头 */}
         <div style={{
           display: 'flex',
@@ -141,11 +148,16 @@ export default function FileList({
             ))}
           </div>
         )}
+      </div>
 
-        {/* 弹性占位：确保文件少时底部统计栏仍吸附底部 */}
-        <div style={{ flex: 1 }} />
-
-        {/* 底部统计栏 — sticky 吸附，毛玻璃穿透效果 */}
+      {/* 底部统计栏 — absolute 叠加层，文件从玻璃后方穿过 */}
+      <div style={{
+        position: 'absolute',
+        bottom: 0,
+        left: 0,
+        right: 0,
+        zIndex: 1,
+      }}>
         {statsBar}
       </div>
 

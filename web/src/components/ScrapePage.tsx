@@ -159,10 +159,17 @@ export default function ScrapePage({
           {/* 文件卡片列表 */}
           <div style={{
             flex: 1,
-            overflowY: 'auto',
-            background: 'var(--settings-page-bg)',
+            position: 'relative',
           }}>
-            <div style={{ minHeight: '100%', display: 'flex', flexDirection: 'column' }}>
+            <div style={{
+              position: 'absolute',
+              top: 0,
+              left: 0,
+              right: 0,
+              bottom: 0,
+              overflowY: 'auto',
+              background: 'var(--settings-page-bg)',
+            }}>
               {files.length === 0 ? (
                 <div style={{
                   padding: '60px 20px',
@@ -190,11 +197,16 @@ export default function ScrapePage({
                   ))}
                 </div>
               )}
+            </div>
 
-              {/* 弹性占位：确保文件少时面板仍吸附底部 */}
-              <div style={{ flex: 1 }} />
-
-              {/* 底部浮动面板 — sticky 吸附，毛玻璃穿透效果 */}
+            {/* 底部浮动面板 — absolute 叠加层，文件从玻璃后方穿过 */}
+            <div style={{
+              position: 'absolute',
+              bottom: 0,
+              left: 0,
+              right: 0,
+              zIndex: 1,
+            }}>
               <WorkspaceStatsBar
                 total={total}
                 processed={processedCount}
