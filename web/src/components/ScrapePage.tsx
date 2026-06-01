@@ -174,7 +174,7 @@ export default function ScrapePage({
                   fontFamily: 'var(--font-ui)',
                 }}>
                   <div style={{ fontSize: '32px', marginBottom: '12px', opacity: 0.3 }}>+</div>
-                  暂无文件，点击FolderPlus按钮加载文件
+                  暂无文件，点击 FolderPlus 按钮加载文件
                 </div>
               ) : (
                 <div style={{ padding: '0 0 92px', display: 'flex', flexDirection: 'column', gap: '8px' }}>

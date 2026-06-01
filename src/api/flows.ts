@@ -8,6 +8,7 @@ import { SQLiteDb } from '../db/sqlite';
 import { findFfprobe, generateThumbnailsForVideo, getFfmpegInfo, computeVideoHash, getQualityDimensions } from '../utils/thumbnail';
 import { probeVideoFile, resolveFfprobeCmd } from '../utils/probe';
 import { MoverNode, type ConflictResolution } from '../nodes/mover';
+import { PromiseQueue } from '../utils/queue';
 import type { Server as SocketIOServer } from 'socket.io';
 
 const router = express.Router();
@@ -50,43 +51,52 @@ async function startThumbnailGeneration(files: { filePath: string; fileName: str
   const thumbnailCount = parseInt(db.getSetting('thumbnailCount') || '3', 10) || 3;
   const thumbnailQuality = db.getSetting('thumbnailQuality') || 'medium';
   const qualityDims = getQualityDimensions(thumbnailQuality);
-  console.log(`[${logPrefix}] Starting thumbnail generation for ${files.length} videos (count=${thumbnailCount}, quality=${thumbnailQuality}, ${qualityDims.width}x${qualityDims.height})`);
+  const thumbnailConcurrency = Math.min(3, Math.max(1, parseInt(db.getSetting('concurrency') || '5', 10)));
+  console.log(`[${logPrefix}] Starting thumbnail generation for ${files.length} videos (count=${thumbnailCount}, quality=${thumbnailQuality}, ${qualityDims.width}x${qualityDims.height}, concurrency=${thumbnailConcurrency})`);
+
+  const thumbnailQueue = new PromiseQueue(thumbnailConcurrency);
 
   for (const file of files) {
-    generateThumbnailsForVideo(file.filePath, '', thumbnailCount, { quality: thumbnailQuality, duration: file.duration, width: qualityDims.width, height: qualityDims.height })
-      .then((result) => {
-        if (result.urls.length > 0) {
-          emitThumbnailReady(file.filePath, result.urls);
-        } else if (result.error) {
-          console.warn(`[${logPrefix}] thumbnail failed for ${file.fileName}: ${result.error}`);
-        }
-      })
-      .catch((err) => {
-        console.error(`[${logPrefix}] thumbnail error for ${file.fileName}:`, err);
-      });
+    thumbnailQueue.add(() =>
+      generateThumbnailsForVideo(file.filePath, '', thumbnailCount, { quality: thumbnailQuality, duration: file.duration, width: qualityDims.width, height: qualityDims.height })
+        .then((result) => {
+          if (result.urls.length > 0) {
+            emitThumbnailReady(file.filePath, result.urls);
+          } else if (result.error) {
+            console.warn(`[${logPrefix}] thumbnail failed for ${file.fileName}: ${result.error}`);
+          }
+        })
+        .catch((err) => {
+          console.error(`[${logPrefix}] thumbnail error for ${file.fileName}:`, err);
+        })
+    );
   }
 }
 
 async function startAsyncProbe(files: { id: string; filePath: string; fileName: string }[], ffprobeCmd: string | null, logPrefix: string): Promise<{ fileSize: number; duration: number; bitrate: number }[]> {
   if (!files || files.length === 0) return [];
 
-  console.log(`[${logPrefix}] Starting async probe for ${files.length} files`);
+  const probeConcurrency = Math.min(5, Math.max(1, parseInt(SQLiteDb.getInstance().getSetting('concurrency') || '5', 10)));
+  console.log(`[${logPrefix}] Starting async probe for ${files.length} files (concurrency=${probeConcurrency})`);
 
+  const probeQueue = new PromiseQueue(probeConcurrency);
   const results = await Promise.all(
-    files.map(async (file) => {
-      try {
-        const result = await probeVideoFile(file.filePath, ffprobeCmd);
-        probeCache.set(file.id, result);
-        emitProbeReady(file.id, result);
-        return result;
-      } catch (err) {
-        console.error(`[${logPrefix}] probe error for ${file.fileName}:`, err);
-        const fallback = { fileSize: 0, duration: 0, bitrate: 0 };
-        probeCache.set(file.id, fallback);
-        emitProbeReady(file.id, fallback);
-        return fallback;
-      }
-    })
+    files.map((file) =>
+      probeQueue.add(async () => {
+        try {
+          const result = await probeVideoFile(file.filePath, ffprobeCmd);
+          probeCache.set(file.id, result);
+          emitProbeReady(file.id, result);
+          return result;
+        } catch (err) {
+          console.error(`[${logPrefix}] probe error for ${file.fileName}:`, err);
+          const fallback = { fileSize: 0, duration: 0, bitrate: 0 };
+          probeCache.set(file.id, fallback);
+          emitProbeReady(file.id, fallback);
+          return fallback;
+        }
+      })
+    )
   );
   return results;
 }
