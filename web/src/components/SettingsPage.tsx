@@ -103,6 +103,8 @@ export default function SettingsPage({
   const [cacheSize, setCacheSize] = useState<number | null>(null);
   const [clearingCache, setClearingCache] = useState(false);
   const [thumbnailQuality, setThumbnailQuality] = useState('medium');
+  const [probeConcurrency, setProbeConcurrency] = useState(5);
+  const [thumbnailConcurrency, setThumbnailConcurrency] = useState(3);
 
   useEffect(() => {
     fetch(`${API_BASE}/version`)
@@ -238,6 +240,26 @@ export default function SettingsPage({
       .then((data) => {
         if (data.success && data.value) {
           setThumbnailQuality(data.value);
+        }
+      })
+      .catch(() => {});
+
+    fetch(`${API_BASE}/settings/probeConcurrency`)
+      .then((r) => r.json())
+      .then((data) => {
+        if (data.success && data.value !== null && data.value !== undefined) {
+          const v = parseInt(data.value, 10);
+          if (!isNaN(v) && v >= 1 && v <= 5) setProbeConcurrency(v);
+        }
+      })
+      .catch(() => {});
+
+    fetch(`${API_BASE}/settings/thumbnailConcurrency`)
+      .then((r) => r.json())
+      .then((data) => {
+        if (data.success && data.value !== null && data.value !== undefined) {
+          const v = parseInt(data.value, 10);
+          if (!isNaN(v) && v >= 1 && v <= 3) setThumbnailConcurrency(v);
         }
       })
       .catch(() => {});
@@ -411,6 +433,24 @@ export default function SettingsPage({
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ value }),
+    }).catch(() => {});
+  };
+
+  const saveProbeConcurrency = (value: number) => {
+    setProbeConcurrency(value);
+    fetch(`${API_BASE}/settings/probeConcurrency`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ value: String(value) }),
+    }).catch(() => {});
+  };
+
+  const saveThumbnailConcurrency = (value: number) => {
+    setThumbnailConcurrency(value);
+    fetch(`${API_BASE}/settings/thumbnailConcurrency`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ value: String(value) }),
     }).catch(() => {});
   };
 
@@ -625,6 +665,22 @@ export default function SettingsPage({
                 min={1}
                 max={5}
                 unit="张"
+              />
+            </SettingsTile>
+            <SettingsTile icon={<MonitorIcon />} title="探测并发数" description="同时运行的 ffprobe 进程数量，影响视频元数据扫描速度">
+              <InputNumber
+                value={probeConcurrency}
+                onChange={saveProbeConcurrency}
+                min={1}
+                max={5}
+              />
+            </SettingsTile>
+            <SettingsTile icon={<CpuIcon />} title="缩略图生成并发数" description="同时运行的 ffmpeg 进程数量，影响缩略图生成速度">
+              <InputNumber
+                value={thumbnailConcurrency}
+                onChange={saveThumbnailConcurrency}
+                min={1}
+                max={3}
               />
             </SettingsTile>
             <ExpandableTile

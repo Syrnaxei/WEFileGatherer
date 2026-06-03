@@ -51,7 +51,7 @@ async function startThumbnailGeneration(files: { filePath: string; fileName: str
   const thumbnailCount = parseInt(db.getSetting('thumbnailCount') || '3', 10) || 3;
   const thumbnailQuality = db.getSetting('thumbnailQuality') || 'medium';
   const qualityDims = getQualityDimensions(thumbnailQuality);
-  const thumbnailConcurrency = Math.min(3, Math.max(1, parseInt(db.getSetting('concurrency') || '5', 10)));
+  const thumbnailConcurrency = Math.min(3, Math.max(1, parseInt(db.getSetting('thumbnailConcurrency') || '3', 10)));
   console.log(`[${logPrefix}] Starting thumbnail generation for ${files.length} videos (count=${thumbnailCount}, quality=${thumbnailQuality}, ${qualityDims.width}x${qualityDims.height}, concurrency=${thumbnailConcurrency})`);
 
   const thumbnailQueue = new PromiseQueue(thumbnailConcurrency);
@@ -76,7 +76,7 @@ async function startThumbnailGeneration(files: { filePath: string; fileName: str
 async function startAsyncProbe(files: { id: string; filePath: string; fileName: string }[], ffprobeCmd: string | null, logPrefix: string): Promise<{ fileSize: number; duration: number; bitrate: number }[]> {
   if (!files || files.length === 0) return [];
 
-  const probeConcurrency = Math.min(5, Math.max(1, parseInt(SQLiteDb.getInstance().getSetting('concurrency') || '5', 10)));
+  const probeConcurrency = Math.min(5, Math.max(1, parseInt(SQLiteDb.getInstance().getSetting('probeConcurrency') || '5', 10)));
   console.log(`[${logPrefix}] Starting async probe for ${files.length} files (concurrency=${probeConcurrency})`);
 
   const probeQueue = new PromiseQueue(probeConcurrency);

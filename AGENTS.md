@@ -1,4 +1,4 @@
-# AGENTS.md — Video File Processing V1
+# AGENTS.md — WE File Gatherer
 
 ## Frontend design system (Precision Terminal)
 
@@ -149,6 +149,10 @@ Beyond the basics in README (sourceDir, theme, scrapeSourceDir, etc.), these set
 | `debugLog`              | `false`    | Show full processing logs vs. start/complete only |
 | `processingMode`        | `parallel` | `parallel` or `fifo`                              |
 | `concurrency`           | `5`        | Max parallel files (1-5)                          |
+| `probeConcurrency`      | `5`        | Max parallel ffprobe processes (1-5)              |
+| `thumbnailConcurrency`  | `3`        | Max parallel ffmpeg thumbnail processes (1-3)     |
+| `statsBarGlassEnabled`  | `true`     | Stats bar frosted glass effect toggle             |
+| `statsBarGlassBlur`     | `16`       | Stats bar frosted glass blur value in px (4-40)   |
 | `toastDuration`         | `5`        | Toast notification duration in seconds (0-30)     |
 | `ffmpegBinPath`         | —          | User-configured ffmpeg directory path             |
 | `ffmpegAvailable`       | —          | Persisted ffmpeg detection result                 |

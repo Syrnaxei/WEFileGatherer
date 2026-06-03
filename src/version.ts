@@ -6,6 +6,6 @@
 
 export const APP_NAME = 'WE File Gatherer';
 export const APP_SHORT_NAME = 'WEFG';
-export const APP_VERSION = '1.3.1';
-export const BUILD_DATE = '2026-06-01';
+export const APP_VERSION = '1.3.2';
+export const BUILD_DATE = '2026-06-03';
 export const GITHUB_URL = 'https://github.com/Syrnaxei/WEFileGatherer';

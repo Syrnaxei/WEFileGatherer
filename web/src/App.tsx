@@ -266,6 +266,10 @@ export default function App() {
   };
 
   const handleLoad = async () => {
+    // 重置上一轮处理统计，避免残留计数影响新加载的文件
+    setProcessedCount(0);
+    clearLogs();
+
     try {
       const existingHashes = files.length > 0
         ? files.map((f) => f.videoHash).filter((h): h is string => !!h)
@@ -382,6 +386,10 @@ export default function App() {
       showToast('请先在设置中配置搜刮文件夹', 'error');
       return;
     }
+    // 重置上一轮处理统计，避免残留计数影响新加载的文件
+    setScrapeProcessedCount(0);
+    scrapeSocket.clearLogs();
+
     try {
       const existingHashes = scrapeFiles.length > 0
         ? scrapeFiles.map((f) => f.videoHash).filter((h): h is string => !!h)
