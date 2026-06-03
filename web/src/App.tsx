@@ -271,14 +271,11 @@ export default function App() {
     clearLogs();
 
     try {
-      const existingHashes = files.length > 0
-        ? files.map((f) => f.videoHash).filter((h): h is string => !!h)
-        : [];
-
+      // 不传 existingHashes，获取目录下全部文件列表，用于对比和清理
       const res = await fetch(`${API_BASE}/scan`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ directory: wfpPath, viewMode: 'thumbnail', existingHashes }),
+        body: JSON.stringify({ directory: wfpPath, viewMode: 'thumbnail' }),
       });
       const data = await res.json();
       if (data.success) {
@@ -290,23 +287,40 @@ export default function App() {
           probePending: true,
         }));
 
-        if (existingHashes.length > 0) {
-          setFiles((prev) => [...prev, ...mapped]);
-          const skipped = data.skippedCount || 0;
-          if (mapped.length > 0) {
-            showToast(`已加载 ${mapped.length} 个新文件`, 'success');
-          } else if (skipped > 0) {
-            showToast('无匹配新文件', 'info');
-          } else {
-            showToast('无匹配文件','info');
-          }
+        // 构建目录中存在的 videoHash 集合
+        const dirHashSet = new Set<string>(
+          mapped.map((f: FileItem) => f.videoHash).filter((h): h is string => !!h)
+        );
+
+        // 移除 filelist 中目录已不存在的文件（文件已被移走或删除）
+        const currentFiles = files.filter(
+          (f) => !f.videoHash || dirHashSet.has(f.videoHash)
+        );
+
+        // 当前已有文件的 videoHash 集合，用于跳过重复
+        const existingHashSet = new Set<string>(
+          currentFiles.map((f) => f.videoHash).filter((h): h is string => !!h)
+        );
+
+        // 仅添加目录中新增的文件
+        const newFiles = mapped.filter(
+          (f: FileItem) => !f.videoHash || !existingHashSet.has(f.videoHash)
+        );
+
+        setFiles([...currentFiles, ...newFiles]);
+
+        // 统计被移除的文件数量，提示用户
+        const removedCount = files.length - currentFiles.length;
+        if (newFiles.length > 0 && removedCount > 0) {
+          showToast(`已加载 ${newFiles.length} 个新文件，移除 ${removedCount} 个已不存在文件`, 'success');
+        } else if (newFiles.length > 0) {
+          showToast(`已加载 ${newFiles.length} 个新文件`, 'success');
+        } else if (removedCount > 0) {
+          showToast(`已移除 ${removedCount} 个已不存在文件`, 'info');
+        } else if (mapped.length === 0) {
+          showToast('无匹配文件', 'info');
         } else {
-          setFiles(mapped);
-          if (data.files.length !== 0) {
-            showToast(`已加载 ${data.files.length} 个视频文件`, 'success');
-          } else {
-            showToast('无匹配文件');
-          }
+          showToast('无新文件', 'info');
         }
       } else {
         showToast(data.error || '加载失败', 'error');
@@ -391,14 +405,11 @@ export default function App() {
     scrapeSocket.clearLogs();
 
     try {
-      const existingHashes = scrapeFiles.length > 0
-        ? scrapeFiles.map((f) => f.videoHash).filter((h): h is string => !!h)
-        : [];
-
+      // 不传 existingHashes，获取目录下全部文件列表，用于对比和清理
       const res = await fetch(`${API_BASE}/scrape/scan`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ directory: scrapeSourceDir, depth: scrapeDepth, existingHashes }),
+        body: JSON.stringify({ directory: scrapeSourceDir, depth: scrapeDepth }),
       });
       const data = await res.json();
       if (data.success) {
@@ -411,23 +422,40 @@ export default function App() {
           probePending: true,
         }));
 
-        if (existingHashes.length > 0) {
-          setScrapeFiles((prev) => [...prev, ...mapped]);
-          const skipped = data.skippedCount || 0;
-          if (mapped.length > 0) {
-            showToast(`已加载 ${mapped.length} 个新文件`, 'success');
-          } else if (skipped > 0) {
-            showToast('无匹配新文件', 'info');
-          } else {
-            showToast('无匹配文件','info');
-          }
+        // 构建目录中存在的 videoHash 集合
+        const dirHashSet = new Set<string>(
+          mapped.map((f: ScrapeFileItem) => f.videoHash).filter((h): h is string => !!h)
+        );
+
+        // 移除 filelist 中目录已不存在的文件（文件已被移走或删除）
+        const currentFiles = scrapeFiles.filter(
+          (f) => !f.videoHash || dirHashSet.has(f.videoHash)
+        );
+
+        // 当前已有文件的 videoHash 集合，用于跳过重复
+        const existingHashSet = new Set<string>(
+          currentFiles.map((f) => f.videoHash).filter((h): h is string => !!h)
+        );
+
+        // 仅添加目录中新增的文件
+        const newFiles = mapped.filter(
+          (f: ScrapeFileItem) => !f.videoHash || !existingHashSet.has(f.videoHash)
+        );
+
+        setScrapeFiles([...currentFiles, ...newFiles]);
+
+        // 统计被移除的文件数量，提示用户
+        const removedCount = scrapeFiles.length - currentFiles.length;
+        if (newFiles.length > 0 && removedCount > 0) {
+          showToast(`已加载 ${newFiles.length} 个新文件，移除 ${removedCount} 个已不存在文件`, 'success');
+        } else if (newFiles.length > 0) {
+          showToast(`已加载 ${newFiles.length} 个新文件`, 'success');
+        } else if (removedCount > 0) {
+          showToast(`已移除 ${removedCount} 个已不存在文件`, 'info');
+        } else if (mapped.length === 0) {
+          showToast('无匹配文件', 'info');
         } else {
-          setScrapeFiles(mapped);
-          if (data.files.length !== 0) {
-            showToast(`已加载 ${data.files.length} 个视频文件`, 'success');
-          } else {
-            showToast('未找到匹配文件');
-          }
+          showToast('无新文件', 'info');
         }
       } else {
         showToast(data.error || '加载失败', 'error');
