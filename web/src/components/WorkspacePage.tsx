@@ -1,11 +1,13 @@
-import { PageHeader, WorkspaceStatsBar } from './winui';
+import { useState, useCallback } from 'react';
+import { PageHeader, WorkspaceStatsBar, WorkspaceToolbar } from './winui';
 import FileList, { type FileItem } from './FileList';
 import LogTerminal, { type LogEntry } from './LogTerminal';
+import { showToast } from './Toast';
 import { type SavedTag } from '../App';
 
 /**
  * WorkspacePage — 工作台页面主组件
- * 组合 PageHeader + WorkspaceStatsBar + FileList + LogTerminal
+ * 组合 PageHeader + WorkspaceToolbar + WorkspaceStatsBar + FileList + LogTerminal
  * 所有 API 调用逻辑仍在 App.tsx 中，通过 Props 透传
  */
 
@@ -16,6 +18,7 @@ interface WorkspacePageProps {
   onStop: () => void;
   onTagChange: (index: number, tag: string) => void;
   onRemove: (index: number) => void;
+  onRemoveSelected: (ids: Set<string>) => void;
   savedTags: SavedTag[];
   getTargetPathForTag: (tagName: string) => string;
   wfpPath: string;
@@ -41,6 +44,7 @@ export default function WorkspacePage({
   onStop,
   onTagChange,
   onRemove,
+  onRemoveSelected,
   savedTags,
   getTargetPathForTag,
   wfpPath,
@@ -61,6 +65,42 @@ export default function WorkspacePage({
   const tagged = files.filter((f) => f.tag.trim() !== '').length;
   const total = files.length;
   const failed = failedCount;
+
+  // 选中文件 id 集合
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
+
+  // 全选/全不选
+  const allSelected = total > 0 && selectedIds.size === total;
+  const handleToggleSelectAll = useCallback(() => {
+    if (allSelected) {
+      setSelectedIds(new Set());
+    } else {
+      setSelectedIds(new Set(files.map((f) => f.id)));
+    }
+  }, [allSelected, files]);
+
+  // 单个文件选中切换
+  const handleToggleSelect = useCallback((fileId: string) => {
+    setSelectedIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(fileId)) {
+        next.delete(fileId);
+      } else {
+        next.add(fileId);
+      }
+      return next;
+    });
+  }, []);
+
+  // 删除选中项
+  const handleDeleteSelected = useCallback(() => {
+    if (selectedIds.size === 0) {
+      showToast('无选中文件', 'error');
+      return;
+    }
+    onRemoveSelected(selectedIds);
+    setSelectedIds(new Set());
+  }, [selectedIds, onRemoveSelected]);
 
   return (
     <div style={{
@@ -87,6 +127,15 @@ export default function WorkspacePage({
         }
       />
 
+      {/* 工具栏 */}
+      <WorkspaceToolbar
+        selectedCount={selectedIds.size}
+        totalCount={total}
+        onSelectAll={handleToggleSelectAll}
+        onDeleteSelected={handleDeleteSelected}
+        isRunning={isRunning}
+      />
+
       <div style={{
         flex: 1,
         display: 'flex',
@@ -107,6 +156,9 @@ export default function WorkspacePage({
             thumbnailCount={thumbnailCount}
             viewMode="thumbnail"
             ffmpegAvailable={ffmpegAvailable}
+            selectedIds={selectedIds}
+            onToggleSelect={handleToggleSelect}
+            onToggleSelectAll={handleToggleSelectAll}
             statsBar={
               <WorkspaceStatsBar
                 total={total}

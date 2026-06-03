@@ -11,6 +11,7 @@ export { default as ActionButton, EditIcon, DeleteIcon } from './ActionButton';
 export { default as FolderSelectButton } from './FolderSelectButton';
 export { default as TagCard } from './TagCard';
 export { default as WorkspaceStatsBar } from './WorkspaceStatsBar';
+export { default as WorkspaceToolbar, toolbarFactory, type ToolbarItemConfig } from './WorkspaceToolbar';
 export {
   ThemeIcon,
   ViewIcon,

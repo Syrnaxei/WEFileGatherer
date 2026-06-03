@@ -342,6 +342,11 @@ export default function App() {
     setFiles((prev) => prev.filter((_, i) => i !== index));
   };
 
+  // 批量删除选中文件
+  const handleRemoveSelected = (ids: Set<string>) => {
+    setFiles((prev) => prev.filter((f) => !ids.has(f.id)));
+  };
+
   const handleStart = async () => {
     if (files.length === 0) {
       showToast('请先加载文件', 'error');
@@ -633,6 +638,7 @@ export default function App() {
             onStop={handleStop}
             onTagChange={handleTagChange}
             onRemove={handleRemove}
+            onRemoveSelected={handleRemoveSelected}
             savedTags={savedTags}
             getTargetPathForTag={getTargetPathForTag}
             wfpPath={wfpPath}

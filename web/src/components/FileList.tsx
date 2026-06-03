@@ -35,6 +35,12 @@ interface FileListProps {
   viewMode?: ViewMode;
   ffmpegAvailable?: boolean;
   statsBar?: React.ReactNode;
+  /** 选中文件 id 集合（由外部管理） */
+  selectedIds?: Set<string>;
+  /** 选中状态切换回调 */
+  onToggleSelect?: (fileId: string) => void;
+  /** 全选/全不选回调 */
+  onToggleSelectAll?: () => void;
 }
 
 export { formatFileSize, formatBitrate, formatDuration };
@@ -54,6 +60,9 @@ const STATUS_COL_WIDTH = 90;
 /** 操作列宽 */
 const ACTION_COL_WIDTH = 32;
 
+/** 全选方块列间距 */
+const SELECT_COL_GAP = 14;
+
 export default function FileList({
   files,
   onTagChange,
@@ -63,8 +72,45 @@ export default function FileList({
   isRunning,
   thumbnailCount = 1,
   statsBar,
+  selectedIds: externalSelectedIds,
+  onToggleSelect: externalToggleSelect,
+  onToggleSelectAll: externalToggleSelectAll,
 }: FileListProps) {
   const [lightbox, setLightbox] = useState<{ fileIndex: number; thumbIndex: number } | null>(null);
+  // 内部选中状态（当外部未传入时使用）
+  const [internalSelectedIds, setInternalSelectedIds] = useState<Set<string>>(new Set());
+
+  // 优先使用外部传入的选中状态，否则使用内部状态
+  const selectedIds = externalSelectedIds ?? internalSelectedIds;
+
+  // 全选/全不选切换
+  const allSelected = files.length > 0 && selectedIds.size === files.length;
+  const handleToggleSelectAll = () => {
+    if (externalToggleSelectAll) {
+      externalToggleSelectAll();
+    } else if (allSelected) {
+      setInternalSelectedIds(new Set());
+    } else {
+      setInternalSelectedIds(new Set(files.map((f) => f.id)));
+    }
+  };
+
+  // 单个文件选中切换
+  const handleToggleSelect = (fileId: string) => {
+    if (externalToggleSelect) {
+      externalToggleSelect(fileId);
+    } else {
+      setInternalSelectedIds((prev) => {
+        const next = new Set(prev);
+        if (next.has(fileId)) {
+          next.delete(fileId);
+        } else {
+          next.add(fileId);
+        }
+        return next;
+      });
+    }
+  };
 
   const openLightbox = (fileIndex: number, thumbIndex: number) => {
     setLightbox({ fileIndex, thumbIndex });
@@ -145,6 +191,8 @@ export default function FileList({
                   key={file.id}
                   file={file}
                   index={index}
+                  isSelected={selectedIds.has(file.id)}
+                  onToggleSelect={handleToggleSelect}
                   onTagChange={(tag) => onTagChange(index, tag)}
                   onRemove={() => onRemove(index)}
                   savedTags={savedTags}
@@ -187,6 +235,8 @@ export default function FileList({
 /** 单行文件卡片 */
 function FileCard({
   file,
+  isSelected,
+  onToggleSelect,
   onTagChange,
   onRemove,
   savedTags,
@@ -197,6 +247,8 @@ function FileCard({
 }: {
   file: FileItem;
   index: number;
+  isSelected: boolean;
+  onToggleSelect: (fileId: string) => void;
   onTagChange: (tag: string) => void;
   onRemove: () => void;
   savedTags: SavedTag[];
@@ -205,6 +257,7 @@ function FileCard({
   thumbnailCount: number;
   onThumbnailClick?: (thumbIndex: number) => void;
 }) {
+  const [hovered, setHovered] = useState(false);
   const { status } = file;
   const isCompleted = status === 'completed';
   const isFailed = status === 'failed';
@@ -212,7 +265,15 @@ function FileCard({
   const targetPath = file.tag.trim() ? getTargetPathForTag(file.tag.trim()) : '';
 
   // 卡片背景与边框 — 对齐 settings-tile 风格
-  const cardBg = isProcessing ? 'var(--accent-muted)' : 'var(--settings-tile-bg)';
+  let cardBg = isProcessing ? 'var(--accent-muted)' : 'var(--settings-tile-bg)';
+  // hover 高亮
+  if (!isProcessing && hovered) {
+    cardBg = '#393939';
+  }
+  // 选中状态背景
+  if (isSelected) {
+    cardBg = 'var(--accent-muted)';
+  }
 
   // 状态圆点颜色
   let statusDotColor = 'transparent';
@@ -229,18 +290,31 @@ function FileCard({
   }
 
   return (
-    <div style={{
-      display: 'flex',
-      alignItems: 'center',
-      gap: '14px',
-      padding: '14px 16px',
-      background: cardBg,
-      borderRadius: '4px',
-      opacity: isCompleted ? 0.8 : 1,
-      transition: 'background 150ms ease',
-    }}>
+    <div
+      onClick={(e) => {
+        // 只在点击卡片空白区域时选中，避免与按钮/下拉等交互冲突
+        const target = e.target as HTMLElement;
+        if (target.closest('button, input, [data-interactive]')) return;
+        onToggleSelect(file.id);
+      }}
+      onMouseEnter={() => setHovered(true)}
+      onMouseLeave={() => setHovered(false)}
+      style={{
+        display: 'flex',
+        alignItems: 'center',
+        gap: '14px',
+        padding: '14px 16px',
+        background: cardBg,
+        borderRadius: '4px',
+        opacity: isCompleted ? 0.8 : 1,
+        transition: 'background 150ms ease',
+        cursor: 'pointer',
+        // 选中状态左侧指示条
+        borderLeft: isSelected ? '3px solid var(--accent)' : '3px solid transparent',
+      }}
+    >
       {/* 预览/缩略图 */}
-      <div style={{
+      <div data-interactive style={{
         width: THUMB_COL_WIDTH,
         height: THUMB_HEIGHT,
         flexShrink: 0,
@@ -484,7 +558,7 @@ function TagChip({
   // 已设置 tag 的 chip 样式
   if (value) {
     return (
-      <div ref={containerRef} style={{ position: 'relative' }}>
+      <div ref={containerRef} data-interactive style={{ position: 'relative' }}>
         <div
           onClick={handleChipClick}
           style={{
@@ -606,7 +680,7 @@ function TagChip({
 
   // 未设置 tag — 占位 chip
   return (
-    <div ref={containerRef} style={{ position: 'relative' }}>
+    <div ref={containerRef} data-interactive style={{ position: 'relative' }}>
       <div
         onClick={handleChipClick}
         style={{
