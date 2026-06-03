@@ -289,7 +289,7 @@ export default function App() {
 
         // 构建目录中存在的 videoHash 集合
         const dirHashSet = new Set<string>(
-          mapped.map((f: FileItem) => f.videoHash).filter((h): h is string => !!h)
+          mapped.map((f: FileItem) => f.videoHash).filter((h: string | undefined): h is string => !!h)
         );
 
         // 移除 filelist 中目录已不存在的文件（文件已被移走或删除）
@@ -316,7 +316,7 @@ export default function App() {
         } else if (newFiles.length > 0) {
           showToast(`已加载 ${newFiles.length} 个新文件`, 'success');
         } else if (removedCount > 0) {
-          showToast(`已移除 ${removedCount} 个已不存在文件`, 'info');
+          showToast(`已移除 ${removedCount} 个文件`, 'info');
         } else if (mapped.length === 0) {
           showToast('无匹配文件', 'info');
         } else {
@@ -429,7 +429,7 @@ export default function App() {
 
         // 构建目录中存在的 videoHash 集合
         const dirHashSet = new Set<string>(
-          mapped.map((f: ScrapeFileItem) => f.videoHash).filter((h): h is string => !!h)
+          mapped.map((f: ScrapeFileItem) => f.videoHash).filter((h: string | undefined): h is string => !!h)
         );
 
         // 移除 filelist 中目录已不存在的文件（文件已被移走或删除）
@@ -456,7 +456,7 @@ export default function App() {
         } else if (newFiles.length > 0) {
           showToast(`已加载 ${newFiles.length} 个新文件`, 'success');
         } else if (removedCount > 0) {
-          showToast(`已移除 ${removedCount} 个已不存在文件`, 'info');
+          showToast(`已移除 ${removedCount} 个文件`, 'info');
         } else if (mapped.length === 0) {
           showToast('无匹配文件', 'info');
         } else {
@@ -472,6 +472,10 @@ export default function App() {
 
   const handleScrapeRemove = useCallback((index: number) => {
     setScrapeFiles((prev) => prev.filter((_, i) => i !== index));
+  }, []);
+
+  const handleScrapeRemoveSelected = useCallback((ids: Set<string>) => {
+    setScrapeFiles((prev) => prev.filter((f) => !ids.has(f.id)));
   }, []);
 
   const handleScrapeStart = async () => {
@@ -626,6 +630,7 @@ export default function App() {
             onStart={handleScrapeStart}
             onStop={handleScrapeStop}
             onRemove={handleScrapeRemove}
+            onRemoveSelected={handleScrapeRemoveSelected}
           />
         );
       case 'workspace':

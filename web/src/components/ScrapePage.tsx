@@ -1,10 +1,11 @@
-import { useState } from 'react';
-import { PageHeader, WorkspaceStatsBar } from './winui';
+import { useState, useCallback } from 'react';
+import { PageHeader, WorkspaceStatsBar, WorkspaceToolbar } from './winui';
 import LogTerminal, { type LogEntry } from './LogTerminal';
 import type { ScrapeFileItem } from '../App';
 import ThumbnailImg from './ThumbnailImg';
 import ThumbnailLightbox from './ThumbnailLightbox';
 import { formatFileSize, formatBitrate, formatDuration } from '../utils/format';
+import { showToast } from './Toast';
 
 interface ScrapePageProps {
   files: ScrapeFileItem[];
@@ -26,6 +27,7 @@ interface ScrapePageProps {
   onStart: () => void;
   onStop: () => void;
   onRemove: (index: number) => void;
+  onRemoveSelected: (ids: Set<string>) => void;
 }
 
 /** 缩略图预览列宽 */
@@ -59,9 +61,46 @@ export default function ScrapePage({
   onStart,
   onStop,
   onRemove,
+  onRemoveSelected,
 }: ScrapePageProps) {
   const total = files.length;
   const failed = failedCount;
+
+  // 选中文件 id 集合
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
+
+  // 全选/全不选
+  const allSelected = total > 0 && selectedIds.size === total;
+  const handleToggleSelectAll = useCallback(() => {
+    if (allSelected) {
+      setSelectedIds(new Set());
+    } else {
+      setSelectedIds(new Set(files.map((f) => f.id)));
+    }
+  }, [allSelected, files]);
+
+  // 删除选中项
+  const handleDeleteSelected = useCallback(() => {
+    if (selectedIds.size === 0) {
+      showToast('无选中文件', 'error');
+      return;
+    }
+    onRemoveSelected(selectedIds);
+    setSelectedIds(new Set());
+  }, [selectedIds, onRemoveSelected]);
+
+  // 单个文件选中切换
+  const handleToggleSelect = useCallback((fileId: string) => {
+    setSelectedIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(fileId)) {
+        next.delete(fileId);
+      } else {
+        next.add(fileId);
+      }
+      return next;
+    });
+  }, []);
 
   const [lightbox, setLightbox] = useState<{ fileIndex: number; thumbIndex: number } | null>(null);
 
@@ -119,6 +158,15 @@ export default function ScrapePage({
             </span>
           </>
         }
+      />
+
+      {/* 工具栏 */}
+      <WorkspaceToolbar
+        selectedCount={selectedIds.size}
+        totalCount={total}
+        onSelectAll={handleToggleSelectAll}
+        onDeleteSelected={handleDeleteSelected}
+        isRunning={isRunning}
       />
 
       <div style={{
@@ -182,6 +230,8 @@ export default function ScrapePage({
                     <ScrapeFileCard
                       key={file.id}
                       file={file}
+                      isSelected={selectedIds.has(file.id)}
+                      onToggleSelect={handleToggleSelect}
                       onRemove={() => onRemove(index)}
                       isRunning={isRunning}
                       scrapeSourceDir={scrapeSourceDir}
@@ -255,6 +305,8 @@ export default function ScrapePage({
 /** 搜刮单行文件卡片 — WinUI3 卡片风格 */
 function ScrapeFileCard({
   file,
+  isSelected,
+  onToggleSelect,
   onRemove,
   isRunning,
   scrapeSourceDir,
@@ -263,6 +315,8 @@ function ScrapeFileCard({
   onThumbnailClick,
 }: {
   file: ScrapeFileItem;
+  isSelected: boolean;
+  onToggleSelect: (fileId: string) => void;
   onRemove: () => void;
   isRunning: boolean;
   scrapeSourceDir: string;
@@ -270,6 +324,7 @@ function ScrapeFileCard({
   thumbnailCount: number;
   onThumbnailClick?: (thumbIndex: number) => void;
 }) {
+  const [hovered, setHovered] = useState(false);
   const { status } = file;
   const isCompleted = status === 'completed';
   const isFailed = status === 'failed';
@@ -286,7 +341,14 @@ function ScrapeFileCard({
 
   const displayPath = scrapeShowFullPath ? file.filePath : shortenPath(file.filePath, scrapeSourceDir);
 
-  const cardBg = isProcessing ? 'var(--accent-muted)' : 'var(--settings-tile-bg)';
+  // 卡片背景 — hover 高亮与选中状态
+  let cardBg = isProcessing ? 'var(--accent-muted)' : 'var(--settings-tile-bg)';
+  if (!isProcessing && hovered) {
+    cardBg = '#363636';
+  }
+  if (isSelected) {
+    cardBg = 'var(--accent-muted)';
+  }
 
   let statusDotColor = 'transparent';
   let statusDotShadow = 'none';
@@ -302,18 +364,31 @@ function ScrapeFileCard({
   }
 
   return (
-    <div style={{
-      display: 'flex',
-      alignItems: 'center',
-      gap: '14px',
-      padding: '14px 16px',
-      background: cardBg,
-      borderRadius: '4px',
-      opacity: isCompleted ? 0.8 : 1,
-      transition: 'background 150ms ease',
-    }}>
+    <div
+      onClick={(e) => {
+        // 只在点击卡片空白区域时选中，避免与按钮/缩略图等交互冲突
+        const target = e.target as HTMLElement;
+        if (target.closest('button, input, [data-interactive]')) return;
+        onToggleSelect(file.id);
+      }}
+      onMouseEnter={() => setHovered(true)}
+      onMouseLeave={() => setHovered(false)}
+      style={{
+        display: 'flex',
+        alignItems: 'center',
+        gap: '14px',
+        padding: '14px 16px',
+        background: cardBg,
+        borderRadius: '4px',
+        opacity: isCompleted ? 0.8 : 1,
+        transition: 'background 150ms ease',
+        cursor: 'pointer',
+        // 选中状态左侧指示条
+        borderLeft: isSelected ? '3px solid var(--accent)' : '3px solid transparent',
+      }}
+    >
       {/* 预览/缩略图 */}
-      <div style={{
+      <div data-interactive style={{
         width: THUMB_COL_WIDTH,
         height: THUMB_HEIGHT,
         flexShrink: 0,

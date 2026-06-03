@@ -158,7 +158,6 @@ export default function WorkspacePage({
             ffmpegAvailable={ffmpegAvailable}
             selectedIds={selectedIds}
             onToggleSelect={handleToggleSelect}
-            onToggleSelectAll={handleToggleSelectAll}
             statsBar={
               <WorkspaceStatsBar
                 total={total}

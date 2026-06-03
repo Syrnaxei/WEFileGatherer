@@ -39,8 +39,6 @@ interface FileListProps {
   selectedIds?: Set<string>;
   /** 选中状态切换回调 */
   onToggleSelect?: (fileId: string) => void;
-  /** 全选/全不选回调 */
-  onToggleSelectAll?: () => void;
 }
 
 export { formatFileSize, formatBitrate, formatDuration };
@@ -60,9 +58,6 @@ const STATUS_COL_WIDTH = 90;
 /** 操作列宽 */
 const ACTION_COL_WIDTH = 32;
 
-/** 全选方块列间距 */
-const SELECT_COL_GAP = 14;
-
 export default function FileList({
   files,
   onTagChange,
@@ -74,7 +69,6 @@ export default function FileList({
   statsBar,
   selectedIds: externalSelectedIds,
   onToggleSelect: externalToggleSelect,
-  onToggleSelectAll: externalToggleSelectAll,
 }: FileListProps) {
   const [lightbox, setLightbox] = useState<{ fileIndex: number; thumbIndex: number } | null>(null);
   // 内部选中状态（当外部未传入时使用）
@@ -82,18 +76,6 @@ export default function FileList({
 
   // 优先使用外部传入的选中状态，否则使用内部状态
   const selectedIds = externalSelectedIds ?? internalSelectedIds;
-
-  // 全选/全不选切换
-  const allSelected = files.length > 0 && selectedIds.size === files.length;
-  const handleToggleSelectAll = () => {
-    if (externalToggleSelectAll) {
-      externalToggleSelectAll();
-    } else if (allSelected) {
-      setInternalSelectedIds(new Set());
-    } else {
-      setInternalSelectedIds(new Set(files.map((f) => f.id)));
-    }
-  };
 
   // 单个文件选中切换
   const handleToggleSelect = (fileId: string) => {
@@ -268,7 +250,7 @@ function FileCard({
   let cardBg = isProcessing ? 'var(--accent-muted)' : 'var(--settings-tile-bg)';
   // hover 高亮
   if (!isProcessing && hovered) {
-    cardBg = '#393939';
+    cardBg = '#363636';
   }
   // 选中状态背景
   if (isSelected) {
