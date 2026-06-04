@@ -217,7 +217,7 @@ export default function WorkspaceStatsBar({
           overflow: 'hidden',
           borderTop: expanded ? '1px solid var(--border-default)' : '1px solid transparent',
           marginTop: expanded ? '10px' : '0px',
-          transition: 'max-height 300ms ease, opacity 250ms ease, margin-top 300ms ease, border-top 300ms ease',
+          transition: 'max-height 220ms cubic-bezier(0.4, 0, 0.2, 1), opacity 200ms cubic-bezier(0.4, 0, 0.2, 1), margin-top 220ms cubic-bezier(0.4, 0, 0.2, 1), border-top 220ms cubic-bezier(0.4, 0, 0.2, 1)',
           width: '100%',
         }}>
           <div style={{
