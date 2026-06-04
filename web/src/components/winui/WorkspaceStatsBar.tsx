@@ -35,6 +35,7 @@ export default function WorkspaceStatsBar({
   onStop,
   glassEnabled = true,
   glassBlur = 16,
+  pathInfo,
 }: WorkspaceStatsBarProps) {
   const pending = Math.max(0, total - processed - failed);
 
