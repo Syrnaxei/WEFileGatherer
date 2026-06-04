@@ -130,34 +130,7 @@ export default function ScrapePage({
     }}>
       <PageHeader
         title="搜刮"
-        description={
-          <>
-            递归扫描目录中的视频文件并导出到指定位置 · 源目录{' '}
-            <span style={{
-              fontFamily: 'var(--font-mono)',
-              color: 'var(--accent)',
-              fontWeight: 500,
-            }}>
-              {scrapeSourceDir || '未设置'}
-            </span>
-            {' '}· 导出{' '}
-            <span style={{
-              fontFamily: 'var(--font-mono)',
-              color: 'var(--accent)',
-              fontWeight: 500,
-            }}>
-              {scrapeExportDir || '未设置'}
-            </span>
-            {' '}· 深度{' '}
-            <span style={{
-              fontFamily: 'var(--font-mono)',
-              color: 'var(--accent)',
-              fontWeight: 500,
-            }}>
-              {scrapeDepth}
-            </span>
-          </>
-        }
+        description="递归扫描目录中的视频文件并导出到指定位置"
       />
 
       {/* 工具栏 */}
@@ -262,6 +235,22 @@ export default function ScrapePage({
                 onStop={onStop}
                 glassEnabled={statsBarGlassEnabled}
                 glassBlur={statsBarGlassBlur}
+                pathInfo={
+                  <>
+                    📂 源{' '}
+                    <span style={{ color: 'var(--accent)' }}>
+                      {scrapeSourceDir || '未设置'}
+                    </span>
+                    {' '}· 导出{' '}
+                    <span style={{ color: 'var(--accent)' }}>
+                      {scrapeExportDir || '未设置'}
+                    </span>
+                    {' '}· 深度{' '}
+                    <span style={{ color: 'var(--accent)' }}>
+                      {scrapeDepth}
+                    </span>
+                  </>
+                }
               />
             </div>
           </div>
