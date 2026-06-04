@@ -64,7 +64,6 @@ export default function WorkspaceStatsBar({
       display: 'flex',
       flexDirection: 'column',
       alignItems: 'center',
-      gap: '20px',
       padding: '10px 20px',
       background: glassEnabled ? 'rgba(37,37,54,0.42)' : 'var(--bg-surface-1)',
       borderRadius: 'var(--radius-lg)',
@@ -73,7 +72,7 @@ export default function WorkspaceStatsBar({
       WebkitBackdropFilter: glassEnabled ? `blur(${glassBlur}px)` : undefined,
       backdropFilter: glassEnabled ? `blur(${glassBlur}px)` : undefined,
       userSelect: 'none',
-      cursor: 'pointer',
+      cursor: pathInfo ? 'pointer' : undefined,
       filter: hovered && !isRunning ? 'brightness(1.08)' : 'none',
       transition: 'filter 150ms ease',
     }}
