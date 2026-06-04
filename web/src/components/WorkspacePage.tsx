@@ -113,18 +113,7 @@ export default function WorkspacePage({
     }}>
       <PageHeader
         title="工作台"
-        description={
-          <>
-            批量处理视频文件 · 源目录{' '}
-            <span style={{
-              fontFamily: 'var(--font-mono)',
-              color: 'var(--accent)',
-              fontWeight: 500,
-            }}>
-              {wfpPath || '未设置'}
-            </span>
-          </>
-        }
+        description="批量处理视频文件"
       />
 
       {/* 工具栏 */}
@@ -170,6 +159,14 @@ export default function WorkspacePage({
                 onStop={onStop}
                 glassEnabled={statsBarGlassEnabled}
                 glassBlur={statsBarGlassBlur}
+                pathInfo={
+                  <>
+                    📂 源目录{' '}
+                    <span style={{ color: 'var(--accent)' }}>
+                      {wfpPath || '未设置'}
+                    </span>
+                  </>
+                }
               />
             }
           />
