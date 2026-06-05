@@ -95,7 +95,6 @@ export default function Sidebar({ activePage, onNavigate, isDark: _isDark }: Sid
       width: `${currentWidth}px`,
       minWidth: `${currentWidth}px`,
       background: 'var(--bg-surface-1)',
-      borderRight: '1px solid var(--border-default)',
       display: 'flex',
       flexDirection: 'column',
       alignItems: 'stretch',
