@@ -161,7 +161,7 @@ export default function WorkspacePage({
                 glassBlur={statsBarGlassBlur}
                 pathInfo={
                   <>
-                    📂 源目录{' '}
+                    源目录{' '}
                     <span style={{ color: 'var(--accent)' }}>
                       {wfpPath || '未设置'}
                     </span>

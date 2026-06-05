@@ -237,7 +237,7 @@ export default function ScrapePage({
                 glassBlur={statsBarGlassBlur}
                 pathInfo={
                   <>
-                    📂 源{' '}
+                    源{' '}
                     <span style={{ color: 'var(--accent)' }}>
                       {scrapeSourceDir || '未设置'}
                     </span>

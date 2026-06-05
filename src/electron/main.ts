@@ -108,6 +108,15 @@ ipcMain.handle('dialog:openDirectory', async () => {
   return null;
 });
 
+// 打开独立 DevTools 调试窗口
+ipcMain.handle('devtools:open', () => {
+  if (!mainWindow) return { success: false, error: '主窗口不存在' };
+
+  // 为主窗口打开 DevTools，并以分离模式显示（独立窗口）
+  mainWindow.webContents.openDevTools({ mode: 'detach' });
+  return { success: true };
+});
+
 ipcMain.handle('db:getStats', async (_event, flowId?: string) => {
   const db = SQLiteDb.getInstance();
   return db.getStats(flowId);

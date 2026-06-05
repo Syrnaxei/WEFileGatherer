@@ -18,6 +18,7 @@ declare global {
         pending: any[];
         warnings: string[];
       }>;
+      openDevTools: () => Promise<{ success: boolean; error?: string }>;
     };
   }
 }

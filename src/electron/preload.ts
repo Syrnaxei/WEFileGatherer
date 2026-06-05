@@ -20,6 +20,9 @@ contextBridge.exposeInMainWorld('electronAPI', {
 
   // 崩溃恢复报告
   checkRecovery: () => ipcRenderer.invoke('recovery:check'),
+
+  // 打开 DevTools 调试面板
+  openDevTools: () => ipcRenderer.invoke('devtools:open'),
 });
 
 // TypeScript 类型声明（供前端使用）
@@ -36,6 +39,7 @@ declare global {
         pending: any[];
         warnings: string[];
       }>;
+      openDevTools: () => Promise<{ success: boolean; error?: string }>;
     };
   }
 }

@@ -609,12 +609,6 @@ export default function SettingsPage({
           </SettingsSection>
 
           <SettingsSection title="高级设置">
-            <SettingsTile icon={<TerminalIcon />} title="调试日志输出" description="开启后显示完整的处理过程日志，关闭后仅显示开始和完成状态">
-              <ToggleSwitch checked={debugLogEnabled} onChange={handleDebugLogChange} />
-            </SettingsTile>
-            <SettingsTile icon={<MonitorIcon />} title="日志显示" description="控制前端页面中日志终端窗口的显示与隐藏">
-              <ToggleSwitch checked={showLogTerminal} onChange={onShowLogTerminalChange} />
-            </SettingsTile>
             <SettingsTile icon={<CpuIcon />} title="文件处理模式" description="并行模式可同时处理多个文件，FIFO 模式按顺序逐个处理">
               <SelectDropdown
                 options={[
@@ -795,6 +789,26 @@ export default function SettingsPage({
                 </button>
               </div>
             </SettingsTile>
+          </SettingsSection>
+
+          <SettingsSection title="开发者选项">
+            <SettingsTile icon={<MonitorIcon />} title="日志显示" description="控制前端页面中日志终端窗口的显示与隐藏">
+              <ToggleSwitch checked={showLogTerminal} onChange={onShowLogTerminalChange} />
+            </SettingsTile>
+            <SettingsTile icon={<TerminalIcon />} title="调试日志输出" description="开启后显示完整的处理过程日志，关闭后仅显示开始和完成状态">
+              <ToggleSwitch checked={debugLogEnabled} onChange={handleDebugLogChange} />
+            </SettingsTile>
+            {window.electronAPI && (
+              <SettingsTile icon={<CpuIcon />} title="DevTools" description="打开 Chromium 开发者工具调试面板，用于检查页面元素和调试前端代码">
+                <button
+                  onClick={() => window.electronAPI?.openDevTools()}
+                  className="btn btn-primary"
+                  style={{ padding: '6px 14px', fontSize: '12px' }}
+                >
+                  打开调试面板
+                </button>
+              </SettingsTile>
+            )}
           </SettingsSection>
 
           <SettingsSection title="关于">
